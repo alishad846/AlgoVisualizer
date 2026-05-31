@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,13 +37,19 @@ export default function LoginPage() {
     y.set(0);
   };
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch("http://localhost:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -51,10 +58,9 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
+        navigate("/login");
       } else {
-        setError(data.error || "Login failed");
+        setError(data.error || "Registration failed");
       }
     } catch (err) {
       setError("Failed to connect to the server");
@@ -111,20 +117,20 @@ export default function LoginPage() {
             variants={itemVariants}
             className="text-canvas-white text-heading font-bold tracking-[length:var(--tracking-heading)] leading-[var(--leading-heading)] mb-23"
           >
-            Master Algorithms
+            Join the Next Era
             <br />
-            with Precision.
+            of Learning.
           </motion.h2>
           <motion.p 
             variants={itemVariants}
             className="text-slate-mist text-body-sm leading-[var(--leading-body-sm)] max-w-md"
           >
-            Experience learning with unparalleled clarity. Our platform provides high-contrast, distraction-free visualisations designed for the modern developer.
+            Create an account to track your progress, save custom algorithms, and experience learning without limits.
           </motion.p>
         </motion.div>
       </motion.div>
 
-      {/* Right Panel - Login Form */}
+      {/* Right Panel - Register Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-22 sm:p-68 [perspective:1000px]">
         <motion.div 
           onMouseMove={handleMouseMove}
@@ -143,14 +149,14 @@ export default function LoginPage() {
 
           <div style={{ transform: "translateZ(40px)" }}>
             <h2 className="text-obsidian text-heading-sm font-bold tracking-[length:var(--tracking-heading-sm)] leading-[var(--leading-heading-sm)] mb-11">
-              Log In
+              Create Account
             </h2>
             <p className="text-slate-mist text-body-sm leading-[var(--leading-body-sm)] tracking-[length:var(--tracking-body-sm)] mb-38">
-              Welcome back. Enter your details to continue.
+              Enter your details to register.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-23" style={{ transform: "translateZ(50px)" }}>
+          <form onSubmit={handleRegister} className="flex flex-col gap-23" style={{ transform: "translateZ(50px)" }}>
             {error && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -162,13 +168,13 @@ export default function LoginPage() {
             )}
 
             <div className="flex flex-col gap-2 relative group">
-              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-desert-sienna">
+              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-obsidian/70">
                 Email Address
               </label>
               <input
                 type="email"
                 required
-                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-desert-sienna transition-colors placeholder:text-slate-mist/40"
+                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-obsidian transition-colors placeholder:text-slate-mist/40"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -176,38 +182,52 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-2 relative group">
-              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-desert-sienna">
+              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-obsidian/70">
                 Password
               </label>
               <input
                 type="password"
                 required
-                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-desert-sienna transition-colors placeholder:text-slate-mist/40"
+                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-obsidian transition-colors placeholder:text-slate-mist/40"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
+            <div className="flex flex-col gap-2 relative group">
+              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-obsidian/70">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-obsidian transition-colors placeholder:text-slate-mist/40"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+
             <motion.button
               type="submit"
               disabled={isLoading}
-              whileHover={{ scale: 1.03, boxShadow: "0px 10px 30px rgba(188, 113, 85, 0.4)" }}
+              whileHover={{ scale: 1.03, boxShadow: "0px 10px 30px rgba(0, 13, 16, 0.4)" }}
               whileTap={{ scale: 0.98 }}
-              className="mt-23 w-full bg-desert-sienna text-canvas-white rounded-full pt-[15px] px-[22px] pb-[16px] font-bold text-[17px] transition-colors disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center gap-2"
+              className="mt-23 w-full bg-obsidian text-canvas-white rounded-full pt-[15px] px-[22px] pb-[16px] font-bold text-[17px] transition-colors disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center gap-2"
             >
-              {isLoading ? "Authenticating..." : "Continue"}
+              {isLoading ? "Creating..." : "Register"}
             </motion.button>
           </form>
 
           <div style={{ transform: "translateZ(30px)" }}>
             <p className="mt-38 text-center text-slate-mist text-body-sm">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Link
-                to="/register"
+                to="/login"
                 className="text-obsidian font-bold hover:text-desert-sienna transition-colors"
               >
-                Create one
+                Log in
               </Link>
             </p>
           </div>
