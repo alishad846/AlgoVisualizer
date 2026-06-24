@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "AlgoVision",
+  "version": "1.0.0",
+  "description": "Visualize coding problems from supported websites using AlgoVision.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*"
+  ],
+  "action": {
+    "default_title": "Open AlgoVision",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://leetcode.com/problems/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
