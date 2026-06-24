@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -10,11 +10,11 @@ import {
 } from "../../algorithms/searchingSteps";
 
 const ALGOS = {
-  "linear-search":       { name: "Linear Search",       fn: linearSearchSteps },
-  "binary-search":       { name: "Binary Search",       fn: binarySearchSteps },
-  "jump-search":         { name: "Jump Search",         fn: jumpSearchSteps },
-  "interpolation-search":{ name: "Interpolation Search", fn: interpolationSearchSteps },
-  "exponential-search":  { name: "Exponential Search",  fn: exponentialSearchSteps },
+  "linear-search": { name: "Linear Search", fn: linearSearchSteps },
+  "binary-search": { name: "Binary Search", fn: binarySearchSteps },
+  "jump-search": { name: "Jump Search", fn: jumpSearchSteps },
+  "interpolation-search": { name: "Interpolation Search", fn: interpolationSearchSteps },
+  "exponential-search": { name: "Exponential Search", fn: exponentialSearchSteps },
 };
 
 function randArr(n) {
@@ -36,6 +36,19 @@ export default function SearchingPage() {
   const [running, setRunning] = useState(false);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    // when algo change then values or parameters also change
+    const a = randArr(14);
+    setArray(a);
+    setStates({});
+    setPointer(-1);
+    setSteps(0);
+    setFoundIdx(-1);
+    setStepLog([]);
+    setRunning(false);
+  }, [algo]);
+
 
   const generate = () => {
     stopRef.current = true;
