@@ -12,30 +12,40 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  e.preventDefault();
+  setError("");
 
-    try {
-      const response = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: username, email, password }),
-      });
+ if (!username.trim() || !email.trim() || !password.trim()) {
+  setError("All fields are required.");
+  return;
+}
+if (!email.includes("@")) {
+  setError("Please enter a valid email address.");
+  return;
+}
 
-      const data = await response.json();
+  setIsLoading(true);
 
-      if (response.ok) {
-        navigate("/login");
-      } else {
-        setError(data.error || "Registration failed");
-      }
-    } catch {
-      setError("Failed to connect to the server");
-    } finally {
-      setIsLoading(false);
+  try {
+    const response = await fetch("http://localhost:5000/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: username, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      navigate("/login");
+    } else {
+      setError(data.error || "Registration failed");
     }
-  };
+  } catch {
+    setError("Failed to connect to the server");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <>
@@ -381,7 +391,7 @@ export default function RegisterPage() {
           <div className="register-panel">
             <h3 className="register-panel-title">Create Account</h3>
 
-            <form onSubmit={handleRegister}>
+           <form onSubmit={handleRegister} noValidate>
               {error && <div className="register-error">{error}</div>}
 
               <div className="register-form-group">

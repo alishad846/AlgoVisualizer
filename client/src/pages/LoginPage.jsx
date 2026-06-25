@@ -11,31 +11,37 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+  e.preventDefault();
+  setError("");
 
-    try {
-      const response = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, keepSession }),
-      });
+  if (!username.trim() || !password.trim()) {
+    setError("All fields are required");
+    return;
+  }
 
-      const data = await response.json();
+  setIsLoading(true);
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
-      } else {
-        setError(data.error || "Login failed");
-      }
-    } catch {
-      setError("Failed to connect to the server");
-    } finally {
-      setIsLoading(false);
+  try {
+    const response = await fetch("http://localhost:5000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, keepSession }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } else {
+      setError(data.error || "Login failed");
     }
-  };
+  } catch {
+    setError("Failed to connect to the server");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <>
@@ -420,7 +426,7 @@ export default function LoginPage() {
           <div className="auth-panel">
             <h3 className="auth-panel-title">AlgoVisualizer</h3>
 
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} noValidate>
               {error && <div className="auth-error">{error}</div>}
 
               <div className="auth-form-group">
