@@ -83,6 +83,8 @@ export default function LinkedListPage() {
   const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const speedRef = useRef(speed);
+
 
   useEffect(() => {
     if (algo === "merge-sorted") {
@@ -116,6 +118,8 @@ export default function LinkedListPage() {
     }, 50);
   };
 
+  
+
   const animateReverse = async () => {
     if (running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
@@ -125,7 +129,7 @@ export default function LinkedListPage() {
       if (stopRef.current) break;
       setActiveIdx(i);
       setStepLog(prev => [...prev, { text: `Processing node ${arr[i]}`, type: "compare" }]);
-      await sleep(speed);
+      await new Promise(r => setTimeout(r, speedRef.current)); //  use latest speed
     }
     const reversed = [...arr].reverse();
     setNodes(reversed); setActiveIdx(-1);
@@ -143,7 +147,7 @@ export default function LinkedListPage() {
       visited.add(slow); fast += 2; slow += 1;
       setActiveIdx(slow); setVisitedSet(new Set(visited));
       setStepLog(prev => [...prev, { text: `Slow at ${slow} (${nodes[slow]}), Fast at ${fast} (${nodes[fast]})`, type: "compare" }]);
-      await sleep(speed);
+      await new Promise(r => setTimeout(r, speedRef.current)); //  use latest speed
     }
     if (!stopRef.current) setStepLog(prev => [...prev, { text: `Middle node is ${nodes[slow]} at index ${slow} ✓`, type: "done" }]);
     setRunning(false);
@@ -159,7 +163,7 @@ export default function LinkedListPage() {
       fast = (fast + 2) % nodes.length;
       setActiveIdx(slow);
       setStepLog(prev => [...prev, { text: `Floyd's: slow at index ${slow}, fast at index ${fast}`, type: "compare" }]);
-      await sleep(speed);
+      await new Promise(r => setTimeout(r, speedRef.current)); //  use latest speed
     }
     if (!stopRef.current) setStepLog(prev => [...prev, { text: "No cycle detected (linear list) ✓", type: "done" }]);
     setRunning(false);
@@ -178,7 +182,7 @@ export default function LinkedListPage() {
       if (stopRef.current) break;
       setP1(i); setP2(j);
       setStepLog(prev => [...prev, { text: `Comparing L1[${i}]=${l1[i]} and L2[${j}]=${l2[j]}`, type: "compare" }]);
-      await sleep(speed);
+      await new Promise(r => setTimeout(r, speedRef.current)); //  use latest speed
 
       if (l1[i] <= l2[j]) {
         m.push(l1[i]);
@@ -240,7 +244,12 @@ export default function LinkedListPage() {
         <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
         <label>Speed</label>
         <input type="range" className="speed-slider" min={100} max={1000}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
+          value={speed} onChange={e => {
+            const newSpeed = +e.target.value;
+            setSpeed(newSpeed);
+            speedRef.current = newSpeed;   //  latest value store
+          }}
+        />
         <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 50 }}>{speed}ms</span>
       </div>
 

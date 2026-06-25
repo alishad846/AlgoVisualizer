@@ -36,6 +36,8 @@ export default function SearchingPage() {
   const [running, setRunning] = useState(false);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const speedRef = useRef(speed);
+
 
   useEffect(() => {
     // when algo change then values or parameters also change
@@ -72,7 +74,7 @@ export default function SearchingPage() {
       setSteps(i + 1);
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       if (f.found >= 0) { setFoundIdx(f.found); }
-      await new Promise(r => setTimeout(r, speed));
+      await new Promise(r => setTimeout(r, speedRef.current));
       if (f.found >= 0) break;
     }
     setRunning(false);
@@ -95,9 +97,23 @@ export default function SearchingPage() {
         />
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={50} max={800} step={10}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
+        <input
+          type="range"
+          className="speed-slider"
+          min={50}
+          max={800}
+          step={10}
+          value={speed}
+          onChange={e => {
+            const newSpeed = +e.target.value;
+            setSpeed(newSpeed);
+            speedRef.current = newSpeed;   //  latest value store
+          }}
+        />
+
+
         <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 45 }}>{speed}ms</span>
         <div style={{ marginLeft: "auto", fontSize: 12 }}>
           Steps: <strong style={{ color: "var(--cyan)" }}>{steps}</strong>

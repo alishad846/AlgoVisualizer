@@ -65,6 +65,8 @@ export default function TreePage() {
   const [speed, setSpeed] = useState(500);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const speedRef = useRef(speed);
+
 
   useEffect(() => {
     const newTree = randTree(3); // depth 3 ka random tree
@@ -89,7 +91,7 @@ export default function TreePage() {
       setActiveSet(new Set([order[i]]));
       setVisited(order.slice(0, i + 1));
       setStepLog(prev => [...prev, { text: `Visiting node: ${order[i]}`, type: "compare" }]);
-      await new Promise(r => setTimeout(r, speed));
+      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
     }
     if (!stopRef.current) { setStepLog(prev => [...prev, { text: `${algo} complete: [${order.join(" → ")}]`, type: "done" }]); }
     setRunning(false);
@@ -104,7 +106,7 @@ export default function TreePage() {
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
         <button className="btn btn-ghost" onClick={() => {
-          setTree(randTree(3));  
+          setTree(randTree(3));
           setActiveSet(new Set());
           setVisited([]);
           setStepLog([{ text: "Reset.", type: "info" }]);
@@ -113,8 +115,20 @@ export default function TreePage() {
         </button>
 
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={100} max={1200}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
+        <input
+          type="range"
+          className="speed-slider"
+          min={50}
+          max={1000}
+          step={10}
+          value={speed}
+          onChange={e => {
+            const newSpeed = +e.target.value;
+            setSpeed(newSpeed);
+            speedRef.current = newSpeed;   // latest value store
+          }}
+        />
+
         <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 50 }}>{speed}ms</span>
       </div>
 

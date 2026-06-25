@@ -54,9 +54,21 @@ export default function SortingPage() {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [stepLog, setStepLog] = useState([]);
+  const speedRef = useRef(speed);
+
   const stopRef = useRef(false);
 
   useEffect(() => {
+    return () => {
+      stopRef.current = true;
+    };
+  }, []);
+
+
+  useEffect(() => {
+    // Stop currently running algorithm
+    stopRef.current = true;
+
     const newArray = randArr(size);
 
     setArray(newArray);
@@ -66,7 +78,10 @@ export default function SortingPage() {
     setDone(false);
     setRunning(false);
     setStepLog([]);
-  }, [algo,size]);
+
+    // Reset stop flag for next run
+    stopRef.current = false;
+  }, [algo, size]);
 
   const generate = useCallback(() => {
     stopRef.current = true;
@@ -95,11 +110,12 @@ export default function SortingPage() {
       setSteps(i + 1);
       setSwaps(f.swaps);
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
-      await new Promise(r => setTimeout(r, speed));
+      await new Promise(r => setTimeout(r, speedRef.current)); // 👈 fixed
     }
     if (!stopRef.current) setDone(true);
     setRunning(false);
-  }, [running, array, cfg, speed]);
+  }, [running, array, cfg]); // removed speed dependency
+
 
   return (
     <AppShell breadcrumb={`Sorting / ${cfg.name}`}>
@@ -118,7 +134,12 @@ export default function SortingPage() {
         </select>
         <label>Speed</label>
         <input type="range" className="speed-slider" min={30} max={800} step={10}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
+          value={speed} onChange={e => {
+            const newSpeed = +e.target.value;
+            setSpeed(newSpeed);
+            speedRef.current = newSpeed;
+          }}
+        />
         <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 45 }}>{speed}ms</span>
 
         {/* Live stats */}
