@@ -20,6 +20,7 @@ analyzeButton.addEventListener("click", async () => {
 
     const results = await chrome.scripting.executeScript({
       target: { tabId: activeTab.id },
+
       func: () => {
         const pageTitle = document.title
           .replace(/\s*-\s*LeetCode.*$/i, "")
@@ -31,7 +32,9 @@ analyzeButton.addEventListener("click", async () => {
           document.querySelector("h2");
 
         const descriptionElement =
-          document.querySelector('[data-track-load="description_content"]') ||
+          document.querySelector(
+            '[data-track-load="description_content"]'
+          ) ||
           document.querySelector('[class*="description"]') ||
           document.querySelector("main") ||
           document.body;
@@ -39,26 +42,39 @@ analyzeButton.addEventListener("click", async () => {
         const description =
           descriptionElement?.innerText?.trim() || "";
 
-        const arrayMatch = description.match(
-          /nums\s*=\s*\[([^\]]+)\]/i
-        );
+        function extractNumberArray(variableName) {
+          const pattern = new RegExp(
+            `${variableName}\\s*=\\s*\\[([^\\]]*)\\]`,
+            "i"
+          );
 
-        const targetMatch = description.match(
-          /target\s*=\s*(-?\d+)/i
-        );
+          const match = description.match(pattern);
 
-        let nums = [];
+          if (!match?.[1]) {
+            return [];
+          }
 
-        if (arrayMatch?.[1]) {
-          nums = arrayMatch[1]
+          return match[1]
             .split(",")
             .map((value) => Number(value.trim()))
             .filter((value) => !Number.isNaN(value));
         }
 
-        const target = targetMatch
-          ? Number(targetMatch[1])
-          : null;
+        function extractNumber(variableName) {
+          const pattern = new RegExp(
+            `${variableName}\\s*=\\s*(-?\\d+(?:\\.\\d+)?)`,
+            "i"
+          );
+
+          const match = description.match(pattern);
+
+          return match ? Number(match[1]) : null;
+        }
+
+        const nums = extractNumberArray("nums");
+        const nums1 = extractNumberArray("nums1");
+        const nums2 = extractNumberArray("nums2");
+        const target = extractNumber("target");
 
         return {
           title:
@@ -68,8 +84,11 @@ analyzeButton.addEventListener("click", async () => {
 
           description,
           url: window.location.href,
+
           sampleInput: {
             nums,
+            nums1,
+            nums2,
             target
           }
         };
@@ -82,21 +101,41 @@ analyzeButton.addEventListener("click", async () => {
       throw new Error("The problem description could not be found.");
     }
 
-    const numsText =
-      problemData.sampleInput.nums.length > 0
-        ? `[${problemData.sampleInput.nums.join(", ")}]`
-        : "Not found";
+    const { nums, nums1, nums2, target } =
+      problemData.sampleInput;
 
-    const targetText =
-      problemData.sampleInput.target !== null
-        ? problemData.sampleInput.target
-        : "Not found";
+    const outputLines = [
+      `Problem: ${problemData.title}`
+    ];
 
-    statusMessage.innerHTML = `
-      <strong>Problem:</strong> ${problemData.title}<br>
-      <strong>Array:</strong> ${numsText}<br>
-      <strong>Target:</strong> ${targetText}
-    `;
+    if (nums.length > 0) {
+      outputLines.push(`Array: [${nums.join(", ")}]`);
+    }
+
+    if (nums1.length > 0) {
+      outputLines.push(`Array 1: [${nums1.join(", ")}]`);
+    }
+
+    if (nums2.length > 0) {
+      outputLines.push(`Array 2: [${nums2.join(", ")}]`);
+    }
+
+    if (target !== null) {
+      outputLines.push(`Target: ${target}`);
+    } else {
+      outputLines.push("Target: Not required");
+    }
+
+    if (
+      nums.length === 0 &&
+      nums1.length === 0 &&
+      nums2.length === 0
+    ) {
+      outputLines.push("Input arrays: Not found");
+    }
+
+    statusMessage.textContent = outputLines.join("\n");
+    statusMessage.style.whiteSpace = "pre-line";
   } catch (error) {
     statusMessage.textContent =
       error.message || "Unable to analyze the current problem.";
