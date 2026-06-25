@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import CubeVisualizer from "../../components/CubeVisualizer";
@@ -12,16 +12,16 @@ import {
 } from "../../algorithms/sortingSteps";
 
 const ALGOS = {
-  "bubble-sort":    { name: "Bubble Sort",    fn: bubbleSortSteps },
+  "bubble-sort": { name: "Bubble Sort", fn: bubbleSortSteps },
   "selection-sort": { name: "Selection Sort", fn: selectionSortSteps },
   "insertion-sort": { name: "Insertion Sort", fn: insertionSortSteps },
-  "merge-sort":     { name: "Merge Sort",     fn: mergeSortSteps },
-  "quick-sort":     { name: "Quick Sort",     fn: quickSortSteps },
-  "heap-sort":      { name: "Heap Sort",      fn: heapSortSteps },
-  "counting-sort":  { name: "Counting Sort",  fn: countingSortSteps },
-  "radix-sort":     { name: "Radix Sort",     fn: radixSortSteps },
-  "shell-sort":     { name: "Shell Sort",     fn: shellSortSteps },
-  "bucket-sort":    { name: "Bucket Sort",    fn: bucketSortSteps },
+  "merge-sort": { name: "Merge Sort", fn: mergeSortSteps },
+  "quick-sort": { name: "Quick Sort", fn: quickSortSteps },
+  "heap-sort": { name: "Heap Sort", fn: heapSortSteps },
+  "counting-sort": { name: "Counting Sort", fn: countingSortSteps },
+  "radix-sort": { name: "Radix Sort", fn: radixSortSteps },
+  "shell-sort": { name: "Shell Sort", fn: shellSortSteps },
+  "bucket-sort": { name: "Bucket Sort", fn: bucketSortSteps },
 };
 
 function randArr(size) {
@@ -33,6 +33,18 @@ export default function SortingPage() {
   const cfg = ALGOS[algo] || ALGOS["bubble-sort"];
   const explanation = SORTING_EXPLANATIONS[algo] || SORTING_EXPLANATIONS["bubble-sort"];
 
+  useEffect(() => {
+    const newArray = randArr(size);
+
+    setArray(newArray);
+    setStates({});
+    setSteps(0);
+    setSwaps(0);
+    setDone(false);
+    setRunning(false);
+    setStepLog([]);
+  }, [algo]);
+
   const [size, setSize] = useState(12);
   const [array, setArray] = useState(() => randArr(12));
   const [states, setStates] = useState({});
@@ -43,6 +55,18 @@ export default function SortingPage() {
   const [done, setDone] = useState(false);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    const newArray = randArr(size);
+
+    setArray(newArray);
+    setStates({});
+    setSteps(0);
+    setSwaps(0);
+    setDone(false);
+    setRunning(false);
+    setStepLog([]);
+  }, [algo,size]);
 
   const generate = useCallback(() => {
     stopRef.current = true;
