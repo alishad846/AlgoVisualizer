@@ -494,14 +494,40 @@ export default function LoginPage() {
 
               <div className="auth-social-area">
                 <button className="auth-social-btn" type="button">
-                  <span>G</span>
+                  <span
+  style={{
+    fontSize: "20px",
+    fontWeight: "700",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  G
+</span>
                   <span>Sign in with Google</span>
                 </button>
 
                 <button className="auth-social-btn" type="button">
-                  <span></span>
-                  <span>Sign in with Apple</span>
-                </button>
+  <span
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M16.365 1.43c0 1.14-.415 2.184-1.107 2.943-.748.823-1.97 1.458-3.025 1.372-.134-1.085.39-2.245 1.115-2.997.746-.77 2.038-1.324 3.017-1.318zM20.97 17.252c-.59 1.348-.87 1.95-1.63 3.138-1.06 1.656-2.553 3.72-4.406 3.735-1.647.015-2.072-1.07-4.309-1.058-2.237.012-2.703 1.078-4.35 1.063-1.853-.015-3.266-1.88-4.326-3.536C-1.02 15.96-.53 8.896 3.27 6.568c2.03-1.245 5.24-.998 6.62.665 1.07-1.64 4.105-1.786 6.14-.81.815.39 2.845 1.61 2.94 4.51-2.417 1.32-2.027 4.77.999 6.319z" />
+    </svg>
+  </span>
+  <span>Sign in with Apple</span>
+</button>
               </div>
             </div>
           </div>
