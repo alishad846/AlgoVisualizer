@@ -1,16 +1,21 @@
+const browserAPI = globalThis.browser || globalThis.chrome;
+
 const analyzeButton = document.getElementById("analyzeButton");
 const statusMessage = document.getElementById("statusMessage");
 
 analyzeButton.addEventListener("click", async () => {
   statusMessage.textContent = "Reading the current LeetCode problem...";
+  statusMessage.style.whiteSpace = "pre-line";
 
   try {
-    const [activeTab] = await chrome.tabs.query({
+    const tabs = await browserAPI.tabs.query({
       active: true,
       currentWindow: true
     });
 
-    if (!activeTab?.id || !activeTab.url) {
+    const activeTab = tabs[0];
+
+    if (!activeTab || !activeTab.id || !activeTab.url) {
       throw new Error("No active browser tab was found.");
     }
 
@@ -18,128 +23,306 @@ analyzeButton.addEventListener("click", async () => {
       throw new Error("Open a LeetCode problem page and try again.");
     }
 
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: activeTab.id },
+    const executionResults =
+      await browserAPI.scripting.executeScript({
+        target: {
+          tabId: activeTab.id
+        },
+        func: analyzeLeetCodePage
+      });
 
-      func: () => {
-        const pageTitle = document.title
-          .replace(/\s*-\s*LeetCode.*$/i, "")
-          .trim();
+    const problemData = executionResults[0]?.result;
 
-        const titleElement =
-          document.querySelector('[data-cy="question-title"]') ||
-          document.querySelector("h1") ||
-          document.querySelector("h2");
-
-        const descriptionElement =
-          document.querySelector(
-            '[data-track-load="description_content"]'
-          ) ||
-          document.querySelector('[class*="description"]') ||
-          document.querySelector("main") ||
-          document.body;
-
-        const description =
-          descriptionElement?.innerText?.trim() || "";
-
-        function extractNumberArray(variableName) {
-          const pattern = new RegExp(
-            `${variableName}\\s*=\\s*\\[([^\\]]*)\\]`,
-            "i"
-          );
-
-          const match = description.match(pattern);
-
-          if (!match?.[1]) {
-            return [];
-          }
-
-          return match[1]
-            .split(",")
-            .map((value) => Number(value.trim()))
-            .filter((value) => !Number.isNaN(value));
-        }
-
-        function extractNumber(variableName) {
-          const pattern = new RegExp(
-            `${variableName}\\s*=\\s*(-?\\d+(?:\\.\\d+)?)`,
-            "i"
-          );
-
-          const match = description.match(pattern);
-
-          return match ? Number(match[1]) : null;
-        }
-
-        const nums = extractNumberArray("nums");
-        const nums1 = extractNumberArray("nums1");
-        const nums2 = extractNumberArray("nums2");
-        const target = extractNumber("target");
-
-        return {
-          title:
-            titleElement?.textContent?.trim() ||
-            pageTitle ||
-            "Unknown problem",
-
-          description,
-          url: window.location.href,
-
-          sampleInput: {
-            nums,
-            nums1,
-            nums2,
-            target
-          }
-        };
-      }
-    });
-
-    const problemData = results?.[0]?.result;
-
-    if (!problemData?.description) {
-      throw new Error("The problem description could not be found.");
+    if (!problemData) {
+      throw new Error("The problem information could not be read.");
     }
-
-    const { nums, nums1, nums2, target } =
-      problemData.sampleInput;
 
     const outputLines = [
-      `Problem: ${problemData.title}`
+      `Problem: ${problemData.title}`,
+      `Category: ${problemData.category}`
     ];
 
-    if (nums.length > 0) {
-      outputLines.push(`Array: [${nums.join(", ")}]`);
-    }
+    const inputEntries = Object.entries(problemData.inputs || {});
 
-    if (nums1.length > 0) {
-      outputLines.push(`Array 1: [${nums1.join(", ")}]`);
-    }
+    if (inputEntries.length > 0) {
+      outputLines.push("Detected inputs:");
 
-    if (nums2.length > 0) {
-      outputLines.push(`Array 2: [${nums2.join(", ")}]`);
-    }
+      inputEntries.forEach(([name, value]) => {
+        let displayedValue;
 
-    if (target !== null) {
-      outputLines.push(`Target: ${target}`);
+        if (typeof value === "string") {
+          displayedValue = value;
+        } else {
+          displayedValue = JSON.stringify(value);
+        }
+
+        outputLines.push(`${name}: ${displayedValue}`);
+      });
     } else {
-      outputLines.push("Target: Not required");
+      outputLines.push("Inputs: Not detected");
     }
 
-    if (
-      nums.length === 0 &&
-      nums1.length === 0 &&
-      nums2.length === 0
-    ) {
-      outputLines.push("Input arrays: Not found");
-    }
+    outputLines.push("");
+    outputLines.push("Problem information extracted successfully.");
 
     statusMessage.textContent = outputLines.join("\n");
-    statusMessage.style.whiteSpace = "pre-line";
   } catch (error) {
     statusMessage.textContent =
-      error.message || "Unable to analyze the current problem.";
+      error?.message || "Unable to analyze the current problem.";
 
     console.error("AlgoVision extension error:", error);
   }
 });
+
+function analyzeLeetCodePage() {
+  const pageTitle = document.title
+    .replace(/\s*-\s*LeetCode.*$/i, "")
+    .trim();
+
+  const titleElement =
+    document.querySelector('[data-cy="question-title"]') ||
+    document.querySelector("h1") ||
+    document.querySelector("h2");
+
+  const descriptionElement =
+    document.querySelector('[data-track-load="description_content"]') ||
+    document.querySelector('[class*="description"]') ||
+    document.querySelector("main") ||
+    document.body;
+
+  const title =
+    titleElement?.textContent?.trim() ||
+    pageTitle ||
+    "Unknown problem";
+
+  const description =
+    descriptionElement?.innerText?.trim() || "";
+
+  const firstInputLine = extractFirstInputLine(description);
+  const inputs = parseInputAssignments(firstInputLine);
+  const category = detectCategory(title, description);
+
+  return {
+    title,
+    description,
+    category,
+    inputs,
+    url: window.location.href
+  };
+
+  function extractFirstInputLine(text) {
+    const exampleOneMatch = text.match(
+      /Example\s*1\s*:[\s\S]*?Input\s*:\s*([^\n]+)/i
+    );
+
+    if (exampleOneMatch && exampleOneMatch[1]) {
+      return exampleOneMatch[1].trim();
+    }
+
+    const inputMatch = text.match(/Input\s*:\s*([^\n]+)/i);
+
+    if (inputMatch && inputMatch[1]) {
+      return inputMatch[1].trim();
+    }
+
+    return "";
+  }
+
+  function parseInputAssignments(inputText) {
+    if (!inputText) {
+      return {};
+    }
+
+    const parts = splitOutsideBrackets(inputText);
+    const parsedInputs = {};
+
+    parts.forEach((part, index) => {
+      const equalPosition = part.indexOf("=");
+
+      if (equalPosition === -1) {
+        parsedInputs[`input${index + 1}`] = parseValue(part);
+        return;
+      }
+
+      const variableName = part
+        .slice(0, equalPosition)
+        .trim();
+
+      const rawValue = part
+        .slice(equalPosition + 1)
+        .trim();
+
+      if (variableName) {
+        parsedInputs[variableName] = parseValue(rawValue);
+      }
+    });
+
+    return parsedInputs;
+  }
+
+  function splitOutsideBrackets(text) {
+    const parts = [];
+    let currentPart = "";
+    let bracketDepth = 0;
+    let activeQuote = null;
+
+    for (let index = 0; index < text.length; index += 1) {
+      const character = text[index];
+      const previousCharacter = text[index - 1];
+
+      if (
+        (character === '"' || character === "'") &&
+        previousCharacter !== "\\"
+      ) {
+        if (activeQuote === character) {
+          activeQuote = null;
+        } else if (!activeQuote) {
+          activeQuote = character;
+        }
+      }
+
+      if (!activeQuote) {
+        if (
+          character === "[" ||
+          character === "{" ||
+          character === "("
+        ) {
+          bracketDepth += 1;
+        }
+
+        if (
+          character === "]" ||
+          character === "}" ||
+          character === ")"
+        ) {
+          bracketDepth -= 1;
+        }
+      }
+
+      if (
+        character === "," &&
+        bracketDepth === 0 &&
+        !activeQuote
+      ) {
+        parts.push(currentPart.trim());
+        currentPart = "";
+      } else {
+        currentPart += character;
+      }
+    }
+
+    if (currentPart.trim()) {
+      parts.push(currentPart.trim());
+    }
+
+    return parts;
+  }
+
+  function parseValue(rawValue) {
+    const value = rawValue.trim();
+
+    if (!value) {
+      return "";
+    }
+
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      return value.slice(1, -1);
+    }
+
+    if (value === "true") {
+      return true;
+    }
+
+    if (value === "false") {
+      return false;
+    }
+
+    if (value === "null") {
+      return null;
+    }
+
+    if (/^-?\d+(?:\.\d+)?$/.test(value)) {
+      return Number(value);
+    }
+
+    if (
+      (value.startsWith("[") && value.endsWith("]")) ||
+      (value.startsWith("{") && value.endsWith("}"))
+    ) {
+      try {
+        return JSON.parse(value);
+      } catch (error) {
+        return value;
+      }
+    }
+
+    return value;
+  }
+
+  function detectCategory(problemTitle, problemDescription) {
+    const combinedText =
+      `${problemTitle} ${problemDescription}`.toLowerCase();
+
+    if (
+      combinedText.includes("linked list") ||
+      combinedText.includes("listnode")
+    ) {
+      return "Linked List";
+    }
+
+    if (
+      combinedText.includes("binary tree") ||
+      combinedText.includes("treenode")
+    ) {
+      return "Tree";
+    }
+
+    if (
+      combinedText.includes("graph") ||
+      combinedText.includes("edges")
+    ) {
+      return "Graph";
+    }
+
+    if (
+      combinedText.includes("binary search") ||
+      combinedText.includes("sorted array")
+    ) {
+      return "Searching";
+    }
+
+    if (
+      combinedText.includes("sort") ||
+      combinedText.includes("sorting")
+    ) {
+      return "Sorting";
+    }
+
+    if (
+      combinedText.includes("dynamic programming") ||
+      combinedText.includes("minimum cost") ||
+      combinedText.includes("maximum profit")
+    ) {
+      return "Dynamic Programming";
+    }
+
+    if (
+      combinedText.includes("string") ||
+      combinedText.includes("substring")
+    ) {
+      return "String";
+    }
+
+    if (
+      combinedText.includes("array") ||
+      combinedText.includes("nums")
+    ) {
+      return "Array";
+    }
+
+    return "General DSA";
+  }
+}
