@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [keepSession, setKeepSession] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ export default function LoginPage() {
       const response = await fetch("http://localhost:5000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, keepSession }),
+        body: JSON.stringify({ username, password, keepSession }),
       });
 
       const data = await response.json();
@@ -424,19 +424,19 @@ export default function LoginPage() {
               {error && <div className="auth-error">{error}</div>}
 
               <div className="auth-form-group">
-                <label className="auth-label" htmlFor="email">
-                  Email
+                <label className="auth-label" htmlFor="username">
+                  Username
                 </label>
 
                 <div className="auth-input-wrap">
-                  <span className="auth-input-icon">@</span>
+                  <span className="auth-input-icon">👤</span>
                   <input
-                    id="email"
+                    id="username"
                     className="auth-input"
-                    type="email"
-                    placeholder="email@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="username"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>

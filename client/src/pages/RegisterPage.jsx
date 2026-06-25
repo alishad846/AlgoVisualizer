@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 export default function RegisterPage() {
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,7 +20,7 @@ export default function RegisterPage() {
       const response = await fetch("http://localhost:5000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: fullName, email, password }),
+        body: JSON.stringify({ name: username, email, password }),
       });
 
       const data = await response.json();
@@ -385,19 +385,19 @@ export default function RegisterPage() {
               {error && <div className="register-error">{error}</div>}
 
               <div className="register-form-group">
-                <label className="register-label" htmlFor="fullName">
-                  Full Name
+                <label className="register-label" htmlFor="username">
+                  Username
                 </label>
 
                 <div className="register-input-wrap">
                   <span className="register-input-icon">👤</span>
                   <input
-                    id="fullName"
+                    id="username"
                     className="register-input"
                     type="text"
                     placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
