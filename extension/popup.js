@@ -1,11 +1,21 @@
 const browserAPI = globalThis.browser || globalThis.chrome;
 
 const analyzeButton = document.getElementById("analyzeButton");
+const openVisualizerButton = document.getElementById(
+  "openVisualizerButton"
+);
 const statusMessage = document.getElementById("statusMessage");
 
+let detectedProblem = null;
+
 analyzeButton.addEventListener("click", async () => {
-  statusMessage.textContent = "Reading the current LeetCode problem...";
+  statusMessage.textContent =
+    "Reading the current LeetCode problem...";
+
   statusMessage.style.whiteSpace = "pre-line";
+
+  openVisualizerButton.disabled = true;
+  detectedProblem = null;
 
   try {
     const tabs = await browserAPI.tabs.query({
@@ -19,8 +29,14 @@ analyzeButton.addEventListener("click", async () => {
       throw new Error("No active browser tab was found.");
     }
 
-    if (!activeTab.url.startsWith("https://leetcode.com/problems/")) {
-      throw new Error("Open a LeetCode problem page and try again.");
+    if (
+      !activeTab.url.startsWith(
+        "https://leetcode.com/problems/"
+      )
+    ) {
+      throw new Error(
+        "Open a LeetCode problem page and try again."
+      );
     }
 
     const executionResults =
@@ -34,27 +50,30 @@ analyzeButton.addEventListener("click", async () => {
     const problemData = executionResults[0]?.result;
 
     if (!problemData) {
-      throw new Error("The problem information could not be read.");
+      throw new Error(
+        "The problem information could not be read."
+      );
     }
+
+    detectedProblem = problemData;
 
     const outputLines = [
       `Problem: ${problemData.title}`,
       `Category: ${problemData.category}`
     ];
 
-    const inputEntries = Object.entries(problemData.inputs || {});
+    const inputEntries = Object.entries(
+      problemData.inputs || {}
+    );
 
     if (inputEntries.length > 0) {
       outputLines.push("Detected inputs:");
 
       inputEntries.forEach(([name, value]) => {
-        let displayedValue;
-
-        if (typeof value === "string") {
-          displayedValue = value;
-        } else {
-          displayedValue = JSON.stringify(value);
-        }
+        const displayedValue =
+          typeof value === "string"
+            ? value
+            : JSON.stringify(value);
 
         outputLines.push(`${name}: ${displayedValue}`);
       });
@@ -62,16 +81,78 @@ analyzeButton.addEventListener("click", async () => {
       outputLines.push("Inputs: Not detected");
     }
 
-    outputLines.push("");
-    outputLines.push("Problem information extracted successfully.");
+    const isTwoSum =
+      problemData.title.toLowerCase().includes("two sum");
+
+    const hasNums =
+      Array.isArray(problemData.inputs?.nums) &&
+      problemData.inputs.nums.length > 0;
+
+    const hasTarget =
+      typeof problemData.inputs?.target === "number";
+
+    if (isTwoSum && hasNums && hasTarget) {
+      openVisualizerButton.disabled = false;
+
+      outputLines.push("");
+      outputLines.push(
+        "Two Sum visualization is ready."
+      );
+    } else {
+      openVisualizerButton.disabled = true;
+
+      outputLines.push("");
+      outputLines.push(
+        "Automatic visualization is currently available for Two Sum."
+      );
+    }
 
     statusMessage.textContent = outputLines.join("\n");
   } catch (error) {
     statusMessage.textContent =
-      error?.message || "Unable to analyze the current problem.";
+      error?.message ||
+      "Unable to analyze the current problem.";
 
-    console.error("AlgoVision extension error:", error);
+    openVisualizerButton.disabled = true;
+    detectedProblem = null;
+
+    console.error(
+      "AlgoVision extension error:",
+      error
+    );
   }
+});
+
+openVisualizerButton.addEventListener("click", async () => {
+  if (!detectedProblem) {
+    statusMessage.textContent =
+      "Analyze the LeetCode problem first.";
+
+    return;
+  }
+
+  const nums = detectedProblem.inputs?.nums;
+  const target = detectedProblem.inputs?.target;
+
+  if (!Array.isArray(nums) || typeof target !== "number") {
+    statusMessage.textContent =
+      "Two Sum inputs could not be prepared.";
+
+    return;
+  }
+
+  const params = new URLSearchParams({
+    nums: JSON.stringify(nums),
+    target: String(target),
+    autoStart: "true"
+  });
+
+  const visualizerUrl =
+    `http://localhost:5173/searching/two-sum?${params.toString()}`;
+
+  await browserAPI.tabs.create({
+    url: visualizerUrl
+  });
 });
 
 function analyzeLeetCodePage() {
@@ -85,7 +166,9 @@ function analyzeLeetCodePage() {
     document.querySelector("h2");
 
   const descriptionElement =
-    document.querySelector('[data-track-load="description_content"]') ||
+    document.querySelector(
+      '[data-track-load="description_content"]'
+    ) ||
     document.querySelector('[class*="description"]') ||
     document.querySelector("main") ||
     document.body;
@@ -98,9 +181,14 @@ function analyzeLeetCodePage() {
   const description =
     descriptionElement?.innerText?.trim() || "";
 
-  const firstInputLine = extractFirstInputLine(description);
-  const inputs = parseInputAssignments(firstInputLine);
-  const category = detectCategory(title, description);
+  const firstInputLine =
+    extractFirstInputLine(description);
+
+  const inputs =
+    parseInputAssignments(firstInputLine);
+
+  const category =
+    detectCategory(title, description);
 
   return {
     title,
@@ -119,7 +207,9 @@ function analyzeLeetCodePage() {
       return exampleOneMatch[1].trim();
     }
 
-    const inputMatch = text.match(/Input\s*:\s*([^\n]+)/i);
+    const inputMatch = text.match(
+      /Input\s*:\s*([^\n]+)/i
+    );
 
     if (inputMatch && inputMatch[1]) {
       return inputMatch[1].trim();
@@ -133,14 +223,18 @@ function analyzeLeetCodePage() {
       return {};
     }
 
-    const parts = splitOutsideBrackets(inputText);
+    const parts =
+      splitOutsideBrackets(inputText);
+
     const parsedInputs = {};
 
     parts.forEach((part, index) => {
       const equalPosition = part.indexOf("=");
 
       if (equalPosition === -1) {
-        parsedInputs[`input${index + 1}`] = parseValue(part);
+        parsedInputs[`input${index + 1}`] =
+          parseValue(part);
+
         return;
       }
 
@@ -153,7 +247,8 @@ function analyzeLeetCodePage() {
         .trim();
 
       if (variableName) {
-        parsedInputs[variableName] = parseValue(rawValue);
+        parsedInputs[variableName] =
+          parseValue(rawValue);
       }
     });
 
@@ -162,16 +257,23 @@ function analyzeLeetCodePage() {
 
   function splitOutsideBrackets(text) {
     const parts = [];
+
     let currentPart = "";
     let bracketDepth = 0;
     let activeQuote = null;
 
-    for (let index = 0; index < text.length; index += 1) {
+    for (
+      let index = 0;
+      index < text.length;
+      index += 1
+    ) {
       const character = text[index];
-      const previousCharacter = text[index - 1];
+      const previousCharacter =
+        text[index - 1];
 
       if (
-        (character === '"' || character === "'") &&
+        (character === '"' ||
+          character === "'") &&
         previousCharacter !== "\\"
       ) {
         if (activeQuote === character) {
@@ -226,8 +328,10 @@ function analyzeLeetCodePage() {
     }
 
     if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
+      (value.startsWith('"') &&
+        value.endsWith('"')) ||
+      (value.startsWith("'") &&
+        value.endsWith("'"))
     ) {
       return value.slice(1, -1);
     }
@@ -249,8 +353,10 @@ function analyzeLeetCodePage() {
     }
 
     if (
-      (value.startsWith("[") && value.endsWith("]")) ||
-      (value.startsWith("{") && value.endsWith("}"))
+      (value.startsWith("[") &&
+        value.endsWith("]")) ||
+      (value.startsWith("{") &&
+        value.endsWith("}"))
     ) {
       try {
         return JSON.parse(value);
@@ -262,7 +368,10 @@ function analyzeLeetCodePage() {
     return value;
   }
 
-  function detectCategory(problemTitle, problemDescription) {
+  function detectCategory(
+    problemTitle,
+    problemDescription
+  ) {
     const combinedText =
       `${problemTitle} ${problemDescription}`.toLowerCase();
 
@@ -288,6 +397,12 @@ function analyzeLeetCodePage() {
     }
 
     if (
+      combinedText.includes("two sum")
+    ) {
+      return "Array / Hash Map";
+    }
+
+    if (
       combinedText.includes("binary search") ||
       combinedText.includes("sorted array")
     ) {
@@ -299,14 +414,6 @@ function analyzeLeetCodePage() {
       combinedText.includes("sorting")
     ) {
       return "Sorting";
-    }
-
-    if (
-      combinedText.includes("dynamic programming") ||
-      combinedText.includes("minimum cost") ||
-      combinedText.includes("maximum profit")
-    ) {
-      return "Dynamic Programming";
     }
 
     if (

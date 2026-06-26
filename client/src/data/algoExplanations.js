@@ -203,6 +203,40 @@ heapify(arr, i, n):
 };
 
 export const SEARCHING_EXPLANATIONS = {
+  "two-sum": {
+    title: "Two Sum",
+
+    theory:
+      "Two Sum finds two numbers in an array whose sum equals the target. A hash map stores previously visited values and their indices, allowing the matching complement to be found efficiently.",
+
+    howItWorks: [
+      "Start from the first element of the array.",
+      "For the current value, calculate complement = target - current value.",
+      "Check whether the complement already exists in the hash map.",
+      "If it exists, return the stored index and the current index.",
+      "If it does not exist, store the current value and its index.",
+      "Continue until the matching pair is found."
+    ],
+
+    pseudocode: `twoSum(nums, target):
+  map = empty hash map
+
+  for i = 0 to nums.length - 1:
+    complement = target - nums[i]
+
+    if complement exists in map:
+      return [map[complement], i]
+
+    map[nums[i]] = i
+
+  return []`,
+
+    timeBest: "O(1)",
+    timeAvg: "O(n)",
+    timeWorst: "O(n)",
+    space: "O(n)"
+  },
+  
   "linear-search": {
     title: "Linear Search",
     theory: "Linear Search is the simplest search algorithm. It sequentially checks each element of the list until a match is found or the whole list has been searched. It works on both sorted and unsorted arrays.",

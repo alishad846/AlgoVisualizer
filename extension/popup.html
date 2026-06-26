@@ -2,23 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
   <title>AlgoVision</title>
+
   <link rel="stylesheet" href="popup.css" />
 </head>
+
 <body>
   <main class="popup-container">
     <h1>AlgoVision</h1>
 
-    <p>
+    <p class="subtitle">
       Read the current LeetCode problem and prepare it for visualization.
     </p>
 
-    <button id="analyzeButton">
+    <button id="analyzeButton" type="button">
       Analyze Current Problem
     </button>
 
-    <p id="statusMessage"></p>
+    <button
+      id="openVisualizerButton"
+      type="button"
+      disabled
+    >
+      Open in AlgoVision
+    </button>
+
+    <div
+      id="statusMessage"
+      role="status"
+      aria-live="polite"
+    >
+      Open a supported LeetCode problem and click Analyze Current Problem.
+    </div>
   </main>
 
   <script src="popup.js"></script>

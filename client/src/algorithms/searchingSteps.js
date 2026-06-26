@@ -117,3 +117,80 @@ export function exponentialSearchSteps(arr, target) {
   }
   return frames;
 }
+export function twoSumSteps(arr, target) {
+  const frames = [];
+  const seen = new Map();
+
+  frames.push(
+    makeFrame(
+      arr,
+      {},
+      -1,
+      `Start Two Sum with target ${target}.`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < arr.length; i += 1) {
+    const current = arr[i];
+    const complement = target - current;
+
+    frames.push(
+      makeFrame(
+        arr,
+        { [i]: "comparing" },
+        i,
+        `At index ${i}, value is ${current}. Required complement is ${complement}.`,
+        -1,
+        "compare"
+      )
+    );
+
+    if (seen.has(complement)) {
+      const firstIndex = seen.get(complement);
+
+      frames.push(
+        makeFrame(
+          arr,
+          {
+            [firstIndex]: "found",
+            [i]: "found"
+          },
+          i,
+          `Found pair: arr[${firstIndex}] = ${complement} and arr[${i}] = ${current}. Output indices: [${firstIndex}, ${i}].`,
+          i,
+          "done"
+        )
+      );
+
+      return frames;
+    }
+
+    seen.set(current, i);
+
+    frames.push(
+      makeFrame(
+        arr,
+        { [i]: "current" },
+        i,
+        `Store value ${current} with index ${i} in the hash map.`,
+        -1,
+        "info"
+      )
+    );
+  }
+
+  frames.push(
+    makeFrame(
+      arr,
+      {},
+      -1,
+      `No two numbers add up to ${target}.`,
+      -1,
+      "info"
+    )
+  );
+
+  return frames;
+}
