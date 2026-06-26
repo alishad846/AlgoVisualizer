@@ -88,15 +88,48 @@ export default function SearchingPage() {
       <div className="section-sub">Cubes highlight as the algorithm scans for the target value</div>
 
       <div className="controls-bar" style={{ marginBottom: 12 }}>
-        <button className="btn btn-ghost" onClick={generate} disabled={running}>⟳ Generate</button>
+        {/* Generate button — disable jab algo chal raha ho */}
+        <button
+          className="btn btn-ghost"
+          onClick={generate}
+          disabled={running}
+        >
+          ⟳ Generate
+        </button>
+
         <label>Target</label>
         <input
-          type="number" value={target}
+          type="number"
+          value={target}
           onChange={e => setTarget(+e.target.value)}
-          style={{ width: 64, background: "var(--surface2)", border: "1px solid var(--border2)", color: "var(--text)", padding: "6px 8px", borderRadius: 8, fontSize: 13 }}
+          style={{
+            width: 64,
+            background: "var(--surface2)",
+            border: "1px solid var(--border2)",
+            color: "var(--text)",
+            padding: "6px 8px",
+            borderRadius: 8,
+            fontSize: 13
+          }}
         />
-        <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+
+        {/* Start button — disable jab algo chal raha ho ya result mil gaya ho */}
+        <button
+          className="btn btn-primary"
+          onClick={start}
+          disabled={running || foundIdx >= 0}
+        >
+          ▶ Start
+        </button>
+
+        {/* Stop button — disable jab algo chal nahi raha ho */}
+        <button
+          className="btn btn-danger"
+          onClick={() => { stopRef.current = true; setRunning(false); }}
+          disabled={!running}
+        >
+          ■ Stop
+        </button>
 
         <label>Speed</label>
         <input
@@ -109,18 +142,29 @@ export default function SearchingPage() {
           onChange={e => {
             const newSpeed = +e.target.value;
             setSpeed(newSpeed);
-            speedRef.current = newSpeed;   //  latest value store
+            speedRef.current = newSpeed;   // latest value store
           }}
         />
 
+        <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 45 }}>
+          {speed}ms
+        </span>
 
-        <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 45 }}>{speed}ms</span>
         <div style={{ marginLeft: "auto", fontSize: 12 }}>
           Steps: <strong style={{ color: "var(--cyan)" }}>{steps}</strong>
-          {foundIdx >= 0 && <span style={{ color: "var(--green)", marginLeft: 12 }}>✓ Found at index {foundIdx}</span>}
-          {!running && steps > 0 && foundIdx < 0 && <span style={{ color: "var(--red)", marginLeft: 12 }}>✗ Not found</span>}
+          {foundIdx >= 0 && (
+            <span style={{ color: "var(--green)", marginLeft: 12 }}>
+              ✓ Found at index {foundIdx}
+            </span>
+          )}
+          {!running && steps > 0 && foundIdx < 0 && (
+            <span style={{ color: "var(--red)", marginLeft: 12 }}>
+              ✗ Not found
+            </span>
+          )}
         </div>
       </div>
+
 
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}

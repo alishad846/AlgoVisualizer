@@ -104,7 +104,7 @@ export default function TreePage() {
 
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
         <button className="btn btn-ghost" onClick={() => {
           setTree(randTree(3));
           setActiveSet(new Set());

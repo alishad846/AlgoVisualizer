@@ -126,7 +126,14 @@ export default function SortingPage() {
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-ghost" onClick={generate} disabled={running}>⟳ Generate</button>
         <button className="btn btn-primary" onClick={start} disabled={running || done}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+        <button
+          className="btn btn-danger"
+          onClick={() => { stopRef.current = true; setRunning(false); }}
+          disabled={!running}
+        >
+          ■ Stop
+        </button>
+
         <div style={{ width: 1, height: 20, background: "var(--border2)", margin: "0 4px" }} />
         <label>Size</label>
         <select className="size-select" value={size} onChange={e => { setSize(+e.target.value); }}>

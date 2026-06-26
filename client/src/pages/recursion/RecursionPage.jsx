@@ -229,7 +229,6 @@ export default function RecursionPage() {
   const stopRef = useRef(false);
   const speedRef = useRef(speed);
 
-
   const initHanoi = (n) => {
     setNumDisks(n);
     setPegs([Array.from({ length: n }, (_, i) => n - i), [], []]);
@@ -245,19 +244,28 @@ export default function RecursionPage() {
 
   const startHanoi = async () => {
     if (running) return;
-    stopRef.current = false; setRunning(true);
+    stopRef.current = false;
+    setRunning(true);
     setStepLog([]);
+
     const moves = hanoiMoves(numDisks, 0, 2, 1);
     const state = [Array.from({ length: numDisks }, (_, i) => numDisks - i), [], []];
+
     for (const move of moves) {
-      if (stopRef.current) break;
+      if (stopRef.current) {
+        setRunning(false);
+        return;
+      }
       const disk = state[move.from].pop();
       state[move.to].push(disk);
       setPegs(state.map(p => [...p]));
-      setStepLog(prev => [...prev, { text: `Move disk ${disk} from ${["A", "B", "C"][move.from]} → ${["A", "B", "C"][move.to]}`, type: "info" }]);
+      setStepLog(prev => [...prev, {
+        text: `Move disk ${disk} from ${["A", "B", "C"][move.from]} → ${["A", "B", "C"][move.to]}`,
+        type: "info"
+      }]);
       await new Promise(r => setTimeout(r, speedRef.current));
-
     }
+
     if (!stopRef.current) setStepLog(prev => [...prev, { text: `Done! ${moves.length} moves total.`, type: "done" }]);
     setRunning(false);
   };
@@ -312,6 +320,17 @@ export default function RecursionPage() {
   const isMaze = algo === "rat-in-maze";
   const isSubsets = algo === "subsets";
 
+  const handleStop = () => {
+    stopRef.current = true;
+    setRunning(false);
+  };
+
+  const stopButton = (
+    <button className="btn btn-danger" onClick={handleStop} disabled={!running}>
+      ■ Stop
+    </button>
+  );
+
   return (
     <AppShell breadcrumb={`Recursion / ${explanation?.title || algo}`}>
       <div className="section-title">{explanation?.title || "Recursion"}</div>
@@ -321,12 +340,29 @@ export default function RecursionPage() {
         {isHanoi && (
           <>
             <label>Disks</label>
-            <select className="size-select" value={numDisks} onChange={e => { initHanoi(+e.target.value) }} disabled={running}>
+            <select
+              className="size-select"
+              value={numDisks}
+              onChange={e => {
+                initHanoi(+e.target.value);
+              }}
+              disabled={running}
+            >
               {[3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
-            <button className="btn btn-primary" onClick={startHanoi} disabled={running}>▶ Start</button>
+
+            <button
+              className="btn btn-primary"
+              onClick={startHanoi}
+              disabled={running}
+            >
+              ▶ Start
+            </button>
+
+            {stopButton}
           </>
         )}
+
         {isQueens && (
           <>
             <label>N</label>
@@ -334,6 +370,7 @@ export default function RecursionPage() {
               {[4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startQueens} disabled={running}>▶ Start</button>
+            {stopButton}
           </>
         )}
         {isMaze && (
@@ -343,6 +380,7 @@ export default function RecursionPage() {
               {[4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startMaze} disabled={running}>▶ Start</button>
+            {stopButton}
           </>
         )}
         {isSubsets && (
@@ -352,9 +390,10 @@ export default function RecursionPage() {
               {[2, 3, 4].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startSubsets} disabled={running}>▶ Start</button>
+            {stopButton}
           </>
         )}
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+
         <label>Speed</label>
         <input type="range" className="speed-slider" min={50} max={1000}
           value={speed} onChange={e => {

@@ -4,7 +4,7 @@ import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import { LINKEDLIST_EXPLANATIONS } from "../../data/algoExplanations";
-
+// start stop button edited
 /* Linked List Node display */
 function LLNode({ val, active, visited, last, color = "var(--cyan)" }) {
   return (
@@ -241,7 +241,7 @@ export default function LinkedListPage() {
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-ghost" onClick={reset} disabled={running}>⟳ Reset</button>
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
         <label>Speed</label>
         <input type="range" className="speed-slider" min={100} max={1000}
           value={speed} onChange={e => {

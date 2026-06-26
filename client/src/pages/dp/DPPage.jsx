@@ -191,7 +191,7 @@ export default function DPPage() {
             </select></>
         )}
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
         <label>Speed</label>
         <input
           type="range"
