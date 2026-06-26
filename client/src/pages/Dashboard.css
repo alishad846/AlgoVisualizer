@@ -103,7 +103,27 @@ html.dark { color-scheme: dark; }
 .av-main-expanded { padding-left: 32px; }
 .av-container { max-width: 1280px; margin-left: auto; margin-right: auto; }
 .av-hero { margin-bottom: 48px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-.av-hero h2 { margin: 0 0 8px; color: #ffffff; font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.02em; }
+.av-hero h2 {
+  margin: 0 0 14px;
+  color: #ffffff;
+  font-size: 42px;
+  line-height: 50px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  position: relative;
+  display: inline-block;
+}
+
+.av-hero h2::after {
+  content: "";
+  display: block;
+  width: 160px;
+  height: 3px;
+  margin-top: 12px;
+  background: #ffffff;
+  border-radius: 999px;
+  opacity: 0.85;
+}
 .av-hero p { margin: 0; max-width: 576px; color: var(--on-surface-variant); font-size: 16px; line-height: 24px; }
 .av-status { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--surface-container-high); background: var(--surface-container); }
 .av-status span { width: 8px; height: 8px; border-radius: 999px; background: #ffffff; animation: av-pulse 1.5s infinite; }

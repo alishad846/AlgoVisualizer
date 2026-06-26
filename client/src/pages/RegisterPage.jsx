@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -10,13 +11,49 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+ 
 
   const handleRegister = async (e) => {
   e.preventDefault();
   setError("");
 
- if (!username.trim() || !email.trim() || !password.trim()) {
+ const emptyFields = [
+  !username.trim(),
+  !email.trim(),
+  !password.trim(),
+  !confirmPassword.trim(),
+].filter(Boolean).length;
+
+if (emptyFields >= 2) {
   setError("All fields are required.");
+  return;
+}
+
+if (!username.trim()) {
+  setError("Please enter username");
+  return;
+}
+
+if (!email.trim()) {
+  setError("Please enter email");
+  return;
+}
+
+if (!password.trim()) {
+  setError("Please enter password");
+  return;
+}
+
+if (!confirmPassword.trim()) {
+  setError("Please confirm your password");
+  return;
+}
+
+if (password !== confirmPassword) {
+  setError("Password and Confirm Password do not match");
   return;
 }
 if (!email.includes("@")) {
@@ -173,12 +210,12 @@ if (!email.includes("@")) {
           line-height: 1.2;
           font-weight: 800;
           color: #ffffff;
-          margin: 0 0 56px;
+          margin: 0 0 34px;
           letter-spacing: -1px;
         }
 
         .register-form-group {
-          margin-bottom: 32px;
+          margin-bottom: 20px;
         }
 
         .register-label {
@@ -193,6 +230,7 @@ if (!email.includes("@")) {
 
         .register-input-wrap {
           position: relative;
+          width: 100%;
         }
 
         .register-input-icon {
@@ -211,7 +249,7 @@ if (!email.includes("@")) {
           background: #0e0e0e;
           border: 1px solid #353535;
           color: #ffffff;
-          padding: 0 16px 0 56px;
+          padding: 0 50px 0 56px;
           border-radius: 8px;
           font-size: 16px;
           font-family: 'JetBrains Mono', monospace;
@@ -432,24 +470,90 @@ if (!email.includes("@")) {
                 </div>
               </div>
 
-              <div className="register-form-group">
-                <label className="register-label" htmlFor="password">
-                  Password
-                </label>
+            
 
-                <div className="register-input-wrap">
-                  <span className="register-input-icon">⌕</span>
-                  <input
-                    id="password"
-                    className="register-input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+              <div className="register-form-group">
+  <label className="register-label" htmlFor="password">
+    Password
+  </label>
+
+  <div className="register-input-wrap">
+    <span className="register-input-icon">⌕</span>
+
+    <input
+      id="password"
+      className="register-input"
+      type={showPassword ? "text" : "password"}
+      placeholder="••••••••"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: "absolute",
+        right: "18px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: "#8e9192",
+        padding: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+    </button>
+  </div>
+</div>
+
+      <div className="register-form-group">
+  <label className="register-label" htmlFor="confirmPassword">
+    Confirm Password
+  </label>
+
+  <div className="register-input-wrap">
+    <span className="register-input-icon">⌕</span>
+
+    <input
+      id="confirmPassword"
+      className="register-input"
+      type={showConfirmPassword ? "text" : "password"}
+      placeholder="••••••••"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      required
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      style={{
+        position: "absolute",
+        right: "18px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        color: "#8e9192",
+        padding: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+    </button>
+  </div>
+</div>
+
 
               <button
                 className="register-submit"
@@ -480,7 +584,7 @@ if (!email.includes("@")) {
 >
   G
 </span>
-      <span>Sign in with Google</span>
+      <span>Register with Google</span>
     </button>
 
     <button className="register-social-btn" type="button">
@@ -501,7 +605,7 @@ if (!email.includes("@")) {
           <path d="M16.365 1.43c0 1.14-.415 2.184-1.107 2.943-.748.823-1.97 1.458-3.025 1.372-.134-1.085.39-2.245 1.115-2.997.746-.77 2.038-1.324 3.017-1.318zM20.97 17.252c-.59 1.348-.87 1.95-1.63 3.138-1.06 1.656-2.553 3.72-4.406 3.735-1.647.015-2.072-1.07-4.309-1.058-2.237.012-2.703 1.078-4.35 1.063-1.853-.015-3.266-1.88-4.326-3.536C-1.02 15.96-.53 8.896 3.27 6.568c2.03-1.245 5.24-.998 6.62.665 1.07-1.64 4.105-1.786 6.14-.81.815.39 2.845 1.61 2.94 4.51-2.417 1.32-2.027 4.77.999 6.319z" />
         </svg>
       </span>
-      <span>Sign in with Apple</span>
+      <span>Register with Apple</span>
     </button>
   </div>
 </div>

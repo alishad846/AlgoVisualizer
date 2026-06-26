@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -9,15 +10,26 @@ export default function LoginPage() {
   const [keepSession, setKeepSession] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
   e.preventDefault();
   setError("");
 
-  if (!username.trim() || !password.trim()) {
-    setError("All fields are required");
-    return;
-  }
+ if (!username.trim() && !password.trim()) {
+  setError("All the fields are required.");
+  return;
+}
+
+if (!username.trim()) {
+  setError("Please enter username");
+  return;
+}
+
+if (!password.trim()) {
+  setError("Please enter password");
+  return;
+}
 
   setIsLoading(true);
 
@@ -228,7 +240,7 @@ export default function LoginPage() {
           background: #0e0e0e;
           border: 1px solid #353535;
           color: #ffffff;
-          padding: 0 16px 0 56px;
+          padding: 0 50px 0 56px;
           border-radius: 8px;
           font-size: 16px;
           font-family: 'JetBrains Mono', monospace;
@@ -460,17 +472,39 @@ export default function LoginPage() {
                 </div>
 
                 <div className="auth-input-wrap">
-                  <span className="auth-input-icon">⌕</span>
-                  <input
-                    id="password"
-                    className="auth-input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
+                        <span className="auth-input-icon">⌕</span>
+
+                        <input
+                          id="password"
+                          className="auth-input"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "18px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#8e9192",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                        </button>
+                      </div>    
               </div>
 
               <div className="auth-check-row">
