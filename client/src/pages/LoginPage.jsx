@@ -1,16 +1,59 @@
 
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [keepSession, setKeepSession] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-   const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem("token") && localStorage.getItem("keepSession") === "true") {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    const savedUser = location.state?.username || sessionStorage.getItem("autofill_username");
+    const savedPass = location.state?.password || sessionStorage.getItem("autofill_password");
+    if (savedUser) setUsername(savedUser);
+    if (savedPass) setPassword(savedPass);
+  }, [location.state]);
+
+  const [socialModal, setSocialModal] = useState(null);
+  const [socialEmail, setSocialEmail] = useState("");
+  const [socialUser, setSocialUser] = useState("");
+
+  const submitSocialAuth = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/social", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: socialModal, email: socialEmail, username: socialUser }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        navigate("/dashboard");
+      } else {
+        setError(data.error || "Social sign-in failed");
+      }
+    } catch {
+      setError("Server connection failed");
+    } finally {
+      setIsLoading(false);
+      setSocialModal(null);
+    }
+  };
 
   const handleLogin = async (e) => {
   e.preventDefault();
@@ -44,6 +87,11 @@ if (!password.trim()) {
 
     if (response.ok) {
       localStorage.setItem("token", data.token);
+      if (keepSession) {
+        localStorage.setItem("keepSession", "true");
+      } else {
+        localStorage.removeItem("keepSession");
+      }
       navigate("/dashboard");
     } else {
       setError(data.error || "Login failed");
@@ -450,11 +498,16 @@ if (!password.trim()) {
                   <span className="auth-input-icon">👤</span>
                   <input
                     id="username"
+                    name="username"
+                    autoComplete="username"
                     className="auth-input"
                     type="text"
                     placeholder="Enter your username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      sessionStorage.setItem("last_typed_username", e.target.value);
+                    }}
                     required
                   />
                 </div>
@@ -466,9 +519,9 @@ if (!password.trim()) {
                     Password
                   </label>
 
-                  <button className="auth-forgot" type="button">
+                  <Link className="auth-forgot" to="/forgot-password" state={{ username }} style={{ textDecoration: "none" }}>
                     Forgot Password?
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="auth-input-wrap">
@@ -476,6 +529,8 @@ if (!password.trim()) {
 
                         <input
                           id="password"
+                          name="password"
+                          autoComplete="current-password"
                           className="auth-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
@@ -533,7 +588,7 @@ if (!password.trim()) {
               </Link>
 
               <div className="auth-social-area">
-                <button className="auth-social-btn" type="button">
+                <button className="auth-social-btn" type="button" onClick={() => { setSocialModal("Google"); setSocialEmail("user@gmail.com"); setSocialUser("GoogleUser"); }}>
                   <span
   style={{
     fontSize: "20px",
@@ -548,30 +603,50 @@ if (!password.trim()) {
                   <span>Sign in with Google</span>
                 </button>
 
-                <button className="auth-social-btn" type="button">
+                <button className="auth-social-btn" type="button" onClick={() => { setSocialModal("Email"); setSocialEmail("user@algovisualizer.com"); setSocialUser("EmailUser"); }}>
   <span
     style={{
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      fontSize: "18px"
     }}
   >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <path d="M16.365 1.43c0 1.14-.415 2.184-1.107 2.943-.748.823-1.97 1.458-3.025 1.372-.134-1.085.39-2.245 1.115-2.997.746-.77 2.038-1.324 3.017-1.318zM20.97 17.252c-.59 1.348-.87 1.95-1.63 3.138-1.06 1.656-2.553 3.72-4.406 3.735-1.647.015-2.072-1.07-4.309-1.058-2.237.012-2.703 1.078-4.35 1.063-1.853-.015-3.266-1.88-4.326-3.536C-1.02 15.96-.53 8.896 3.27 6.568c2.03-1.245 5.24-.998 6.62.665 1.07-1.64 4.105-1.786 6.14-.81.815.39 2.845 1.61 2.94 4.51-2.417 1.32-2.027 4.77.999 6.319z" />
-    </svg>
+    ✉
   </span>
-  <span>Sign in with Apple</span>
+  <span>Sign in with Email</span>
 </button>
               </div>
             </div>
           </div>
         </section>
+
+        {socialModal && (
+          <div style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)"
+          }}>
+            <div style={{
+              background: "#131313", border: "1px solid #333", padding: "40px", borderRadius: "12px", width: "100%", maxWidth: "420px", color: "#fff"
+            }}>
+              <h3 style={{ marginTop: 0, fontSize: "24px", fontWeight: 800 }}>Simulated {socialModal} Auth</h3>
+              <p style={{ color: "#aaa", fontSize: "14px", marginBottom: "24px" }}>Enter simulated account details to verify instant JWT authentication.</p>
+              <form onSubmit={submitSocialAuth}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase" }}>Username</label>
+                  <input type="text" required value={socialUser} onChange={e=>setSocialUser(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px" }} />
+                </div>
+                <div style={{ marginBottom: "24px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase" }}>Email</label>
+                  <input type="email" required value={socialEmail} onChange={e=>setSocialEmail(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px" }} />
+                </div>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <button type="button" onClick={()=>setSocialModal(null)} style={{ flex: 1, padding: "14px", background: "transparent", border: "1px solid #444", color: "#ccc", borderRadius: "6px", cursor: "pointer", fontWeight: 700 }}>Cancel</button>
+                  <button type="submit" disabled={isLoading} style={{ flex: 1, padding: "14px", background: "#fff", border: "none", color: "#000", borderRadius: "6px", cursor: "pointer", fontWeight: 800 }}>Authorize →</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );

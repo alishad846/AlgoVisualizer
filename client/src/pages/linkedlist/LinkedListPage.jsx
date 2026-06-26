@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -33,18 +33,18 @@ function LinkedListViz({ nodes, activeIdx, visitedSet, color }) {
 function MergeSortedViz({ l1, l2, merged, p1, p2 }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16, width:"100%", padding: "0 20px" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-        <div style={{ width:30, fontWeight:"bold", color:"var(--cyan)", fontSize:14 }}>L1:</div>
-        <LinkedListViz nodes={l1} activeIdx={p1} visitedSet={new Set(Array.from({length: p1}, (_,i)=>i))} color="var(--cyan)" />
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ width:40, color:"var(--muted)", fontSize:12, fontWeight:700 }}>L1:</span>
+        {l1.map((v,i) => <LLNode key={i} val={v} active={p1===i} visited={p1>i} last={i===l1.length-1} color="var(--cyan)" />)}
       </div>
-      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-        <div style={{ width:30, fontWeight:"bold", color:"var(--orange)", fontSize:14 }}>L2:</div>
-        <LinkedListViz nodes={l2} activeIdx={p2} visitedSet={new Set(Array.from({length: p2}, (_,i)=>i))} color="var(--orange)" />
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ width:40, color:"var(--muted)", fontSize:12, fontWeight:700 }}>L2:</span>
+        {l2.map((v,i) => <LLNode key={i} val={v} active={p2===i} visited={p2>i} last={i===l2.length-1} color="var(--purple)" />)}
       </div>
-      <div style={{ width:"100%", height:1, background:"var(--border2)" }}/>
-      <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-        <div style={{ width:60, fontWeight:"bold", color:"var(--green)", fontSize:14 }}>Merged:</div>
-        <LinkedListViz nodes={merged} activeIdx={merged.length-1} visitedSet={new Set()} color="var(--green)" />
+      <div style={{ display:"flex", alignItems:"center", gap:8, borderTop:"1px dashed var(--border2)", paddingTop:16 }}>
+        <span style={{ width:40, color:"var(--green)", fontSize:12, fontWeight:700 }}>Res:</span>
+        {merged.map((v,i) => <LLNode key={i} val={v} active={false} visited={true} last={i===merged.length-1} color="var(--green)" />)}
+        {merged.length === 0 && <span style={{ color:"var(--muted)", fontSize:12 }}>Empty</span>}
       </div>
     </div>
   );
@@ -70,6 +70,14 @@ export default function LinkedListPage() {
   const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 

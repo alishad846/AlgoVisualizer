@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -20,61 +20,49 @@ function neighbors(r,c,grid) {
 
 /* Topological Sort DAG */
 const DAG_NODES = [
-  { id: 0, x: 50, y: 50, label: "0" },
-  { id: 1, x: 150, y: 50, label: "1" },
-  { id: 2, x: 50, y: 150, label: "2" },
-  { id: 3, x: 150, y: 150, label: "3" },
-  { id: 4, x: 250, y: 100, label: "4" },
-  { id: 5, x: 350, y: 100, label: "5" }
+  {id:1,label:"CSE101",x:40,y:40}, {id:2,label:"MATH101",x:40,y:140},
+  {id:3,label:"CSE102",x:160,y:40}, {id:4,label:"CSE201",x:280,y:90},
+  {id:5,label:"MATH201",x:160,y:140}, {id:6,label:"CSE301",x:400,y:90}
 ];
 const DAG_EDGES = [
-  { from: 0, to: 1 }, { from: 0, to: 2 },
-  { from: 1, to: 3 }, { from: 2, to: 3 },
-  { from: 3, to: 4 }, { from: 4, to: 5 }, { from: 1, to: 4 }
+  {from:1,to:3}, {from:3,to:4}, {from:2,to:5}, {from:5,to:4}, {from:4,to:6}
 ];
 
 function DagViz({ activeNode, visitedNodes, order }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"100%" }}>
-      <svg width={400} height={220} style={{ background:"var(--surface2)", borderRadius:8, border:"1px solid var(--border)" }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:16, width:"100%", padding:16, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:12 }}>
+      <svg width={480} height={180}>
         <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="22" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="var(--border2)" />
+          <marker id="arrow" viewBox="0 0 10 10" refX={24} refY={5} markerWidth={6} markerHeight={6} orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border2)" />
           </marker>
         </defs>
-        {DAG_EDGES.map((edge, i) => {
-          const n1 = DAG_NODES.find(n => n.id === edge.from);
-          const n2 = DAG_NODES.find(n => n.id === edge.to);
-          return (
-            <line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} 
-              stroke="var(--border2)" strokeWidth={2} markerEnd="url(#arrowhead)" />
-          );
+        {DAG_EDGES.map((e,i) => {
+          const fn = DAG_NODES.find(n=>n.id===e.from); const tn = DAG_NODES.find(n=>n.id===e.to);
+          return <line key={i} x1={fn.x} y1={fn.y} x2={tn.x} y2={tn.y} stroke="var(--border2)" strokeWidth={2} markerEnd="url(#arrow)" />;
         })}
         {DAG_NODES.map(n => {
           const isActive = activeNode === n.id;
           const isVisited = visitedNodes.has(n.id);
           return (
             <g key={n.id}>
-              <circle cx={n.x} cy={n.y} r={16} 
-                fill={isActive ? "var(--cyan)" : isVisited ? "rgba(6,182,212,0.2)" : "var(--surface)"}
-                stroke={isActive ? "var(--cyan)" : isVisited ? "var(--cyan)" : "var(--border)"}
-                strokeWidth={2} style={{transition:"all 0.3s"}} />
-              <text x={n.x} y={n.y+5} textAnchor="middle" fontSize={14} fontWeight="bold" 
+              <circle cx={n.x} cy={n.y} r={18}
+                fill={isActive ? "var(--cyan)" : isVisited ? "rgba(255,255,255,0.2)" : "var(--surface)"}
+                stroke={isActive ? "var(--cyan)" : isVisited ? "var(--green)" : "var(--border2)"} strokeWidth={2} />
+              <text x={n.x} y={n.y+4} textAnchor="middle" fontSize={10} fontWeight="bold" fontFamily="monospace"
                 fill={isActive ? "#000" : "var(--text)"}>{n.label}</text>
             </g>
           );
         })}
       </svg>
-      {order.length > 0 && (
-        <div style={{ marginTop: 16, display:"flex", gap: 8, flexWrap:"wrap", justifyContent:"center" }}>
-          <div style={{ fontSize: 13, color:"var(--muted)", width:"100%", textAlign:"center", marginBottom:4 }}>Topological Order:</div>
-          {order.map((nodeId, i) => (
-            <div key={i} style={{ padding:"4px 12px", background:"var(--cyan)", color:"#000", borderRadius:16, fontWeight:"bold", fontSize:14 }}>
-              {nodeId}
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:12, fontWeight:700, color:"var(--green)" }}>Topo Order:</span>
+        {order.map(u => {
+          const node = DAG_NODES.find(n=>n.id===u);
+          return <span key={u} className="badge badge-green">{node.label}</span>;
+        })}
+        {order.length === 0 && <span style={{fontSize:12,color:"var(--muted)"}}>None</span>}
+      </div>
     </div>
   );
 }
@@ -97,6 +85,14 @@ export default function GraphPage() {
   const [speed, setSpeed] = useState(isTopo ? 600 : 50);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   const reset = () => { 
     stopRef.current=true; 

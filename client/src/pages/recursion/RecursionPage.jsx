@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -7,7 +7,7 @@ import { RECURSION_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* ── Tower of Hanoi animation ── */
 const DISK_COLORS = [
-  "#ef4444","#f97316","#eab308","#22c55e","#06b6d4","#8b5cf6","#ec4899"
+  "#ffffff","#e2e2e2","#cccccc","#b5b5b5","#999999","#777777","#555555"
 ];
 
 function hanoiMoves(n, from, to, aux) {
@@ -227,6 +227,14 @@ export default function RecursionPage() {
   const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   const initHanoi = (n) => {
     setNumDisks(n);

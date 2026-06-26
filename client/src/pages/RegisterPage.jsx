@@ -13,76 +13,66 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
- 
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleRegister = async (e) => {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
+    setError("");
 
- const emptyFields = [
-  !username.trim(),
-  !email.trim(),
-  !password.trim(),
-  !confirmPassword.trim(),
-].filter(Boolean).length;
-
-if (emptyFields >= 2) {
-  setError("All fields are required.");
-  return;
-}
-
-if (!username.trim()) {
-  setError("Please enter username");
-  return;
-}
-
-if (!email.trim()) {
-  setError("Please enter email");
-  return;
-}
-
-if (!password.trim()) {
-  setError("Please enter password");
-  return;
-}
-
-if (!confirmPassword.trim()) {
-  setError("Please confirm your password");
-  return;
-}
-
-if (password !== confirmPassword) {
-  setError("Password and Confirm Password do not match");
-  return;
-}
-if (!email.includes("@")) {
-  setError("Please enter a valid email address.");
-  return;
-}
-
-  setIsLoading(true);
-
-  try {
-    const response = await fetch("http://localhost:5000/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: username, email, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      navigate("/login");
-    } else {
-      setError(data.error || "Registration failed");
+    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+      setError("All fields are required.");
+      return;
     }
-  } catch {
-    setError("Failed to connect to the server");
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    if (!username.trim()) {
+      setError("Please enter username");
+      return;
+    }
+
+    if (!email.trim() || !email.includes("@")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Please enter password");
+      return;
+    }
+
+    if (!confirmPassword.trim()) {
+      setError("Please confirm your password");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Password and Confirm Password do not match");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        sessionStorage.setItem("autofill_username", username);
+        sessionStorage.setItem("autofill_password", password);
+        navigate("/login", { state: { username, password } });
+      } else {
+        setError(data.error || "Registration failed");
+      }
+    } catch {
+      setError("Failed to connect to the server");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -441,6 +431,8 @@ if (!email.includes("@")) {
                   <span className="register-input-icon">👤</span>
                   <input
                     id="username"
+                    name="username"
+                    autoComplete="username"
                     className="register-input"
                     type="text"
                     placeholder="John Doe"
@@ -460,6 +452,8 @@ if (!email.includes("@")) {
                   <span className="register-input-icon">@</span>
                   <input
                     id="email"
+                    name="email"
+                    autoComplete="email"
                     className="register-input"
                     type="email"
                     placeholder="email@example.com"
@@ -469,8 +463,6 @@ if (!email.includes("@")) {
                   />
                 </div>
               </div>
-
-            
 
               <div className="register-form-group">
   <label className="register-label" htmlFor="password">
@@ -482,6 +474,8 @@ if (!email.includes("@")) {
 
     <input
       id="password"
+      name="password"
+      autoComplete="new-password"
       className="register-input"
       type={showPassword ? "text" : "password"}
       placeholder="••••••••"
@@ -523,6 +517,8 @@ if (!email.includes("@")) {
 
     <input
       id="confirmPassword"
+      name="confirmPassword"
+      autoComplete="new-password"
       className="register-input"
       type={showConfirmPassword ? "text" : "password"}
       placeholder="••••••••"

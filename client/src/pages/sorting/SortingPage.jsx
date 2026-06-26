@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import CubeVisualizer from "../../components/CubeVisualizer";
@@ -43,6 +43,14 @@ export default function SortingPage() {
   const [done, setDone] = useState(false);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   const generate = useCallback(() => {
     stopRef.current = true;

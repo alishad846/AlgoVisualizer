@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -13,38 +13,59 @@ const SAMPLE_TREE = {
 };
 
 function getTraversal(root, type) {
-  const result = [];
-  function inorder(n) { if(!n) return; inorder(n.left); result.push(n.val); inorder(n.right); }
-  function preorder(n) { if(!n) return; result.push(n.val); preorder(n.left); preorder(n.right); }
-  function postorder(n) { if(!n) return; postorder(n.left); postorder(n.right); result.push(n.val); }
-  function levelorder(n) {
-    if(!n) return; const q=[n];
-    while(q.length){ const node=q.shift(); result.push(node.val); if(node.left) q.push(node.left); if(node.right) q.push(node.right); }
+  const res = [];
+  function dfs(n) {
+    if (!n) return;
+    if (type === "preorder") res.push(n.val);
+    dfs(n.left);
+    if (type === "inorder") res.push(n.val);
+    dfs(n.right);
+    if (type === "postorder") res.push(n.val);
   }
-  if(type==="inorder") inorder(root);
-  else if(type==="preorder") preorder(root);
-  else if(type==="postorder") postorder(root);
-  else levelorder(root);
-  return result;
+  if (type === "levelorder") {
+    const q = [root];
+    while (q.length) {
+      const cur = q.shift();
+      res.push(cur.val);
+      if (cur.left) q.push(cur.left);
+      if (cur.right) q.push(cur.right);
+    }
+  } else { dfs(root); }
+  return res;
 }
 
-function TreeNode({ node, activeSet, depth=0, x=50, spread=25 }) {
-  if(!node) return null;
-  const lx = x - spread / (depth+1);
-  const rx = x + spread / (depth+1);
-  const active = activeSet.has(node.val);
+function TreeViz({ activeSet, visitedList }) {
+  const nodes = [
+    { id:50, x:200, y:40 },
+    { id:30, x:100, y:100 }, { id:70, x:300, y:100 },
+    { id:20, x:50, y:160 }, { id:40, x:150, y:160 },
+    { id:60, x:250, y:160 }, { id:80, x:350, y:160 },
+  ];
+  const edges = [
+    [50,30], [50,70], [30,20], [30,40], [70,60], [70,80]
+  ];
   return (
-    <g>
-      {node.left && <line x1={`${x}%`} y1={depth*70+30} x2={`${lx}%`} y2={(depth+1)*70+30} stroke="var(--border2)" strokeWidth={1.5}/>}
-      {node.right && <line x1={`${x}%`} y1={depth*70+30} x2={`${rx}%`} y2={(depth+1)*70+30} stroke="var(--border2)" strokeWidth={1.5}/>}
-      <circle cx={`${x}%`} cy={depth*70+30} r={20}
-        fill={active?"var(--cyan)":"var(--surface2)"} stroke={active?"var(--cyan)":"var(--border2)"} strokeWidth={2}
-        style={{transition:"fill 0.3s"}}/>
-      <text x={`${x}%`} y={depth*70+35} textAnchor="middle" fontSize={12} fontWeight="bold"
-        fill={active?"#000":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val}</text>
-      {node.left && <TreeNode node={node.left} activeSet={activeSet} depth={depth+1} x={lx} spread={spread}/>}
-      {node.right && <TreeNode node={node.right} activeSet={activeSet} depth={depth+1} x={rx} spread={spread}/>}
-    </g>
+    <div style={{ display:"flex", justifyContent:"center", padding:16, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:12 }}>
+      <svg width={400} height={200}>
+        {edges.map(([p,c],i) => {
+          const pn = nodes.find(n=>n.id===p); const cn = nodes.find(n=>n.id===c);
+          return <line key={i} x1={pn.x} y1={pn.y} x2={cn.x} y2={cn.y} stroke="var(--border2)" strokeWidth={2}/>;
+        })}
+        {nodes.map(node => {
+          const active = activeSet.has(node.id);
+          const visited = visitedList.includes(node.id);
+          return (
+            <g key={node.id}>
+              <circle cx={node.x} cy={node.y} r={20}
+                fill={active?"var(--cyan)":"var(--surface2)"} stroke={active?"var(--cyan)":"var(--border2)"} strokeWidth={2}
+                style={{ transition:"all 0.3s" }}/>
+              <text x={node.x} y={node.y+5} textAnchor="middle" fontWeight="bold" fontFamily="monospace"
+                fill={active?"#000":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val || node.id}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
   );
 }
 
@@ -56,9 +77,17 @@ export default function TreePage() {
   const [visited, setVisited] = useState([]);
   
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(500);
+  const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   const typeMap = { inorder:"inorder", preorder:"preorder", postorder:"postorder", "level-order":"level" };
   const travType = typeMap[algo] || "inorder";
