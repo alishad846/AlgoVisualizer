@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -18,35 +18,37 @@ function fibSteps(n) {
 }
 
 /* 0/1 Knapsack */
-function knapsackSteps(weights, values, cap) {
+function knapsackSteps(weights, values, W) {
   const n = weights.length;
-  const dp = Array.from({length:n+1},()=>new Array(cap+1).fill(0));
-  const frames = [];
+  const dp = Array.from({length: n+1}, () => new Array(W+1).fill(0));
+  const frames = [{ dp:dp.map(r=>[...r]), activeI:-1, activeW:-1, log:"Base: row 0 and col 0 initialized to 0", type:"info" }];
+  
   for(let i=1;i<=n;i++){
-    for(let w=0;w<=cap;w++){
-      if (weights[i-1] <= w) {
-        dp[i][w] = Math.max(dp[i-1][w], values[i-1]+dp[i-1][w-weights[i-1]]);
-        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeW:w, log:`Item ${i} (w=${weights[i-1]}, v=${values[i-1]}) fits in cap ${w}. max(${dp[i-1][w]}, ${values[i-1]}+${dp[i-1][w-weights[i-1]]}) = ${dp[i][w]}`, type:"compare" });
+    for(let w=1;w<=W;w++){
+      if(weights[i-1] <= w){
+        dp[i][w] = Math.max(dp[i-1][w], values[i-1] + dp[i-1][w - weights[i-1]]);
+        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeW:w, log:`Item ${i} (w=${weights[i-1]}, v=${values[i-1]}): max(${dp[i-1][w]}, ${values[i-1]}+${dp[i-1][w-weights[i-1]]}) = ${dp[i][w]}`, type:"swap" });
       } else {
         dp[i][w] = dp[i-1][w];
-        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeW:w, log:`Item ${i} (w=${weights[i-1]}) > cap ${w}. Carry over ${dp[i-1][w]}`, type:"info" });
+        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeW:w, log:`Item ${i} too heavy (${weights[i-1]} > ${w}). Copy above: ${dp[i][w]}`, type:"compare" });
       }
     }
   }
-  frames.push({ dp:dp.map(r=>[...r]), activeI:-1, activeW:-1, log:`Done! Max value is ${dp[n][cap]}`, type:"done", done:true });
+  frames.push({ dp:dp.map(r=>[...r]), activeI:-1, activeW:-1, log:`Done! Max value is ${dp[n][W]}`, type:"done", done:true });
   return frames;
 }
 
 /* LCS */
 function lcsSteps(s1, s2) {
   const m = s1.length, n = s2.length;
-  const dp = Array.from({length:m+1},()=>new Array(n+1).fill(0));
-  const frames = [];
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (s1[i-1] === s2[j-1]) {
+  const dp = Array.from({length: m+1}, () => new Array(n+1).fill(0));
+  const frames = [{ dp:dp.map(r=>[...r]), activeI:-1, activeJ:-1, log:"Initialize DP table with 0s", type:"info" }];
+  
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      if(s1[i-1] === s2[j-1]){
         dp[i][j] = dp[i-1][j-1] + 1;
-        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeJ:j, log:`'${s1[i-1]}' matches! dp[${i}][${j}] = ${dp[i-1][j-1]} + 1 = ${dp[i][j]}`, type:"swap" });
+        frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeJ:j, log:`Match '${s1[i-1]}' == '${s2[j-1]}'. dp[${i}][${j}] = dp[${i-1}][${j-1}] + 1 = ${dp[i][j]}`, type:"swap" });
       } else {
         dp[i][j] = Math.max(dp[i-1][j], dp[i][j-1]);
         frames.push({ dp:dp.map(r=>[...r]), activeI:i, activeJ:j, log:`Mismatch '${s1[i-1]}' vs '${s2[j-1]}'. max(${dp[i-1][j]}, ${dp[i][j-1]}) = ${dp[i][j]}`, type:"info" });
@@ -92,6 +94,14 @@ export default function DPPage() {
   const [speed, setSpeed] = useState(100);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   // Fib state
   const [fibN, setFibN] = useState(8);

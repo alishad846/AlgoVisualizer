@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -6,7 +6,7 @@ import StepLog from "../../components/StepLog";
 import { ML_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* K-Means Clustering */
-const COLORS = ["#06b6d4","#8b5cf6","#10b981","#f97316","#ef4444"];
+const COLORS = ["#ffffff","#cccccc","#aaaaaa","#888888","#666666"];
 
 function randPoints(n) {
   return Array.from({length:n},()=>({ x:Math.random()*380+10, y:Math.random()*240+10, cluster:0 }));
@@ -77,6 +77,14 @@ export default function MLPage() {
   const [speed, setSpeed] = useState(200);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   // K-Means state
   const K=3;

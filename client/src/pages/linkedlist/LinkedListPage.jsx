@@ -85,6 +85,8 @@ export default function LinkedListPage() {
   const stopRef = useRef(false);
 
   useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
     if (algo === "merge-sorted") {
       setL1(randSortedList(5));
       setL2(randSortedList(4));
@@ -96,10 +98,10 @@ export default function LinkedListPage() {
       setVisitedSet(new Set());
     }
     setStepLog([{ text: "New list generated.", type: "info" }]);
+    return () => {
+      stopRef.current = true;
+    };
   }, [algo]);
-
-
-
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const reset = () => {

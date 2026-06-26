@@ -38,7 +38,8 @@ export default function SearchingPage() {
   const stopRef = useRef(false);
 
   useEffect(() => {
-    // when algo change then values or parameters also change
+    stopRef.current = true;
+    setRunning(false);
     const a = randArr(14);
     setArray(a);
     setStates({});
@@ -46,10 +47,10 @@ export default function SearchingPage() {
     setSteps(0);
     setFoundIdx(-1);
     setStepLog([]);
-    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
   }, [algo]);
-
-
   const generate = () => {
     stopRef.current = true;
     setTimeout(() => {

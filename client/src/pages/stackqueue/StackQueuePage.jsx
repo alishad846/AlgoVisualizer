@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import { STACKQUEUE_EXPLANATIONS } from "../../data/algoExplanations";
 
-const COLORS = ["#06b6d4","#8b5cf6","#10b981","#f97316","#ef4444","#eab308","#ec4899"];
+const COLORS = ["#ffffff","#e2e2e2","#cccccc","#b5b5b5","#999999","#777777","#555555"];
 
 function validParenthesesAlgo(str) {
   const frames = [];
@@ -84,6 +84,14 @@ export default function StackQueuePage() {
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(400);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo]);
 
   // Parens State
   const [parensStr, setParensStr] = useState("({[]})");

@@ -33,17 +33,6 @@ export default function SortingPage() {
   const cfg = ALGOS[algo] || ALGOS["bubble-sort"];
   const explanation = SORTING_EXPLANATIONS[algo] || SORTING_EXPLANATIONS["bubble-sort"];
 
-  useEffect(() => {
-    const newArray = randArr(size);
-
-    setArray(newArray);
-    setStates({});
-    setSteps(0);
-    setSwaps(0);
-    setDone(false);
-    setRunning(false);
-    setStepLog([]);
-  }, [algo]);
 
   const [size, setSize] = useState(12);
   const [array, setArray] = useState(() => randArr(12));
@@ -57,6 +46,8 @@ export default function SortingPage() {
   const stopRef = useRef(false);
 
   useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
     const newArray = randArr(size);
 
     setArray(newArray);
@@ -64,9 +55,11 @@ export default function SortingPage() {
     setSteps(0);
     setSwaps(0);
     setDone(false);
-    setRunning(false);
     setStepLog([]);
-  }, [algo,size]);
+    return () => {
+      stopRef.current = true;
+    };
+  }, [algo, size]);
 
   const generate = useCallback(() => {
     stopRef.current = true;

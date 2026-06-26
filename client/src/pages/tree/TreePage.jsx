@@ -62,18 +62,22 @@ export default function TreePage() {
 
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(500);
+  const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
   useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
     const newTree = randTree(3); // depth 3 ka random tree
     setTree(newTree);
     setActiveSet(new Set());
     setVisited([]);
     setStepLog([{ text: "New tree generated.", type: "info" }]);
+    return () => {
+      stopRef.current = true;
+    };
   }, [algo]);
-
 
   const typeMap = { inorder: "inorder", preorder: "preorder", postorder: "postorder", "level-order": "level" };
   const travType = typeMap[algo] || "inorder";
