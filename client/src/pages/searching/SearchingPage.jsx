@@ -367,6 +367,7 @@ export default function SearchingPage() {
         </div>
       </div>
 
+
       <div className="viz-layout-3">
         <div className="viz-left">
           <AlgoExplain explanation={explanation} />
