@@ -110,19 +110,17 @@ analyzeButton.addEventListener("click", async () => {
     const hasTarget =
       typeof problemData.inputs?.target === "number";
 
-    if (isTwoSum && hasNums && hasTarget) {
-      openVisualizerButton.disabled = false;
+    openVisualizerButton.disabled = false;
 
-      outputLines.push("");
+    outputLines.push("");
+
+    if (isTwoSum && hasNums && hasTarget) {
       outputLines.push(
         "Two Sum visualization is ready."
       );
     } else {
-      openVisualizerButton.disabled = true;
-
-      outputLines.push("");
       outputLines.push(
-        "Visualization is currently available for Two Sum."
+        "This problem can be opened in AlgoVision. Automatic visualization is currently available for Two Sum."
       );
     }
 
@@ -156,28 +154,33 @@ openVisualizerButton.addEventListener("click", async () => {
     return;
   }
 
-  const nums = detectedProblem.inputs?.nums;
-  const target = detectedProblem.inputs?.target;
-
-  if (!Array.isArray(nums) || typeof target !== "number") {
-    statusMessage.textContent =
-      "Two Sum inputs could not be prepared.";
-
-    return;
-  }
-
   openVisualizerButton.disabled = true;
   openVisualizerButton.textContent = "Opening AlgoVision...";
 
   try {
-    const params = new URLSearchParams({
-      nums: JSON.stringify(nums),
-      target: String(target),
-      autoStart: "true"
-    });
+    const problemTitle =
+      detectedProblem.title?.toLowerCase() || "";
 
-    const visualizerUrl =
-      `http://localhost:5173/searching/two-sum?${params.toString()}`;
+    const nums = detectedProblem.inputs?.nums;
+    const target = detectedProblem.inputs?.target;
+
+    let visualizerUrl =
+      "http://localhost:5173/dashboard";
+
+    if (
+      problemTitle.includes("two sum") &&
+      Array.isArray(nums) &&
+      typeof target === "number"
+    ) {
+      const params = new URLSearchParams({
+        nums: JSON.stringify(nums),
+        target: String(target),
+        autoStart: "true"
+      });
+
+      visualizerUrl =
+        `http://localhost:5173/searching/two-sum?${params.toString()}`;
+    }
 
     await browserAPI.tabs.create({
       url: visualizerUrl
