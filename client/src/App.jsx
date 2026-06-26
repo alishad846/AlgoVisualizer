@@ -22,6 +22,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard/sorting" element={<Dashboard page="sorting" />} />
       <Route path="/sorting" element={<Navigate to="/sorting/bubble-sort" />} />
       <Route path="/sorting/:algo" element={<SortingPage key={location.pathname} />} />
       <Route path="/searching" element={<Navigate to="/searching/linear-search" />} />
