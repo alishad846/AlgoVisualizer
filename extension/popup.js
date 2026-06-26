@@ -8,7 +8,20 @@ const statusMessage = document.getElementById("statusMessage");
 
 let detectedProblem = null;
 
+function setAnalyzing(isAnalyzing) {
+  analyzeButton.disabled = isAnalyzing;
+  analyzeButton.textContent = isAnalyzing
+    ? "Analyzing..."
+    : "Analyze Current Problem";
+}
+
 analyzeButton.addEventListener("click", async () => {
+  if (analyzeButton.disabled) {
+    return;
+  }
+
+  setAnalyzing(true);
+
   statusMessage.textContent =
     "Reading the current LeetCode problem...";
 
@@ -18,6 +31,12 @@ analyzeButton.addEventListener("click", async () => {
   detectedProblem = null;
 
   try {
+    if (!browserAPI) {
+      throw new Error(
+        "The browser extension API is not available."
+      );
+    }
+
     const tabs = await browserAPI.tabs.query({
       active: true,
       currentWindow: true
@@ -103,7 +122,7 @@ analyzeButton.addEventListener("click", async () => {
 
       outputLines.push("");
       outputLines.push(
-        "Automatic visualization is currently available for Two Sum."
+        "Visualization is currently available for Two Sum."
       );
     }
 
@@ -120,10 +139,16 @@ analyzeButton.addEventListener("click", async () => {
       "AlgoVision extension error:",
       error
     );
+  } finally {
+    setAnalyzing(false);
   }
 });
 
 openVisualizerButton.addEventListener("click", async () => {
+  if (openVisualizerButton.disabled) {
+    return;
+  }
+
   if (!detectedProblem) {
     statusMessage.textContent =
       "Analyze the LeetCode problem first.";
@@ -141,18 +166,36 @@ openVisualizerButton.addEventListener("click", async () => {
     return;
   }
 
-  const params = new URLSearchParams({
-    nums: JSON.stringify(nums),
-    target: String(target),
-    autoStart: "true"
-  });
+  openVisualizerButton.disabled = true;
+  openVisualizerButton.textContent = "Opening AlgoVision...";
 
-  const visualizerUrl =
-    `http://localhost:5173/searching/two-sum?${params.toString()}`;
+  try {
+    const params = new URLSearchParams({
+      nums: JSON.stringify(nums),
+      target: String(target),
+      autoStart: "true"
+    });
 
-  await browserAPI.tabs.create({
-    url: visualizerUrl
-  });
+    const visualizerUrl =
+      `http://localhost:5173/searching/two-sum?${params.toString()}`;
+
+    await browserAPI.tabs.create({
+      url: visualizerUrl
+    });
+  } catch (error) {
+    statusMessage.textContent =
+      error?.message ||
+      "Unable to open AlgoVision.";
+
+    console.error(
+      "AlgoVision open error:",
+      error
+    );
+  } finally {
+    openVisualizerButton.disabled = false;
+    openVisualizerButton.textContent =
+      "Open in AlgoVision";
+  }
 });
 
 function analyzeLeetCodePage() {
@@ -203,7 +246,7 @@ function analyzeLeetCodePage() {
       /Example\s*1\s*:[\s\S]*?Input\s*:\s*([^\n]+)/i
     );
 
-    if (exampleOneMatch && exampleOneMatch[1]) {
+    if (exampleOneMatch?.[1]) {
       return exampleOneMatch[1].trim();
     }
 
@@ -211,7 +254,7 @@ function analyzeLeetCodePage() {
       /Input\s*:\s*([^\n]+)/i
     );
 
-    if (inputMatch && inputMatch[1]) {
+    if (inputMatch?.[1]) {
       return inputMatch[1].trim();
     }
 
@@ -360,7 +403,7 @@ function analyzeLeetCodePage() {
     ) {
       try {
         return JSON.parse(value);
-      } catch (error) {
+      } catch {
         return value;
       }
     }
@@ -396,9 +439,7 @@ function analyzeLeetCodePage() {
       return "Graph";
     }
 
-    if (
-      combinedText.includes("two sum")
-    ) {
+    if (combinedText.includes("two sum")) {
       return "Array / Hash Map";
     }
 
