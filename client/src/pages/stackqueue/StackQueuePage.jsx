@@ -224,8 +224,8 @@ export default function StackQueuePage() {
                   <span key={i} style={{ 
                     padding: "4px 8px", 
                     borderRadius: 4,
-                    background: i === parensActiveIdx ? "var(--cyan)" : "var(--surface2)",
-                    color: i === parensActiveIdx ? "#000" : "var(--text)"
+                    background: i === parensActiveIdx ? "var(--active-bg)" : "var(--surface2)",
+                    color: i === parensActiveIdx ? "var(--active-text)" : "var(--text)"
                   }}>
                     {char}
                   </span>
@@ -241,8 +241,8 @@ export default function StackQueuePage() {
                     <div key={i} style={{
                       width:40, height:40, borderRadius:8,
                       display:"flex", alignItems:"center", justifyContent:"center",
-                      background: i === ngeActiveIdx ? "var(--cyan)" : "var(--surface2)",
-                      color: i === ngeActiveIdx ? "#000" : "var(--text)",
+                      background: i === ngeActiveIdx ? "var(--active-bg)" : "var(--surface2)",
+                      color: i === ngeActiveIdx ? "var(--active-text)" : "var(--text)",
                       border: "1px solid var(--border)", fontWeight:"bold"
                     }}>{v}</div>
                   ))}
@@ -270,9 +270,9 @@ export default function StackQueuePage() {
                     width:isQueue?56:160, height:isQueue?56:40,
                     borderRadius:8, display:"flex",alignItems:"center",justifyContent:"center",
                     fontFamily:"JetBrains Mono,monospace",fontWeight:700,fontSize:14,
-                    background: i===highlighted ? "var(--cyan)" : `linear-gradient(135deg,${COLORS[i%COLORS.length]}33,${COLORS[i%COLORS.length]}11)`,
+                    background: i===highlighted ? "var(--active-bg)" : `linear-gradient(135deg,${COLORS[i%COLORS.length]}33,${COLORS[i%COLORS.length]}11)`,
                     border:`1px solid ${COLORS[i%COLORS.length]}66`,
-                    color: i===highlighted ? "#000" : COLORS[i%COLORS.length],
+                    color: i===highlighted ? "var(--active-text)" : COLORS[i%COLORS.length],
                     transition:"all 0.3s", boxShadow: i===0?"0 0 12px rgba(6,182,212,0.3)":"none"
                   }}>{v}</div>
                 ))}

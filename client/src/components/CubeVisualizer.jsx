@@ -9,7 +9,7 @@ export default function CubeVisualizer({ array, states = {}, maxVal }) {
 
   return (
     <div className="custom-h-scroll">
-      <div className="cubes-arena" style={{ minWidth: `${array.length * 48 + 40}px` }}>
+      <div className="cubes-arena" style={{ minWidth: `${array.length * 48 + 40}px`, width: "max(100%, fit-content)", margin: "0 auto" }}>
         {array.map((val, i) => {
           const state = states[i] || "default";
           const h = Math.max(18, Math.round((val / max) * MAX_H));

@@ -225,12 +225,12 @@ export default function DPPage() {
                   <div key={i} style={{
                     textAlign:"center",minWidth:48,
                     padding:"8px 4px",borderRadius:8,
-                    background:i===fibActive?"var(--cyan)":"var(--surface2)",
-                    border:`1px solid ${i===fibActive?"var(--cyan)":"var(--border)"}`,
+                    background:i===fibActive?"var(--active-bg)":"var(--surface2)",
+                    border:`1px solid ${i===fibActive?"var(--active-bg)":"var(--border)"}`,
                     transition:"all 0.3s",
-                    color:i===fibActive?"#000":"var(--text)"
+                    color:i===fibActive?"var(--active-text)":"var(--text)"
                   }}>
-                    <div style={{fontSize:10,color:i===fibActive?"#0008":"var(--muted)"}}>n={i}</div>
+                    <div style={{fontSize:10,color:i===fibActive?"var(--active-text)":"var(--muted)"}}>n={i}</div>
                     <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v}</div>
                   </div>
                 ))}
@@ -245,12 +245,12 @@ export default function DPPage() {
                   <div key={i} style={{
                     textAlign:"center",minWidth:48,
                     padding:"8px 4px",borderRadius:8,
-                    background:i===coinActive?"var(--orange)":"var(--surface2)",
-                    border:`1px solid ${i===coinActive?"var(--orange)":"var(--border)"}`,
+                    background:i===coinActive?"var(--active-bg)":"var(--surface2)",
+                    border:`1px solid ${i===coinActive?"var(--active-bg)":"var(--border)"}`,
                     transition:"all 0.3s",
-                    color:i===coinActive?"#000":"var(--text)"
+                    color:i===coinActive?"var(--active-text)":"var(--text)"
                   }}>
-                    <div style={{fontSize:10,color:i===coinActive?"#0008":"var(--muted)"}}>amt={i}</div>
+                    <div style={{fontSize:10,color:i===coinActive?"var(--active-text)":"var(--muted)"}}>amt={i}</div>
                     <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v===Infinity?"∞":v}</div>
                   </div>
                 ))}
@@ -271,8 +271,8 @@ export default function DPPage() {
                             return (
                               <td key={w} style={{
                                 width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--cyan)":val>0?"rgba(16,185,129,0.2)":"var(--surface2)",
-                                color:isActive?"#000":val>0?"var(--green)":"var(--muted)",
+                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
+                                color:isActive?"var(--active-text)":val>0?"var(--green)":"var(--muted)",
                                 fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
                                 transition:"all 0.3s"
                               }}>{val}</td>
@@ -308,8 +308,8 @@ export default function DPPage() {
                             return (
                               <td key={j} style={{
                                 width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--cyan)":val>0?"rgba(139,92,246,0.2)":"var(--surface2)",
-                                color:isActive?"#000":val>0?"var(--purple)":"var(--muted)",
+                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
+                                color:isActive?"var(--active-text)":val>0?"var(--purple)":"var(--muted)",
                                 fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
                                 transition:"all 0.3s"
                               }}>{val}</td>

@@ -51,12 +51,12 @@ function DtNode({ node, activeSet, depth=0, x=50, spread=25 }) {
       {node.right && <line x1={`${x}%`} y1={depth*70+20} x2={`${rx}%`} y2={(depth+1)*70+20} stroke="var(--border2)" strokeWidth={1.5}/>}
       
       <rect x={`${x-10}%`} y={depth*70+5} width="20%" height="30" rx="4"
-        fill={active?"var(--cyan)":node.isLeaf?"var(--surface2)":"var(--surface)"} 
-        stroke={active?"var(--cyan)":"var(--border2)"} strokeWidth={2}
+        fill={active?"var(--active-bg)":node.isLeaf?"var(--surface2)":"var(--surface)"} 
+        stroke={active?"var(--active-bg)":"var(--border2)"} strokeWidth={2}
         style={{transition:"all 0.3s"}} />
         
       <text x={`${x}%`} y={depth*70+25} textAnchor="middle" fontSize={11} fontWeight="bold"
-        fill={active?"#000":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val}</text>
+        fill={active?"var(--active-text)":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val}</text>
         
       {node.left && <DtNode node={node.left} activeSet={activeSet} depth={depth+1} x={lx} spread={spread}/>}
       {node.right && <DtNode node={node.right} activeSet={activeSet} depth={depth+1} x={rx} spread={spread}/>}
@@ -257,7 +257,7 @@ export default function MLPage() {
               {/* Linear Regression */}
               {isLinReg && (<>
                 {regPoints.map((p,i)=>(
-                  <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--cyan)" opacity={0.7}/>
+                  <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--active-bg)" opacity={0.7}/>
                 ))}
                 <line x1={0} y1={line.b} x2={400} y2={line.m*400+line.b}
                   stroke="var(--orange)" strokeWidth={2}
@@ -277,7 +277,7 @@ export default function MLPage() {
                     stroke="var(--text)" strokeWidth={1} strokeDasharray="4" opacity={0.5} />
                 ))}
                 {/* Test Point */}
-                <circle cx={testPoint.x} cy={testPoint.y} r={8} fill="var(--text)" stroke="#000" strokeWidth={2}/>
+                <circle cx={testPoint.x} cy={testPoint.y} r={8} fill="var(--text)" stroke="var(--bg)" strokeWidth={2}/>
                 <text x={testPoint.x+12} y={testPoint.y-12} fill="var(--text)" fontSize={12} fontWeight="bold">Test</text>
               </>)}
 

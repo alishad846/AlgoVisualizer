@@ -42,10 +42,10 @@ function TreeNode({ node, activeSet, depth = 0, x = 50, spread = 25 }) {
       {node.left && <line x1={`${x}%`} y1={depth * 70 + 30} x2={`${lx}%`} y2={(depth + 1) * 70 + 30} stroke="var(--border2)" strokeWidth={1.5} />}
       {node.right && <line x1={`${x}%`} y1={depth * 70 + 30} x2={`${rx}%`} y2={(depth + 1) * 70 + 30} stroke="var(--border2)" strokeWidth={1.5} />}
       <circle cx={`${x}%`} cy={depth * 70 + 30} r={20}
-        fill={active ? "var(--cyan)" : "var(--surface2)"} stroke={active ? "var(--cyan)" : "var(--border2)"} strokeWidth={2}
+        fill={active ? "var(--active-bg)" : "var(--surface2)"} stroke={active ? "var(--active-bg)" : "var(--border2)"} strokeWidth={2}
         style={{ transition: "fill 0.3s" }} />
       <text x={`${x}%`} y={depth * 70 + 35} textAnchor="middle" fontSize={12} fontWeight="bold"
-        fill={active ? "#000" : "var(--text)"} style={{ transition: "fill 0.3s" }}>{node.val}</text>
+        fill={active ? "var(--active-text)" : "var(--text)"} style={{ transition: "fill 0.3s" }}>{node.val}</text>
       {node.left && <TreeNode node={node.left} activeSet={activeSet} depth={depth + 1} x={lx} spread={spread} />}
       {node.right && <TreeNode node={node.right} activeSet={activeSet} depth={depth + 1} x={rx} spread={spread} />}
     </g>

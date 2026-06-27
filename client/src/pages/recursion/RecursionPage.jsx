@@ -167,7 +167,7 @@ function SubsetsViz({ current, result, nums }) {
       <div style={{ display:"flex", gap:8, minHeight:40 }}>
         {current.length===0 && <span style={{color:"var(--muted)", alignSelf:"center"}}>∅</span>}
         {current.map(v => (
-          <div key={v} style={{ width:40,height:40,background:"var(--cyan)",color:"#000",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold" }}>{v}</div>
+          <div key={v} style={{ width:40,height:40,background:"var(--active-bg)",color:"var(--active-text)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold" }}>{v}</div>
         ))}
       </div>
       <div style={{ width:"100%", height:1, background:"var(--border)" }}/>

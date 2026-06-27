@@ -8,10 +8,16 @@ export default function AppShell({ children, breadcrumb }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // "account" or "help"
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
     document.body.classList.add("av-body-lock");
 
     const fontId = "av-dashboard-fonts";
@@ -39,12 +45,15 @@ export default function AppShell({ children, breadcrumb }) {
           <button aria-label="Toggle Sidebar" className="av-icon-btn" onClick={() => setSidebarOpen((v) => !v)}>
             <span className="material-symbols-outlined">menu</span>
           </button>
-          <Link to="/dashboard" style={{ margin: 0, color: "#ffffff", fontSize: "20px", fontWeight: 700, textDecoration: "none" }}>AlgoVisualizer</Link>
+          <Link to="/dashboard" style={{ margin: 0, color: "var(--primary)", fontSize: "20px", fontWeight: 700, textDecoration: "none" }}>AlgoVisualizer</Link>
           <span style={{ marginLeft: "12px", color: "var(--outline)" }}>/</span>
-          <span style={{ marginLeft: "12px", color: "#ffffff", fontSize: "14px", fontWeight: 600 }}>{breadcrumb || "Visualization"}</span>
+          <span style={{ marginLeft: "12px", color: "var(--primary)", fontSize: "14px", fontWeight: 600 }}>{breadcrumb || "Visualization"}</span>
         </div>
         
         <div style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative" }}>
+          <button className="av-icon-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")} title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+            <span className="material-symbols-outlined">{theme === "dark" ? "light_mode" : "dark_mode"}</span>
+          </button>
           <Link to="/dashboard" className="av-icon-btn" title="Dashboard">
             <span className="material-symbols-outlined">dashboard</span>
           </Link>
@@ -54,13 +63,13 @@ export default function AppShell({ children, breadcrumb }) {
 
           {menuOpen && (
             <div style={{
-              position: "absolute", top: "48px", right: 0, background: "#131313", border: "1px solid #333",
-              borderRadius: "8px", width: "220px", padding: "8px", boxShadow: "0 15px 30px rgba(0,0,0,0.8)", zIndex: 1000
+              position: "absolute", top: "48px", right: 0, background: "var(--surface)", border: "1px solid var(--border)",
+              borderRadius: "8px", width: "220px", padding: "8px", boxShadow: "0 15px 30px rgba(0,0,0,0.4)", zIndex: 1000
             }}>
               <button
                 onClick={() => { setMenuOpen(false); setActiveModal("account"); }}
-                style={{ width: "100%", padding: "10px 12px", background: "transparent", border: "none", color: "#e2e2e2", textAlign: "left", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: 600 }}
-                onMouseEnter={e => e.currentTarget.style.background = "#222"}
+                style={{ width: "100%", padding: "10px 12px", background: "transparent", border: "none", color: "var(--text)", textAlign: "left", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: 600 }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--surface2)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>manage_accounts</span>
@@ -69,15 +78,15 @@ export default function AppShell({ children, breadcrumb }) {
 
               <button
                 onClick={() => { setMenuOpen(false); setActiveModal("help"); }}
-                style={{ width: "100%", padding: "10px 12px", background: "transparent", border: "none", color: "#e2e2e2", textAlign: "left", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: 600 }}
-                onMouseEnter={e => e.currentTarget.style.background = "#222"}
+                style={{ width: "100%", padding: "10px 12px", background: "transparent", border: "none", color: "var(--text)", textAlign: "left", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: 600 }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--surface2)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>help</span>
                 Help & FAQs
               </button>
 
-              <div style={{ height: "1px", background: "#252525", margin: "6px 0" }} />
+              <div style={{ height: "1px", background: "var(--border)", margin: "6px 0" }} />
 
               <button
                 onClick={handleLogout}

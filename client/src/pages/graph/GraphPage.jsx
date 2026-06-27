@@ -47,10 +47,10 @@ function DagViz({ activeNode, visitedNodes, order }) {
           return (
             <g key={n.id}>
               <circle cx={n.x} cy={n.y} r={18}
-                fill={isActive ? "var(--cyan)" : isVisited ? "rgba(255,255,255,0.2)" : "var(--surface)"}
-                stroke={isActive ? "var(--cyan)" : isVisited ? "var(--green)" : "var(--border2)"} strokeWidth={2} />
+                fill={isActive ? "var(--active-bg)" : isVisited ? "var(--surface2)" : "var(--surface)"}
+                stroke={isActive ? "var(--active-bg)" : isVisited ? "var(--green)" : "var(--border2)"} strokeWidth={2} />
               <text x={n.x} y={n.y+4} textAnchor="middle" fontSize={10} fontWeight="bold" fontFamily="monospace"
-                fill={isActive ? "#000" : "var(--text)"}>{n.label}</text>
+                fill={isActive ? "var(--active-text)" : "var(--text)"}>{n.label}</text>
             </g>
           );
         })}
@@ -287,12 +287,12 @@ export default function GraphPage() {
                     width:CELL,height:CELL,borderRadius:6,cursor:"pointer",
                     background: cell.wall?"var(--border2)":
                                 r===0&&c===0?"var(--green)":
-                                cell.active?"var(--cyan)":
+                                cell.active?"var(--active-bg)":
                                 cell.visited?"rgba(6,182,212,0.25)":"var(--surface2)",
                     border:`1px solid var(--border)`,
                     transition:"background 0.15s",
                     display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                    fontSize:10,color:cell.active?"#000":"var(--muted)", position:"relative"
+                    fontSize:10,color:cell.active?"var(--active-text)":"var(--muted)", position:"relative"
                   }}>
                     {r===0&&c===0 && <span style={{position:"absolute", top:2, left:4, fontWeight:"bold", color:"#fff"}}>S</span>}
                     {isDijkstra && !cell.wall && <span style={{fontSize:9, opacity:0.6}}>{cell.weight}</span>}
@@ -304,8 +304,8 @@ export default function GraphPage() {
 
             {!isTopo && (
               <div style={{display:"flex",gap:12,marginTop:16,fontSize:11,color:"var(--muted)", flexWrap:"wrap", justifyContent:"center"}}>
-                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--cyan)",opacity:0.25}}/> Visited</span>
-                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--cyan)"}}/> Current</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--active-bg)",opacity:0.25}}/> Visited</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--active-bg)"}}/> Current</span>
                 <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--border2)"}}/> Wall (click)</span>
                 {isDijkstra && <span style={{display:"flex",alignItems:"center",gap:4}}>Top num: Edge Weight, Center num: Dist</span>}
               </div>

@@ -16,8 +16,8 @@ export default function HelpModal({ onClose }) {
       display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", padding: "20px"
     }}>
       <div style={{
-        background: "#131313", border: "1px solid #333", borderRadius: "12px", width: "100%", maxWidth: "620px",
-        padding: "36px", color: "#fff", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.7)", maxHeight: "90vh", display: "flex", flexDirection: "column"
+        background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", width: "100%", maxWidth: "620px",
+        padding: "36px", color: "var(--text)", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.5)", maxHeight: "90vh", display: "flex", flexDirection: "column"
       }}>
         <button
           onClick={onClose}
@@ -30,14 +30,14 @@ export default function HelpModal({ onClose }) {
         </button>
 
         <h2 style={{ marginTop: 0, fontSize: "24px", fontWeight: 800, marginBottom: "6px" }}>Help & Architecture Guide</h2>
-        <p style={{ color: "#aaa", fontSize: "14px", margin: "0 0 24px" }}>Learn how AlgoVisualizer translates logic into visual intelligence.</p>
+        <p style={{ color: "var(--muted)", fontSize: "14px", margin: "0 0 24px" }}>Learn how AlgoVisualizer translates logic into visual intelligence.</p>
 
-        <div style={{ display: "flex", gap: "8px", borderBottom: "1px solid #222", paddingBottom: "12px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "8px", borderBottom: "1px solid var(--border)", paddingBottom: "12px", marginBottom: "20px" }}>
           <button
             onClick={() => setTab("guide")}
             style={{
-              padding: "10px 18px", background: tab === "guide" ? "#fff" : "#1e1e1e", color: tab === "guide" ? "#000" : "#aaa",
-              border: "1px solid #333", borderRadius: "6px", fontWeight: 800, cursor: "pointer", fontSize: "14px"
+              padding: "10px 18px", background: tab === "guide" ? "var(--primary)" : "var(--surface2)", color: tab === "guide" ? "var(--bg)" : "var(--muted)",
+              border: "1px solid var(--border)", borderRadius: "6px", fontWeight: 800, cursor: "pointer", fontSize: "14px"
             }}
           >
             📖 Overview Guide
@@ -45,8 +45,8 @@ export default function HelpModal({ onClose }) {
           <button
             onClick={() => setTab("faq")}
             style={{
-              padding: "10px 18px", background: tab === "faq" ? "#fff" : "#1e1e1e", color: tab === "faq" ? "#000" : "#aaa",
-              border: "1px solid #333", borderRadius: "6px", fontWeight: 800, cursor: "pointer", fontSize: "14px"
+              padding: "10px 18px", background: tab === "faq" ? "var(--primary)" : "var(--surface2)", color: tab === "faq" ? "var(--bg)" : "var(--muted)",
+              border: "1px solid var(--border)", borderRadius: "6px", fontWeight: 800, cursor: "pointer", fontSize: "14px"
             }}
           >
             ❓ Frequently Asked Questions
@@ -73,17 +73,17 @@ export default function HelpModal({ onClose }) {
           {tab === "faq" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {faqs.map((f, i) => (
-                <div key={i} style={{ background: "#0e0e0e", padding: "18px", borderRadius: "8px", border: "1px solid #222" }}>
-                  <div style={{ fontWeight: 800, color: "#fff", marginBottom: "6px" }}>Q: {f.q}</div>
-                  <div style={{ color: "#aaa", fontSize: "14px" }}>A: {f.a}</div>
+                <div key={i} style={{ background: "var(--surface2)", padding: "18px", borderRadius: "8px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontWeight: 800, color: "var(--primary)", marginBottom: "6px" }}>Q: {f.q}</div>
+                  <div style={{ color: "var(--muted)", fontSize: "14px" }}>A: {f.a}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div style={{ marginTop: "24px", textAlign: "right", borderTop: "1px solid #222", paddingTop: "16px" }}>
-          <button onClick={onClose} style={{ padding: "12px 24px", background: "#fff", color: "#000", border: "none", borderRadius: "6px", fontWeight: 800, cursor: "pointer" }}>Got it</button>
+        <div style={{ marginTop: "24px", textAlign: "right", borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
+          <button onClick={onClose} style={{ padding: "12px 24px", background: "var(--primary)", color: "var(--bg)", border: "none", borderRadius: "6px", fontWeight: 800, cursor: "pointer" }}>Got it</button>
         </div>
       </div>
     </div>

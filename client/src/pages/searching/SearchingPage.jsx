@@ -129,13 +129,13 @@ export default function SearchingPage() {
         {/* CENTER — Cubes + Pointer */}
         <div className="viz-center">
           <div className="custom-h-scroll">
-            <div style={{ minWidth: `${array.length * 48 + 40}px`, margin: "0 auto" }}>
+            <div style={{ minWidth: `${array.length * 48 + 40}px`, width: "max(100%, fit-content)", margin: "0 auto" }}>
               {/* Pointer row */}
-              <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 20px", minHeight: 16 }}>
+              <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 20px", minHeight: 16, width: "100%" }}>
                 {array.map((_, i) => (
                   <div key={i} style={{ width: 40, display: "flex", justifyContent: "center" }}>
                     {pointer === i && (
-                      <div style={{ width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "10px solid var(--cyan)" }} />
+                      <div style={{ width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "10px solid var(--active-bg)" }} />
                     )}
                   </div>
                 ))}
@@ -161,7 +161,7 @@ export default function SearchingPage() {
 
           {/* Target indicator */}
           <div style={{ textAlign: "center", marginTop: 8, fontSize: 13, color: "var(--muted)" }}>
-            Target: <strong style={{ color: "var(--cyan)" }}>{target}</strong>
+            Target: <strong style={{ color: "var(--active-bg)" }}>{target}</strong>
           </div>
         </div>
 

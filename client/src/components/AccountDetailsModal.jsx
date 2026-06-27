@@ -67,8 +67,8 @@ export default function AccountDetailsModal({ onClose }) {
       display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)", padding: "20px"
     }}>
       <div style={{
-        background: "#131313", border: "1px solid #333", borderRadius: "12px", width: "100%", maxWidth: "480px",
-        padding: "36px", color: "#fff", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
+        background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", width: "100%", maxWidth: "480px",
+        padding: "36px", color: "var(--text)", position: "relative", boxShadow: "0 25px 50px rgba(0,0,0,0.5)"
       }}>
         <button
           onClick={onClose}
@@ -81,34 +81,34 @@ export default function AccountDetailsModal({ onClose }) {
         </button>
 
         <h2 style={{ marginTop: 0, fontSize: "24px", fontWeight: 800, marginBottom: "8px" }}>Account Details</h2>
-        <p style={{ color: "#aaa", fontSize: "14px", marginBottom: "24px" }}>Manage your registered AlgoVisualizer credentials.</p>
+        <p style={{ color: "var(--muted)", fontSize: "14px", marginBottom: "24px" }}>Manage your registered AlgoVisualizer credentials.</p>
 
         {error && <div style={{ padding: "12px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid #ef4444", color: "#f87171", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" }}>{error}</div>}
         {msg && <div style={{ padding: "12px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid #10b981", color: "#34d399", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" }}>{msg}</div>}
 
         <form onSubmit={handleUpdate}>
           <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Username</label>
-            <input type="text" required value={username} onChange={e=>setUsername(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px", fontSize: "15px" }} />
+            <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Username</label>
+            <input type="text" required value={username} onChange={e=>setUsername(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px" }} />
           </div>
 
           <div style={{ marginBottom: "24px" }}>
-            <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Email Address</label>
-            <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px", fontSize: "15px" }} />
+            <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Email Address</label>
+            <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px" }} />
           </div>
 
-          <div style={{ borderTop: "1px solid #222", paddingTop: "20px", marginBottom: "16px" }}>
-            <span style={{ fontSize: "13px", color: "#ccc", fontWeight: 800, display: "block", marginBottom: "12px" }}>Change Password (Optional)</span>
-            <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Current Password</label>
-            <input type="password" placeholder="Leave blank if not changing" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px", fontSize: "15px", marginBottom: "12px" }} />
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginBottom: "16px" }}>
+            <span style={{ fontSize: "13px", color: "var(--text)", fontWeight: 800, display: "block", marginBottom: "12px" }}>Change Password (Optional)</span>
+            <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Current Password</label>
+            <input type="password" placeholder="Leave blank if not changing" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px", marginBottom: "12px" }} />
 
-            <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>New Secure Password</label>
-            <input type="password" placeholder="••••••••" value={newPassword} onChange={e=>setNewPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px", fontSize: "15px" }} />
+            <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>New Secure Password</label>
+            <input type="password" placeholder="••••••••" value={newPassword} onChange={e=>setNewPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px" }} />
           </div>
 
           <div style={{ display: "flex", gap: "12px", marginTop: "28px" }}>
-            <button type="button" onClick={onClose} style={{ flex: 1, padding: "14px", background: "transparent", border: "1px solid #444", color: "#ccc", borderRadius: "6px", cursor: "pointer", fontWeight: 700 }}>Close</button>
-            <button type="submit" disabled={isLoading} style={{ flex: 1, padding: "14px", background: "#fff", border: "none", color: "#000", borderRadius: "6px", cursor: "pointer", fontWeight: 800 }}>Save Changes →</button>
+            <button type="button" onClick={onClose} style={{ flex: 1, padding: "14px", background: "transparent", border: "1px solid var(--border2)", color: "var(--text)", borderRadius: "6px", cursor: "pointer", fontWeight: 700 }}>Close</button>
+            <button type="submit" disabled={isLoading} style={{ flex: 1, padding: "14px", background: "var(--primary)", border: "none", color: "var(--bg)", borderRadius: "6px", cursor: "pointer", fontWeight: 800 }}>Save Changes →</button>
           </div>
         </form>
       </div>

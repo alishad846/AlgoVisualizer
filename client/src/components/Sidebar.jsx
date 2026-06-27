@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export const NAV = [
@@ -101,9 +101,13 @@ function SidebarItem({ section, location }) {
   const isActiveCat = section.items.some(i => location.pathname === i.path);
   const [isOpen, setIsOpen] = useState(isActiveCat);
 
+  useEffect(() => {
+    setIsOpen(isActiveCat);
+  }, [isActiveCat]);
+
   return (
     <div className="av-nav-item">
-      <button className="av-nav-button" onClick={() => setIsOpen(!isOpen)} style={{ color: isActiveCat ? "#ffffff" : undefined }}>
+      <button className="av-nav-button" onClick={() => setIsOpen(!isOpen)} style={{ color: isActiveCat ? "var(--primary)" : undefined }}>
         <span className="av-nav-left">
           <span className="av-nav-icon"><Icon>{section.icon}</Icon></span>
           <span style={{ fontWeight: isActiveCat ? 700 : 500 }}>{section.title}</span>
@@ -121,10 +125,10 @@ function SidebarItem({ section, location }) {
                 display: "block",
                 paddingTop: "6px",
                 paddingBottom: "6px",
-                color: active ? "#ffffff" : "var(--on-surface-variant)",
+                color: active ? "var(--primary)" : "var(--on-surface-variant)",
                 fontWeight: active ? 700 : 400,
                 paddingLeft: active ? "10px" : undefined,
-                borderLeft: active ? "2px solid #ffffff" : undefined,
+                borderLeft: active ? "2px solid var(--primary)" : undefined,
                 textDecoration: "none"
               }}
             >
@@ -150,7 +154,7 @@ export default function Sidebar({ sidebarOpen = true }) {
               className="av-nav-link"
               to="/dashboard"
               style={{
-                color: location.pathname === "/dashboard" ? "#ffffff" : undefined,
+                color: location.pathname === "/dashboard" ? "var(--primary)" : undefined,
                 fontWeight: location.pathname === "/dashboard" ? 700 : 400,
                 textDecoration: "none"
               }}

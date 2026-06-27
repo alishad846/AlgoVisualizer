@@ -125,42 +125,42 @@ export default function ForgotPasswordPage() {
         .forgot-terminal-page * { box-sizing: border-box; }
         .forgot-terminal-page {
           min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center;
-          background: #0e0e0e; color: #e2e2e2; font-family: 'Inter', sans-serif; padding: 24px;
+          background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 24px;
         }
         .forgot-panel {
-          width: 100%; max-width: 520px; background: rgba(27, 27, 27, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 48px;
+          width: 100%; max-width: 520px; background: var(--surface);
+          border: 1px solid var(--border); border-radius: 12px; padding: 48px;
           box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(12px);
         }
-        .forgot-title { font-size: 32px; font-weight: 800; color: #fff; margin: 0 0 12px; letter-spacing: -1px; }
-        .forgot-sub { font-size: 15px; color: #aaa; margin: 0 0 32px; line-height: 1.5; }
-        .forgot-label { display: block; font-size: 13px; font-weight: 800; color: #ccc; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+        .forgot-title { font-size: 32px; font-weight: 800; color: var(--primary); margin: 0 0 12px; letter-spacing: -1px; }
+        .forgot-sub { font-size: 15px; color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+        .forgot-label { display: block; font-size: 13px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
         .forgot-input {
-          width: 100%; height: 56px; background: #0e0e0e; border: 1px solid #353535;
-          color: #fff; padding: 0 20px; border-radius: 8px; font-size: 16px; font-family: 'JetBrains Mono', monospace;
+          width: 100%; height: 56px; background: var(--surface2); border: 1px solid var(--border);
+          color: var(--text); padding: 0 20px; border-radius: 8px; font-size: 16px; font-family: 'JetBrains Mono', monospace;
           outline: none; transition: border-color 0.2s;
         }
-        .forgot-input:focus { border-color: #fff; }
+        .forgot-input:focus { border-color: var(--primary); }
         .forgot-btn {
-          width: 100%; height: 60px; background: #fff; color: #000; border: none; border-radius: 8px;
+          width: 100%; height: 60px; background: var(--primary); color: var(--bg); border: none; border-radius: 8px;
           font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 24px; display: flex; align-items: center; justify-content: center;
         }
-        .forgot-btn:hover { background: #e5e5e5; }
+        .forgot-btn:hover { opacity: 0.9; }
         .forgot-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .forgot-alert-error { padding: 14px; border: 1px solid #ef4444; color: #f87171; background: rgba(239, 68, 68, 0.1); border-radius: 8px; margin-bottom: 24px; font-size: 14px; }
         .forgot-alert-msg { padding: 14px; border: 1px solid #10b981; color: #34d399; background: rgba(16, 185, 129, 0.1); border-radius: 8px; margin-bottom: 24px; font-size: 14px; }
-        .forgot-back { display: inline-block; margin-top: 32px; color: #aaa; font-size: 14px; text-decoration: none; font-weight: 700; }
-        .forgot-back:hover { color: #fff; }
+        .forgot-back { display: inline-block; margin-top: 32px; color: var(--muted); font-size: 14px; text-decoration: none; font-weight: 700; }
+        .forgot-back:hover { color: var(--primary); }
       `}</style>
 
       <main className="forgot-terminal-page">
         <div className="forgot-panel">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <span style={{ fontSize: "12px", background: "#222", padding: "6px 12px", borderRadius: "20px", color: "#888", fontWeight: 800, textTransform: "uppercase" }}>Step {step} of 3</span>
+            <span style={{ fontSize: "12px", background: "var(--surface2)", padding: "6px 12px", borderRadius: "20px", color: "var(--muted)", fontWeight: 800, textTransform: "uppercase" }}>Step {step} of 3</span>
             <div style={{ display: "flex", gap: "6px" }}>
-              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 1 ? "#fff" : "#333" }} />
-              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 2 ? "#fff" : "#333" }} />
-              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 3 ? "#fff" : "#333" }} />
+              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 1 ? "var(--primary)" : "var(--border)" }} />
+              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 2 ? "var(--primary)" : "var(--border)" }} />
+              <div style={{ width: "24px", height: "4px", borderRadius: "2px", background: step >= 3 ? "var(--primary)" : "var(--border)" }} />
             </div>
           </div>
 
