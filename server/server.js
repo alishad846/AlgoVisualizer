@@ -96,6 +96,11 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Health Check Endpoint (for cron-job / pinging)
+app.get('/api/ping', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
