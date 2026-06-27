@@ -99,7 +99,7 @@ function Icon({ children, className = "" }) {
 
 function SidebarItem({ section, location }) {
   const isActiveCat = section.items.some(i => location.pathname === i.path);
-  const [isOpen, setIsOpen] = useState(isActiveCat || section.key === "sorting");
+  const [isOpen, setIsOpen] = useState(isActiveCat);
 
   return (
     <div className="av-nav-item">
@@ -165,11 +165,8 @@ export default function Sidebar({ sidebarOpen = true }) {
         </div>
 
         <div className="av-sidebar-footer">
-          <Link to="/sorting/bubble-sort" className="av-runner-btn" style={{ textDecoration: "none" }}>
-            <Icon>play_arrow</Icon><span>Launch Runner</span>
-          </Link>
-          <a className="av-footer-link" href="#"><span className="av-nav-icon"><Icon>menu_book</Icon></span><span>Documentation</span></a>
-          <a className="av-footer-link" href="#"><span className="av-nav-icon"><Icon>help_outline</Icon></span><span>Support</span></a>
+          <Link to="/documentation" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>menu_book</Icon></span><span>Documentation</span></Link>
+          <Link to="/support" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>help_outline</Icon></span><span>Support</span></Link>
         </div>
       </div>
     </aside>

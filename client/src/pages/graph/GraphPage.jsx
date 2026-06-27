@@ -82,16 +82,14 @@ export default function GraphPage() {
   const [topoOrder, setTopoOrder] = useState([]);
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(isTopo ? 600 : 50);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round((isTopo ? 600 : 50) / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
   useEffect(() => {
     stopRef.current = true;
     setRunning(false);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
 
   const reset = () => { 
@@ -259,11 +257,15 @@ export default function GraphPage() {
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>
           ▶ Start {isTopo ? "" : "from [0,0]"}
         </button>
-        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>■ Stop</button>
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={10} max={800}
-          value={speed} onChange={e=>setSpeed(+e.target.value)}/>
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:45}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">

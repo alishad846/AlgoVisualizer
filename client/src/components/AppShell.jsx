@@ -5,7 +5,7 @@ import AccountDetailsModal from "./AccountDetailsModal";
 import HelpModal from "./HelpModal";
 
 export default function AppShell({ children, breadcrumb }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // "account" or "help"
   const navigate = useNavigate();

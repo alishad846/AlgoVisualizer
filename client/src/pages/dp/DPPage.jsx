@@ -89,18 +89,15 @@ export default function DPPage() {
   const isLcs = algo === "lcs";
   const isCoin = algo === "coin-change";
 
-  // Shared state
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(100);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(200 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
   useEffect(() => {
     stopRef.current = true;
     setRunning(false);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
 
   // Fib state
@@ -199,11 +196,15 @@ export default function DPPage() {
           </select></>
         )}
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>■ Stop</button>
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={50} max={800}
-          value={speed} onChange={e=>setSpeed(+e.target.value)}/>
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:45}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">

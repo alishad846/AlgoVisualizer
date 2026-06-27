@@ -62,7 +62,8 @@ export default function TreePage() {
 
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(400);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(400 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
@@ -74,9 +75,6 @@ export default function TreePage() {
     setActiveSet(new Set());
     setVisited([]);
     setStepLog([{ text: "New tree generated.", type: "info" }]);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
 
   const typeMap = { inorder: "inorder", preorder: "preorder", postorder: "postorder", "level-order": "level" };
@@ -106,8 +104,8 @@ export default function TreePage() {
 
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
-        <button className="btn btn-ghost" onClick={() => {
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" disabled={running} onClick={() => {
           setTree(randTree(3));  
           setActiveSet(new Set());
           setVisited([]);
@@ -117,9 +115,13 @@ export default function TreePage() {
         </button>
 
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={100} max={1200}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
-        <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 50 }}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e => setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">

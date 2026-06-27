@@ -80,7 +80,8 @@ export default function LinkedListPage() {
   const [p2, setP2] = useState(0);
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(400);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(400 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
@@ -98,9 +99,6 @@ export default function LinkedListPage() {
       setVisitedSet(new Set());
     }
     setStepLog([{ text: "New list generated.", type: "info" }]);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -239,11 +237,15 @@ export default function LinkedListPage() {
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-ghost" onClick={reset} disabled={running}>⟳ Reset</button>
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }}>■ Stop</button>
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={100} max={1000}
-          value={speed} onChange={e => setSpeed(+e.target.value)} />
-        <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 50 }}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e => setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">

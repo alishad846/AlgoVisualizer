@@ -289,6 +289,35 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
     }
 });
 
+// Support Query Endpoint
+app.post('/api/support', async (req, res) => {
+    const { email, subject, message } = req.body;
+    if (!email || !message) {
+        return res.status(400).json({ error: 'Email and message are required' });
+    }
+    try {
+        await transporter.sendMail({
+            from: process.env.MAIL_FROM || '"AlgoVisualizer Support" <no-reply@algovisualizer.com>',
+            to: process.env.SMTP_USER, // Send to support admin email
+            replyTo: email,
+            subject: `[Support Query] ${subject || 'Help & FAQ Inquiry'} from ${email}`,
+            html: `
+              <div style="background:#131313;color:#e2e2e2;padding:30px;font-family:sans-serif;border-radius:10px;max-width:600px;border:1px solid #333;">
+                <h3 style="color:#ffffff;margin-top:0;">New Support Query</h3>
+                <p><strong>From User Email:</strong> ${email}</p>
+                <p><strong>Subject:</strong> ${subject || 'General Inquiry'}</p>
+                <hr style="border-color:#333;margin:20px 0;" />
+                <p style="white-space:pre-wrap;line-height:1.6;">${message}</p>
+              </div>
+            `
+        });
+        res.status(200).json({ message: 'Support query sent successfully!' });
+    } catch (error) {
+        console.error('Support email error:', error);
+        res.status(500).json({ error: 'Failed to send support email. Please verify SMTP settings.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

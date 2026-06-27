@@ -170,7 +170,11 @@ body {
   font-size: 13px; font-weight: 600; cursor: pointer;
   transition: all 0.15s; white-space: nowrap;
 }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled, button:disabled, select:disabled, input:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(1);
+}
 .btn-primary { background: #ffffff; color: #000000; font-weight: 700; }
 .btn-primary:hover:not(:disabled) { background: #e2e2e2; transform: translateY(-1px); }
 .btn-success { background: #ffffff; color: #000000; font-weight: 700; }
@@ -190,6 +194,29 @@ body {
 .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
 
 /* ── CUBE ANIMATION ── */
+.custom-h-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+  display: block;
+}
+.custom-h-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.custom-h-scroll::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-radius: 5px;
+}
+.custom-h-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 5px;
+}
+.custom-h-scroll::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
 .cubes-arena {
   display: flex;
   align-items: flex-end;
@@ -201,7 +228,6 @@ body {
   border-radius: 12px;
   border: 1px solid var(--border);
   position: relative;
-  overflow: hidden;
 }
 .cubes-arena::before {
   content: '';
@@ -237,14 +263,14 @@ body {
 }
 /* Cube states */
 .cube.state-default { background: #262626; border: 1px solid #3d3d3d; }
-.cube.state-comparing { background: #ffffff; transform: translateY(-12px); box-shadow: 0 0 22px rgba(255,255,255,0.85); }
-.cube-label.state-comparing { color: #ffffff; font-weight: 800; }
+.cube.state-comparing { background: #ffff00; transform: translateY(-12px); box-shadow: 0 0 22px rgba(255,255,0,0.85); }
+.cube-label.state-comparing { color: #ffff00; font-weight: 800; }
 .cube.state-pivot { background: #aaaaaa; transform: translateY(-8px); box-shadow: 0 0 16px rgba(255,255,255,0.4); }
 .cube-label.state-pivot { color: #cccccc; }
-.cube.state-sorted { background: #525252; border: 1px solid #888888; box-shadow: 0 0 12px rgba(255,255,255,0.2); }
-.cube-label.state-sorted { color: #ffffff; }
-.cube.state-found { background: #ffffff; transform: translateY(-12px); box-shadow: 0 0 25px rgba(255,255,255,0.95); }
-.cube-label.state-found { color: #ffffff; }
+.cube.state-sorted, .cube.state-found, .cube.state-done { background: #00ff00; border: 1px solid #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.85); transform: translateY(-4px); }
+.cube-label.state-sorted, .cube-label.state-found, .cube-label.state-done { color: #00ff00; font-weight: 800; }
+.cube.state-error, .cube.state-notfound { background: #ff0000; border: 1px solid #ff0000; box-shadow: 0 0 20px rgba(255,0,0,0.85); transform: translateY(-4px); }
+.cube-label.state-error, .cube-label.state-notfound { color: #ff0000; font-weight: 800; }
 .cube.state-current { background: #cccccc; transform: translateY(-6px); box-shadow: 0 0 14px rgba(255,255,255,0.5); }
 .cube-label.state-current { color: #ffffff; }
 
@@ -487,12 +513,14 @@ body {
 /* ── UPDATED VIZ LAYOUT (3-col) ── */
 .viz-layout-3 {
   display: grid;
-  grid-template-columns: 240px 1fr 260px;
+  grid-template-columns: 330px minmax(0, 1fr) 260px;
   gap: 12px;
+  max-width: 100%;
+  overflow: hidden;
 }
-.viz-layout-3 .viz-left { display: flex; flex-direction: column; gap: 10px; }
-.viz-layout-3 .viz-center { display: flex; flex-direction: column; gap: 10px; }
-.viz-layout-3 .viz-right { display: flex; flex-direction: column; gap: 10px; }
+.viz-layout-3 .viz-left { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
+.viz-layout-3 .viz-center { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
+.viz-layout-3 .viz-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
 @media (max-width: 1100px) {
-  .viz-layout-3 { grid-template-columns: 1fr; }
+  .viz-layout-3 { grid-template-columns: minmax(0, 1fr); }
 }
