@@ -1,7 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import {
   useParams,
-  useSearchParams
+  useSearchParams,
 } from "react-router-dom";
 
 import AppShell from "../../components/AppShell";
@@ -9,7 +15,7 @@ import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 
 import {
-  SEARCHING_EXPLANATIONS
+  SEARCHING_EXPLANATIONS,
 } from "../../data/algoExplanations";
 
 import {
@@ -18,51 +24,50 @@ import {
   jumpSearchSteps,
   interpolationSearchSteps,
   exponentialSearchSteps,
-  twoSumSteps
+  twoSumSteps,
 } from "../../algorithms/searchingSteps";
 
 const ALGOS = {
   "linear-search": {
     name: "Linear Search",
-    fn: linearSearchSteps
+    fn: linearSearchSteps,
   },
 
   "two-sum": {
     name: "Two Sum",
-    fn: twoSumSteps
+    fn: twoSumSteps,
   },
 
   "binary-search": {
     name: "Binary Search",
-    fn: binarySearchSteps
+    fn: binarySearchSteps,
   },
 
   "jump-search": {
     name: "Jump Search",
-    fn: jumpSearchSteps
+    fn: jumpSearchSteps,
   },
 
   "interpolation-search": {
     name: "Interpolation Search",
-    fn: interpolationSearchSteps
+    fn: interpolationSearchSteps,
   },
 
   "exponential-search": {
     name: "Exponential Search",
-    fn: exponentialSearchSteps
-  }
+    fn: exponentialSearchSteps,
+  },
 };
 
-function randArr(n) {
+function randArr(size) {
   return Array.from(
-    { length: n },
+    { length: size },
     () => Math.floor(Math.random() * 90) + 5
   );
 }
 
 export default function SearchingPage() {
   const { algo } = useParams();
-
   const [searchParams] = useSearchParams();
 
   const extensionNums = searchParams.get("nums");
@@ -70,11 +75,14 @@ export default function SearchingPage() {
   const autoStart =
     searchParams.get("autoStart") === "true";
 
-  const cfg =
-    ALGOS[algo] || ALGOS["linear-search"];
+  const currentAlgo = ALGOS[algo]
+    ? algo
+    : "linear-search";
+
+  const cfg = ALGOS[currentAlgo];
 
   const explanation =
-    SEARCHING_EXPLANATIONS[algo] ||
+    SEARCHING_EXPLANATIONS[currentAlgo] ||
     SEARCHING_EXPLANATIONS["linear-search"];
 
   const [array, setArray] = useState(() => {
@@ -112,56 +120,223 @@ export default function SearchingPage() {
   const [running, setRunning] = useState(false);
   const [stepLog, setStepLog] = useState([]);
 
-  const stopRef = useRef(false);
+  // Each execution receives a unique ID.
+  // Changing this value cancels an older execution.
+  const runIdRef = useRef(0);
+
+  // Allows speed changes while an algorithm is running.
+  const speedRef = useRef(speed);
+
+  // Prevents updates after leaving the page.
+  const mountedRef = useRef(true);
+
+  // Prevents repeated automatic execution from extension parameters.
   const autoStartRef = useRef(false);
 
-  const generate = () => {
-    stopRef.current = true;
+  // Stores the state of every searching algorithm.
+  const savedStatesRef = useRef({});
 
-    setTimeout(() => {
+  // Remembers the previously selected algorithm.
+  const previousAlgoRef = useRef(currentAlgo);
+
+  // Stores the latest visible state.
+  const latestStateRef = useRef({
+    array,
+    target,
+    states,
+    pointer,
+    steps,
+    foundIdx,
+    stepLog,
+  });
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  useEffect(() => {
+    latestStateRef.current = {
+      array,
+      target,
+      states,
+      pointer,
+      steps,
+      foundIdx,
+      stepLog,
+    };
+  }, [
+    array,
+    target,
+    states,
+    pointer,
+    steps,
+    foundIdx,
+    stepLog,
+  ]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  /*
+   * Handles switching between searching algorithms.
+   *
+   * It stops the previous execution, saves its state,
+   * and restores the selected algorithm's previous state.
+   */
+  useEffect(() => {
+    const previousAlgo = previousAlgoRef.current;
+
+    if (previousAlgo === currentAlgo) {
+      return;
+    }
+
+    // Cancel the old search execution.
+    runIdRef.current += 1;
+    setRunning(false);
+
+    // Save the previous algorithm state.
+    savedStatesRef.current[previousAlgo] = {
+      array: [...latestStateRef.current.array],
+      target: latestStateRef.current.target,
+      states: {
+        ...latestStateRef.current.states,
+      },
+      pointer: latestStateRef.current.pointer,
+      steps: latestStateRef.current.steps,
+      foundIdx: latestStateRef.current.foundIdx,
+      stepLog: [
+        ...latestStateRef.current.stepLog,
+      ],
+    };
+
+    const savedState =
+      savedStatesRef.current[currentAlgo];
+
+    if (savedState) {
+      // Restore the selected algorithm state.
+      setArray([...savedState.array]);
+      setTarget(savedState.target);
+      setStates({ ...savedState.states });
+      setPointer(savedState.pointer);
+      setSteps(savedState.steps);
+      setFoundIdx(savedState.foundIdx);
+
+      setStepLog([
+        ...savedState.stepLog,
+        {
+          text:
+            `Returned to ${ALGOS[currentAlgo].name}. ` +
+            "Previous state restored.",
+          type: "info",
+        },
+      ]);
+    } else {
+      // First time opening this algorithm.
       const generatedArray = randArr(14);
 
       setArray(generatedArray);
+      setTarget(42);
       setStates({});
       setPointer(-1);
       setSteps(0);
       setFoundIdx(-1);
-      setStepLog([]);
-      setRunning(false);
 
-      stopRef.current = false;
-    }, 50);
-  };
+      setStepLog([
+        {
+          text:
+            `Switched to ${ALGOS[currentAlgo].name}. ` +
+            "New visualization created.",
+          type: "info",
+        },
+      ]);
+    }
 
-  const start = async () => {
+    previousAlgoRef.current = currentAlgo;
+  }, [currentAlgo]);
+
+  const generate = useCallback(() => {
     if (running) {
+      window.alert(
+        "Stop the algorithm before generating a new array."
+      );
       return;
     }
 
-    stopRef.current = false;
-    setRunning(true);
+    // Cancel any unfinished execution.
+    runIdRef.current += 1;
 
+    const generatedArray = randArr(14);
+
+    setArray(generatedArray);
     setStates({});
     setPointer(-1);
     setSteps(0);
     setFoundIdx(-1);
-    setStepLog([]);
+
+    setStepLog([
+      {
+        text: "Generated a new random array.",
+        type: "info",
+      },
+    ]);
+  }, [running]);
+
+  const start = useCallback(async () => {
+    if (running) {
+      return;
+    }
+
+    const currentRunId =
+      runIdRef.current + 1;
+
+    runIdRef.current = currentRunId;
+
+    setRunning(true);
+    setStates({});
+    setPointer(-1);
+    setSteps(0);
+    setFoundIdx(-1);
+
+    setStepLog([
+      {
+        text: `${cfg.name} started.`,
+        type: "info",
+      },
+    ]);
 
     try {
-      const frames = cfg.fn(array, target);
+      // Pass a copy to prevent direct mutation of React state.
+      const frames = cfg.fn([...array], target);
 
       for (
         let index = 0;
         index < frames.length;
         index += 1
       ) {
-        if (stopRef.current) {
-          break;
+        /*
+         * Stop when:
+         * 1. Stop is clicked.
+         * 2. Another algorithm starts.
+         * 3. The user switches algorithms.
+         * 4. The page is closed.
+         */
+        if (
+          runIdRef.current !== currentRunId ||
+          !mountedRef.current
+        ) {
+          return;
         }
 
         const frame = frames[index];
 
         setStates(frame.states || {});
+
         setPointer(
           typeof frame.pointer === "number"
             ? frame.pointer
@@ -170,13 +345,15 @@ export default function SearchingPage() {
 
         setSteps(index + 1);
 
-        setStepLog((previousSteps) => [
-          ...previousSteps,
-          {
-            text: frame.log,
-            type: frame.type || "info"
-          }
-        ]);
+        if (frame.log) {
+          setStepLog((previousSteps) => [
+            ...previousSteps,
+            {
+              text: frame.log,
+              type: frame.type || "info",
+            },
+          ]);
+        }
 
         if (
           typeof frame.found === "number" &&
@@ -186,8 +363,18 @@ export default function SearchingPage() {
         }
 
         await new Promise((resolve) => {
-          setTimeout(resolve, speed);
+          setTimeout(
+            resolve,
+            speedRef.current
+          );
         });
+
+        if (
+          runIdRef.current !== currentRunId ||
+          !mountedRef.current
+        ) {
+          return;
+        }
 
         if (
           typeof frame.found === "number" &&
@@ -196,29 +383,117 @@ export default function SearchingPage() {
           break;
         }
       }
+
+      if (
+        mountedRef.current &&
+        runIdRef.current === currentRunId
+      ) {
+        setRunning(false);
+
+        setStepLog((previousSteps) => [
+          ...previousSteps,
+          {
+            text: `${cfg.name} completed.`,
+            type: "success",
+          },
+        ]);
+      }
     } catch (error) {
       console.error(
         "Visualization error:",
         error
       );
 
-      setStepLog((previousSteps) => [
-        ...previousSteps,
-        {
-          text:
-            error?.message ||
-            "Unable to run the visualization.",
-          type: "error"
-        }
-      ]);
-    } finally {
-      setRunning(false);
-    }
-  };
+      if (
+        mountedRef.current &&
+        runIdRef.current === currentRunId
+      ) {
+        setRunning(false);
 
+        setStepLog((previousSteps) => [
+          ...previousSteps,
+          {
+            text:
+              error?.message ||
+              "Unable to run the visualization.",
+            type: "error",
+          },
+        ]);
+      }
+    }
+  }, [
+    running,
+    cfg,
+    array,
+    target,
+  ]);
+
+  const stop = useCallback(() => {
+    if (!running) {
+      return;
+    }
+
+    // Invalidate the current execution.
+    runIdRef.current += 1;
+    setRunning(false);
+
+    setStepLog((previousSteps) => [
+      ...previousSteps,
+      {
+        text: `${cfg.name} stopped by the user.`,
+        type: "warning",
+      },
+    ]);
+  }, [running, cfg]);
+
+  const handleTargetChange = useCallback(
+    (event) => {
+      if (running) {
+        window.alert(
+          "Stop the algorithm before changing the target."
+        );
+        return;
+      }
+
+      const newTarget = Number(
+        event.target.value
+      );
+
+      setTarget(newTarget);
+      setStates({});
+      setPointer(-1);
+      setSteps(0);
+      setFoundIdx(-1);
+
+      setStepLog([
+        {
+          text: `Target changed to ${newTarget}.`,
+          type: "info",
+        },
+      ]);
+    },
+    [running]
+  );
+
+  const handleSpeedChange = useCallback(
+    (event) => {
+      const newSpeed = Number(
+        event.target.value
+      );
+
+      setSpeed(newSpeed);
+      speedRef.current = newSpeed;
+    },
+    []
+  );
+
+  /*
+   * Automatically starts Two Sum when values are
+   * received from the browser extension.
+   */
   useEffect(() => {
     if (
-      algo === "two-sum" &&
+      currentAlgo === "two-sum" &&
       autoStart &&
       extensionNums &&
       extensionTarget !== null &&
@@ -237,10 +512,11 @@ export default function SearchingPage() {
 
     return undefined;
   }, [
-    algo,
+    currentAlgo,
     autoStart,
     extensionNums,
-    extensionTarget
+    extensionTarget,
+    start,
   ]);
 
   const max = Math.max(...array, 1);
@@ -275,14 +551,13 @@ export default function SearchingPage() {
         <input
           type="number"
           value={target}
-          onChange={(event) => {
-            setTarget(Number(event.target.value));
-          }}
+          onChange={handleTargetChange}
           style={{
             width: 64,
             background: "var(--surface2)",
-            border: "1px solid var(--border2)",
-            color: "var(--text)"
+            border:
+              "1px solid var(--border2)",
+            color: "var(--text)",
           }}
         />
 
@@ -296,10 +571,8 @@ export default function SearchingPage() {
 
         <button
           className="btn btn-danger"
-          onClick={() => {
-            stopRef.current = true;
-            setRunning(false);
-          }}
+          onClick={stop}
+          disabled={!running}
         >
           ■ Stop
         </button>
@@ -313,16 +586,14 @@ export default function SearchingPage() {
           max="800"
           step="10"
           value={speed}
-          onChange={(event) => {
-            setSpeed(Number(event.target.value));
-          }}
+          onChange={handleSpeedChange}
         />
 
         <span
           style={{
             fontSize: 12,
             color: "var(--muted)",
-            minWidth: 45
+            minWidth: 45,
           }}
         >
           {speed}ms
@@ -331,7 +602,7 @@ export default function SearchingPage() {
         <div
           style={{
             marginLeft: "auto",
-            fontSize: 13
+            fontSize: 13,
           }}
         >
           Steps:{" "}
@@ -345,7 +616,7 @@ export default function SearchingPage() {
             <span
               style={{
                 color: "var(--green)",
-                marginLeft: 12
+                marginLeft: 12,
               }}
             >
               ✓ Found at index {foundIdx}
@@ -358,7 +629,7 @@ export default function SearchingPage() {
               <span
                 style={{
                   color: "var(--red)",
-                  marginLeft: 12
+                  marginLeft: 12,
                 }}
               >
                 ✕ Not found
@@ -367,10 +638,11 @@ export default function SearchingPage() {
         </div>
       </div>
 
-
       <div className="viz-layout-3">
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain
+            explanation={explanation}
+          />
         </div>
 
         <div className="viz-center">
@@ -380,7 +652,7 @@ export default function SearchingPage() {
               justifyContent: "center",
               gap: 6,
               padding: "0 20px",
-              minHeight: 16
+              minHeight: 16,
             }}
           >
             {array.map((_, index) => (
@@ -389,7 +661,7 @@ export default function SearchingPage() {
                 style={{
                   width: 40,
                   display: "flex",
-                  justifyContent: "center"
+                  justifyContent: "center",
                 }}
               >
                 {pointer === index && (
@@ -402,7 +674,7 @@ export default function SearchingPage() {
                       borderRight:
                         "6px solid transparent",
                       borderBottom:
-                        "10px solid var(--cyan)"
+                        "10px solid var(--cyan)",
                     }}
                   />
                 )}
@@ -417,7 +689,9 @@ export default function SearchingPage() {
 
               const height = Math.max(
                 18,
-                Math.round((value / max) * 160)
+                Math.round(
+                  (value / max) * 160
+                )
               );
 
               return (
@@ -426,13 +700,17 @@ export default function SearchingPage() {
                   className="cube-wrap"
                 >
                   <div
-                    className={`cube-label state-${state}`}
+                    className={
+                      `cube-label state-${state}`
+                    }
                   >
                     {value}
                   </div>
 
                   <div
-                    className={`cube state-${state}`}
+                    className={
+                      `cube state-${state}`
+                    }
                     style={{ height }}
                   />
                 </div>
@@ -445,7 +723,7 @@ export default function SearchingPage() {
               textAlign: "center",
               marginTop: 8,
               fontSize: 13,
-              color: "var(--muted)"
+              color: "var(--muted)",
             }}
           >
             Target:{" "}
