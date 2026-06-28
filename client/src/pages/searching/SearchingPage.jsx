@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { SEARCHING_EXPLANATIONS } from "../../data/algoExplanations";
 import {
   linearSearchSteps, binarySearchSteps,
@@ -36,10 +37,12 @@ export default function SearchingPage() {
     foundIdx: -1,
     speedMultiplier: 1,
     running: false,
-    stepLog: []
+    stepLog: [],
+    frames: null,
+    frameIdx: -1
   }));
 
-  const { array, target, states, pointer, steps, foundIdx, speedMultiplier, running, stepLog } = state;
+  const { array, target, states, pointer, steps, foundIdx, speedMultiplier, running, stepLog, frames, frameIdx } = state;
 
   const generate = useCallback(() => {
     stop();
@@ -52,7 +55,9 @@ export default function SearchingPage() {
         steps: 0,
         foundIdx: -1,
         stepLog: [],
-        running: false
+        running: false,
+        frames: null,
+        frameIdx: -1
       });
       if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
     }, 50);
@@ -61,22 +66,24 @@ export default function SearchingPage() {
   const start = useCallback(async () => {
     if (!cacheObj || cacheObj.running) return;
     cacheObj.stopRef.current = false;
-    update({ running: true, states: {}, foundIdx: -1, steps: 0, stepLog: [] });
-
+    
     const numTarget = cacheObj.target === '' || cacheObj.target === null || isNaN(cacheObj.target) ? 0 : Number(cacheObj.target);
     if (cacheObj.target === '' || cacheObj.target === null || isNaN(cacheObj.target)) {
       update({ target: 0 });
     }
-    const frames = cfg.fn(cacheObj.array, numTarget);
-    for (let i = 0; i < frames.length; i++) {
+    const computedFrames = cfg.fn(cacheObj.array, numTarget);
+    update({ running: true, states: {}, foundIdx: -1, steps: 0, stepLog: [], frames: computedFrames, frameIdx: 0 });
+
+    for (let i = 0; i < computedFrames.length; i++) {
       if (cacheObj.stopRef.current) break;
-      const f = frames[i];
+      const f = computedFrames[i];
       update({
         array: f.arr,
         states: f.states,
         pointer: f.pointer,
         steps: i + 1,
         foundIdx: f.found !== undefined ? f.found : -1,
+        frameIdx: i,
         stepLog: [...cacheObj.stepLog, { text: f.log, type: f.type || "info" }]
       });
       const delay = Math.round(300 / (cacheObj.speedMultiplier || 1));
@@ -85,6 +92,36 @@ export default function SearchingPage() {
     }
     update({ running: false });
   }, [cfg, update, cacheObj]);
+
+  const handlePrev = () => {
+    if (running || !frames || frames.length === 0 || frameIdx <= 0) return;
+    const nextIdx = frameIdx - 1;
+    const f = frames[nextIdx];
+    update({
+      array: f.arr,
+      states: f.states,
+      pointer: f.pointer,
+      steps: nextIdx + 1,
+      foundIdx: f.found !== undefined ? f.found : -1,
+      frameIdx: nextIdx,
+      stepLog: frames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" }))
+    });
+  };
+
+  const handleNext = () => {
+    if (running || !frames || frames.length === 0 || frameIdx >= frames.length - 1) return;
+    const nextIdx = frameIdx + 1;
+    const f = frames[nextIdx];
+    update({
+      array: f.arr,
+      states: f.states,
+      pointer: f.pointer,
+      steps: nextIdx + 1,
+      foundIdx: f.found !== undefined ? f.found : -1,
+      frameIdx: nextIdx,
+      stepLog: frames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" }))
+    });
+  };
 
   const max = Math.max(...array, 1);
 
@@ -105,6 +142,8 @@ export default function SearchingPage() {
         />
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={stop} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handlePrev} disabled={running || !frames || frames.length === 0 || frameIdx <= 0} style={{ opacity: (running || !frames || frames.length === 0 || frameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleNext} disabled={running || !frames || frames.length === 0 || frameIdx >= frames.length - 1} style={{ opacity: (running || !frames || frames.length === 0 || frameIdx >= frames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
         <label>Speed</label>
         <select className="size-select" value={speedMultiplier} onChange={e => update({ speedMultiplier: +e.target.value })} disabled={running}>
           <option value={0.5}>0.5x</option>
@@ -123,7 +162,7 @@ export default function SearchingPage() {
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Cubes + Pointer */}
@@ -170,6 +209,8 @@ export default function SearchingPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

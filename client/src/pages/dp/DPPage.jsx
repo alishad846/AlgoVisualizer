@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { DP_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* Fibonacci DP table */
@@ -94,6 +95,8 @@ export default function DPPage() {
   const speed = Math.round(200 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const [dpFrames, setDpFrames] = useState(null);
+  const [dpFrameIdx, setDpFrameIdx] = useState(-1);
 
   useEffect(() => {
     stopRef.current = true;
@@ -124,9 +127,11 @@ export default function DPPage() {
   const startFib = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = fibSteps(fibN);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setFibDp(f.dp); setFibActive(f.active); 
+      const f = frames[i];
+      setFibDp(f.dp); setFibActive(f.active); setDpFrameIdx(i);
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await new Promise(r=>setTimeout(r,speed));
     }
@@ -136,9 +141,11 @@ export default function DPPage() {
   const startKnapsack = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = knapsackSteps(weights,values,cap);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setKnapTable(f.dp); setKnapActiveCell([f.activeI,f.activeW]); 
+      const f = frames[i];
+      setKnapTable(f.dp); setKnapActiveCell([f.activeI,f.activeW]); setDpFrameIdx(i);
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await new Promise(r=>setTimeout(r,speed));
     }
@@ -148,9 +155,11 @@ export default function DPPage() {
   const startLcs = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = lcsSteps(s1,s2);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setLcsTable(f.dp); setLcsActiveCell([f.activeI,f.activeJ]); 
+      const f = frames[i];
+      setLcsTable(f.dp); setLcsActiveCell([f.activeI,f.activeJ]); setDpFrameIdx(i);
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await new Promise(r=>setTimeout(r,speed));
     }
@@ -160,13 +169,39 @@ export default function DPPage() {
   const startCoin = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = coinChangeSteps(coins, coinAmt);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setCoinDp(f.dp); setCoinActive(f.active); 
+      const f = frames[i];
+      setCoinDp(f.dp); setCoinActive(f.active); setDpFrameIdx(i);
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await new Promise(r=>setTimeout(r,speed));
     }
     setRunning(false);
+  };
+
+  const handleDpPrev = () => {
+    if (running || !dpFrames || dpFrameIdx <= 0) return;
+    const nextIdx = dpFrameIdx - 1;
+    const f = dpFrames[nextIdx];
+    setDpFrameIdx(nextIdx);
+    if (isFib) { setFibDp(f.dp); setFibActive(f.active); }
+    else if (isKnapsack) { setKnapTable(f.dp); setKnapActiveCell([f.activeI, f.activeW]); }
+    else if (isLcs) { setLcsTable(f.dp); setLcsActiveCell([f.activeI, f.activeJ]); }
+    else if (isCoin) { setCoinDp(f.dp); setCoinActive(f.active); }
+    setStepLog(dpFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
+  };
+
+  const handleDpNext = () => {
+    if (running || !dpFrames || dpFrameIdx >= dpFrames.length - 1) return;
+    const nextIdx = dpFrameIdx + 1;
+    const f = dpFrames[nextIdx];
+    setDpFrameIdx(nextIdx);
+    if (isFib) { setFibDp(f.dp); setFibActive(f.active); }
+    else if (isKnapsack) { setKnapTable(f.dp); setKnapActiveCell([f.activeI, f.activeW]); }
+    else if (isLcs) { setLcsTable(f.dp); setLcsActiveCell([f.activeI, f.activeJ]); }
+    else if (isCoin) { setCoinDp(f.dp); setCoinActive(f.active); }
+    setStepLog(dpFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
   };
 
   const handleStart = () => {
@@ -197,6 +232,8 @@ export default function DPPage() {
         )}
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleDpPrev} disabled={running || !dpFrames || dpFrameIdx <= 0} style={{ opacity: (running || !dpFrames || dpFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleDpNext} disabled={running || !dpFrames || dpFrameIdx >= dpFrames.length - 1} style={{ opacity: (running || !dpFrames || dpFrameIdx >= dpFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
         <label>Speed</label>
         <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
           <option value={0.5}>0.5x</option>
@@ -210,7 +247,7 @@ export default function DPPage() {
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Visualizer */}
@@ -330,6 +367,8 @@ export default function DPPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

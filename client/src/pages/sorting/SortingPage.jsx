@@ -4,6 +4,7 @@ import AppShell from "../../components/AppShell";
 import CubeVisualizer from "../../components/CubeVisualizer";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { SORTING_EXPLANATIONS } from "../../data/algoExplanations";
 import {
   bubbleSortSteps, selectionSortSteps, insertionSortSteps,
@@ -43,10 +44,12 @@ export default function SortingPage() {
     speedMultiplier: 1,
     running: false,
     done: false,
-    stepLog: []
+    stepLog: [],
+    frames: null,
+    frameIdx: -1
   }));
 
-  const { size, array, states, steps, swaps, speedMultiplier, running, done, stepLog } = state;
+  const { size, array, states, steps, swaps, speedMultiplier, running, done, stepLog, frames, frameIdx } = state;
 
   const generate = useCallback(() => {
     stop();
@@ -59,7 +62,9 @@ export default function SortingPage() {
         swaps: 0,
         done: false,
         running: false,
-        stepLog: []
+        stepLog: [],
+        frames: null,
+        frameIdx: -1
       });
       if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
     }, 50);
@@ -77,7 +82,9 @@ export default function SortingPage() {
         swaps: 0,
         done: false,
         running: false,
-        stepLog: []
+        stepLog: [],
+        frames: null,
+        frameIdx: -1
       });
       if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
     }, 50);
@@ -86,17 +93,18 @@ export default function SortingPage() {
   const start = useCallback(async () => {
     if (!cacheObj || cacheObj.running) return;
     cacheObj.stopRef.current = false;
-    update({ running: true, done: false, steps: 0, swaps: 0, stepLog: [] });
+    const computedFrames = cfg.fn(cacheObj.array);
+    update({ running: true, done: false, steps: 0, swaps: 0, stepLog: [], frames: computedFrames, frameIdx: 0 });
 
-    const frames = cfg.fn(cacheObj.array);
-    for (let i = 0; i < frames.length; i++) {
+    for (let i = 0; i < computedFrames.length; i++) {
       if (cacheObj.stopRef.current) break;
-      const f = frames[i];
+      const f = computedFrames[i];
       update({
         array: f.arr,
         states: f.states,
         steps: i + 1,
         swaps: f.swaps,
+        frameIdx: i,
         stepLog: [...cacheObj.stepLog, { text: f.log, type: f.type || "info" }]
       });
       const delay = Math.round(300 / (cacheObj.speedMultiplier || 1));
@@ -105,11 +113,42 @@ export default function SortingPage() {
     if (!cacheObj.stopRef.current) {
       const finalStates = {};
       cacheObj.array.forEach((_, idx) => { finalStates[idx] = "done"; });
-      update({ done: true, running: false, states: finalStates });
+      update({ done: true, running: false, states: finalStates, frameIdx: computedFrames.length - 1 });
     } else {
       update({ running: false });
     }
   }, [cfg, update, cacheObj]);
+
+  const handlePrev = () => {
+    if (running || !frames || frames.length === 0 || frameIdx <= 0) return;
+    const nextIdx = frameIdx - 1;
+    const f = frames[nextIdx];
+    update({
+      array: f.arr,
+      states: f.states,
+      steps: nextIdx + 1,
+      swaps: f.swaps,
+      frameIdx: nextIdx,
+      done: false,
+      stepLog: frames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" }))
+    });
+  };
+
+  const handleNext = () => {
+    if (running || !frames || frames.length === 0 || frameIdx >= frames.length - 1) return;
+    const nextIdx = frameIdx + 1;
+    const f = frames[nextIdx];
+    const isDone = nextIdx === frames.length - 1;
+    update({
+      array: f.arr,
+      states: isDone ? array.reduce((acc, _, i) => ({ ...acc, [i]: "done" }), {}) : f.states,
+      steps: nextIdx + 1,
+      swaps: f.swaps,
+      frameIdx: nextIdx,
+      done: isDone,
+      stepLog: frames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" }))
+    });
+  };
 
   const finalStatesMap = done ? array.reduce((acc, _, i) => ({ ...acc, [i]: "done" }), {}) : states;
 
@@ -123,6 +162,8 @@ export default function SortingPage() {
         <button className="btn btn-ghost" onClick={generate} disabled={running}>⟳ Generate</button>
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={stop} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handlePrev} disabled={running || !frames || frames.length === 0 || frameIdx <= 0} style={{ opacity: (running || !frames || frames.length === 0 || frameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleNext} disabled={running || !frames || frames.length === 0 || frameIdx >= frames.length - 1} style={{ opacity: (running || !frames || frames.length === 0 || frameIdx >= frames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
         <div style={{ width: 1, height: 20, background: "var(--border2)", margin: "0 4px" }} />
         <label>Size</label>
         <select className="size-select" value={size} onChange={e => handleSizeChange(+e.target.value)} disabled={running}>
@@ -148,7 +189,7 @@ export default function SortingPage() {
       <div className="viz-layout-3">
         {/* LEFT — Algorithm Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Cube Visualizer */}
@@ -166,6 +207,8 @@ export default function SortingPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

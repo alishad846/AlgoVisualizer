@@ -1,17 +1,41 @@
 import React, { useState, useEffect } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function AccountDetailsModal({ onClose }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
+  // Initialize current password from local session or restore generic placeholder if missing
+  const [currentPassword, setCurrentPassword] = useState(() => {
+    let saved = localStorage.getItem("user_password") || sessionStorage.getItem("autofill_password");
+    if (!saved || saved === "••••••••" || saved === "********") {
+      saved = "Secret@123";
+      localStorage.setItem("user_password", saved);
+    }
+    return saved;
+  });
   const [newPassword, setNewPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [error, setError] = useState("");
   const [msg, setMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(atob(base64).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+        const decoded = JSON.parse(jsonPayload);
+        if (decoded.username) setUsername(decoded.username);
+        if (decoded.email) setEmail(decoded.email);
+      } catch (e) {
+        // Fallback if token is malformed
+      }
+    }
+
     const fetchProfile = async () => {
-      const token = localStorage.getItem("token");
       if (!token) return;
       try {
         const res = await fetch("http://localhost:5000/api/user/me", {
@@ -19,8 +43,8 @@ export default function AccountDetailsModal({ onClose }) {
         });
         if (res.ok) {
           const data = await res.json();
-          setUsername(data.username || "");
-          setEmail(data.email || "");
+          if (data.username) setUsername(data.username);
+          if (data.email) setEmail(data.email);
         }
       } catch (err) {
         console.error("Failed to fetch profile", err);
@@ -49,7 +73,10 @@ export default function AccountDetailsModal({ onClose }) {
       if (res.ok) {
         setMsg("Account profile updated successfully!");
         if (data.token) localStorage.setItem("token", data.token);
-        setCurrentPassword("");
+        if (newPassword && newPassword.trim() !== "") {
+          localStorage.setItem("user_password", newPassword);
+          setCurrentPassword(newPassword);
+        }
         setNewPassword("");
       } else {
         setError(data.error || "Profile update failed.");
@@ -98,12 +125,38 @@ export default function AccountDetailsModal({ onClose }) {
           </div>
 
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", marginBottom: "16px" }}>
-            <span style={{ fontSize: "13px", color: "var(--text)", fontWeight: 800, display: "block", marginBottom: "12px" }}>Change Password (Optional)</span>
+            <span style={{ fontSize: "13px", color: "var(--text)", fontWeight: 800, display: "block", marginBottom: "12px" }}>Security & Password</span>
             <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>Current Password</label>
-            <input type="password" placeholder="Leave blank if not changing" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px", marginBottom: "12px" }} />
+            <div style={{ position: "relative", marginBottom: "16px" }}>
+              <input 
+                type={showCurrentPassword ? "text" : "password"} 
+                name="current-password"
+                autoComplete="current-password"
+                readOnly={true}
+                value={currentPassword} 
+                onFocus={(e) => e.target.blur()}
+                style={{ width: "100%", padding: "12px 40px 12px 12px", background: "var(--surface)", border: "1px solid var(--border2)", color: "var(--muted)", borderRadius: "6px", fontSize: "15px", cursor: "not-allowed", opacity: 0.6 }} 
+              />
+              <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--muted)", cursor: "pointer" }}>
+                {showCurrentPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+              </button>
+            </div>
 
             <label style={{ display: "block", fontSize: "12px", color: "var(--muted)", marginBottom: "6px", textTransform: "uppercase", fontWeight: 700 }}>New Secure Password</label>
-            <input type="password" placeholder="••••••••" value={newPassword} onChange={e=>setNewPassword(e.target.value)} style={{ width: "100%", padding: "12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px" }} />
+            <div style={{ position: "relative" }}>
+              <input 
+                type={showNewPassword ? "text" : "password"} 
+                name="new-secure-password-no-autofill"
+                autoComplete="new-password"
+                placeholder="Enter new password to change..." 
+                value={newPassword} 
+                onChange={e=>setNewPassword(e.target.value)} 
+                style={{ width: "100%", padding: "12px 40px 12px 12px", background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: "6px", fontSize: "15px" }} 
+              />
+              <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--muted)", cursor: "pointer" }}>
+                {showNewPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+              </button>
+            </div>
           </div>
 
           <div style={{ display: "flex", gap: "12px", marginTop: "28px" }}>

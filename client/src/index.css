@@ -108,41 +108,41 @@ html.light {
   --bg: #f8fafc;
   --surface: #ffffff;
   --surface2: #f1f5f9;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
+  --border: #cbd5e1;
+  --border2: #94a3b8;
   --cyan: #0284c7;
-  --purple: #475569;
+  --purple: #334155;
   --green: #15803d;
   --orange: #c2410c;
   --red: #b91c1c;
-  --yellow: #a16207;
-  --text: #0f172a;
-  --muted: #64748b;
+  --yellow: #854d0e;
+  --text: #000000;
+  --muted: #334155;
   --sidebar-w: 288px;
 
   /* Theme tokens */
-  --primary: #0f172a;
+  --primary: #000000;
   --surface-container-lowest: #ffffff;
   --surface-container-low: #f8fafc;
   --surface-container: #f1f5f9;
   --surface-container-high: #e2e8f0;
   --surface-container-highest: #cbd5e1;
-  --on-surface-variant: #334155;
-  --outline: #64748b;
+  --on-surface-variant: #000000;
+  --outline: #475569;
 
   /* Algorithm active & state tokens */
   --active-bg: #38bdf8;
   --active-text: #000000;
-  --state-default-bg: #cbd5e1;
-  --state-default-border: #94a3b8;
+  --state-default-bg: #e2e8f0;
+  --state-default-border: #64748b;
   --state-comparing: #d97706;
   --state-comparing-shadow: rgba(217, 119, 6, 0.35);
   --state-sorted: #16a34a;
   --state-sorted-shadow: rgba(22, 163, 74, 0.35);
   --state-error: #dc2626;
   --state-error-shadow: rgba(220, 38, 38, 0.35);
-  --state-pivot: #475569;
-  --state-current: #334155;
+  --state-pivot: #334155;
+  --state-current: #1e293b;
 }
 
 body {
@@ -311,10 +311,10 @@ body {
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 .cube-label {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
-  color: var(--muted);
+  color: var(--text);
   transition: color 0.2s;
 }
 .cube {
@@ -592,4 +592,18 @@ body {
 .viz-layout-3 .viz-right { display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
 @media (max-width: 1100px) {
   .viz-layout-3 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── PSEUDOCODE HIGHLIGHTING & MULTI-LANG CODE ── */
+.pseudocode-line {
+  transition: background-color 0.25s ease, border-left-color 0.25s ease;
+}
+.pseudocode-line.active-line {
+  background: rgba(255, 255, 0, 0.15) !important;
+  border-left: 3px solid var(--yellow) !important;
+  box-shadow: 0 0 12px rgba(255, 255, 0, 0.1);
+}
+.code-line {
+  min-height: 20px;
+  white-space: pre-wrap;
 }

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { TREE_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* Simple binary tree node layout */
@@ -66,6 +67,8 @@ export default function TreePage() {
   const speed = Math.round(400 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const [treeOrder, setTreeOrder] = useState(null);
+  const [treeIdx, setTreeIdx] = useState(-1);
 
   useEffect(() => {
     stopRef.current = true;
@@ -85,16 +88,39 @@ export default function TreePage() {
     stopRef.current = false; setRunning(true);
     setActiveSet(new Set()); setVisited([]); setStepLog([]);
     const order = getTraversal(tree, travType === "level" ? "levelorder" : travType);
+    setTreeOrder(order); setTreeIdx(0);
 
     for (let i = 0; i < order.length; i++) {
       if (stopRef.current) break;
       setActiveSet(new Set([order[i]]));
       setVisited(order.slice(0, i + 1));
+      setTreeIdx(i);
       setStepLog(prev => [...prev, { text: `Visiting node: ${order[i]}`, type: "compare" }]);
       await new Promise(r => setTimeout(r, speed));
     }
-    if (!stopRef.current) { setStepLog(prev => [...prev, { text: `${algo} complete: [${order.join(" → ")}]`, type: "done" }]); }
+    if (!stopRef.current) {
+      setStepLog(prev => [...prev, { text: `${algo} complete: [${order.join(" → ")}]`, type: "done" }]);
+      setTreeIdx(order.length - 1);
+    }
     setRunning(false);
+  };
+
+  const handleTreePrev = () => {
+    if (running || !treeOrder || treeIdx <= 0) return;
+    const nextIdx = treeIdx - 1;
+    setTreeIdx(nextIdx);
+    setActiveSet(new Set([treeOrder[nextIdx]]));
+    setVisited(treeOrder.slice(0, nextIdx + 1));
+    setStepLog(treeOrder.slice(0, nextIdx + 1).map(val => ({ text: `Visiting node: ${val}`, type: "compare" })));
+  };
+
+  const handleTreeNext = () => {
+    if (running || !treeOrder || treeIdx >= treeOrder.length - 1) return;
+    const nextIdx = treeIdx + 1;
+    setTreeIdx(nextIdx);
+    setActiveSet(new Set([treeOrder[nextIdx]]));
+    setVisited(treeOrder.slice(0, nextIdx + 1));
+    setStepLog(treeOrder.slice(0, nextIdx + 1).map(val => ({ text: `Visiting node: ${val}`, type: "compare" })));
   };
 
   return (
@@ -105,10 +131,13 @@ export default function TreePage() {
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
         <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleTreePrev} disabled={running || !treeOrder || treeIdx <= 0} style={{ opacity: (running || !treeOrder || treeIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleTreeNext} disabled={running || !treeOrder || treeIdx >= treeOrder.length - 1} style={{ opacity: (running || !treeOrder || treeIdx >= treeOrder.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
         <button className="btn btn-ghost" disabled={running} onClick={() => {
           setTree(randTree(3));  
           setActiveSet(new Set());
           setVisited([]);
+          setTreeOrder(null);
           setStepLog([{ text: "Reset.", type: "info" }]);
         }}>
           ⟳ Reset
@@ -127,7 +156,7 @@ export default function TreePage() {
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Visualizer */}
@@ -153,6 +182,8 @@ export default function TreePage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

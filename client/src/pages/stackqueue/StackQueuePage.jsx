@@ -3,9 +3,10 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { STACKQUEUE_EXPLANATIONS } from "../../data/algoExplanations";
 
-const COLORS = ["#ffffff","#e2e2e2","#cccccc","#b5b5b5","#999999","#777777","#555555"];
+const COLORS = ["var(--cyan)", "var(--purple)", "var(--green)", "var(--orange)", "var(--yellow)"];
 
 function validParenthesesAlgo(str) {
   const frames = [];
@@ -85,6 +86,8 @@ export default function StackQueuePage() {
   const [speedMultiplier, setSpeedMultiplier] = useState(1);
   const speed = Math.round(400 / speedMultiplier);
   const stopRef = useRef(false);
+  const [sqFrames, setSqFrames] = useState(null);
+  const [sqFrameIdx, setSqFrameIdx] = useState(-1);
 
   useEffect(() => {
     stopRef.current = true;
@@ -122,10 +125,13 @@ export default function StackQueuePage() {
     stopRef.current = false; setRunning(true);
     setItems([]); setParensActiveIdx(-1); setStepLog([]);
     const frames = validParenthesesAlgo(parensStr);
-    for (const f of frames) {
+    setSqFrames(frames); setSqFrameIdx(0);
+    for (let i = 0; i < frames.length; i++) {
       if (stopRef.current) break;
+      const f = frames[i];
       setItems(f.stack);
       setParensActiveIdx(f.activeIdx);
+      setSqFrameIdx(i);
       setStepLog(prev => [...prev, { text: f.log, type: f.type }]);
       await new Promise(r => setTimeout(r, speed));
       if (f.done) break;
@@ -138,16 +144,51 @@ export default function StackQueuePage() {
     stopRef.current = false; setRunning(true);
     setItems([]); setNgeResult(new Array(ngeArr.length).fill(-1)); setNgeActiveIdx(-1); setStepLog([]);
     const frames = nextGreaterAlgo(ngeArr);
-    for (const f of frames) {
+    setSqFrames(frames); setSqFrameIdx(0);
+    for (let i = 0; i < frames.length; i++) {
       if (stopRef.current) break;
-      setItems(f.stack.slice().reverse()); // Reverse to show top of stack first
+      const f = frames[i];
+      setItems(f.stack.slice().reverse());
       setNgeResult(f.result);
       setNgeActiveIdx(f.activeI);
+      setSqFrameIdx(i);
       setStepLog(prev => [...prev, { text: f.log, type: f.type }]);
       await new Promise(r => setTimeout(r, speed));
       if (f.done) break;
     }
     setRunning(false);
+  };
+
+  const handleSqPrev = () => {
+    if (running || !sqFrames || sqFrameIdx <= 0) return;
+    const nextIdx = sqFrameIdx - 1;
+    const f = sqFrames[nextIdx];
+    setSqFrameIdx(nextIdx);
+    if (isParens) {
+      setItems(f.stack);
+      setParensActiveIdx(f.activeIdx);
+    } else if (isNGE) {
+      setItems(f.stack.slice().reverse());
+      setNgeResult(f.result);
+      setNgeActiveIdx(f.activeI);
+    }
+    setStepLog(sqFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
+  };
+
+  const handleSqNext = () => {
+    if (running || !sqFrames || sqFrameIdx >= sqFrames.length - 1) return;
+    const nextIdx = sqFrameIdx + 1;
+    const f = sqFrames[nextIdx];
+    setSqFrameIdx(nextIdx);
+    if (isParens) {
+      setItems(f.stack);
+      setParensActiveIdx(f.activeIdx);
+    } else if (isNGE) {
+      setItems(f.stack.slice().reverse());
+      setNgeResult(f.result);
+      setNgeActiveIdx(f.activeI);
+    }
+    setStepLog(sqFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
   };
 
   return (
@@ -178,17 +219,23 @@ export default function StackQueuePage() {
           <>
             <input
               type="text" value={parensStr} placeholder="String..."
-              onChange={e=>setParensStr(e.target.value)}
+              onChange={e=>{setParensStr(e.target.value); setSqFrames(null);}}
               style={{width:120,background:"var(--surface2)",border:"1px solid var(--border2)",color:"var(--text)",padding:"6px 8px",borderRadius:8,fontSize:13}}
             />
             <button className="btn btn-primary" onClick={startParens} disabled={running}>▶ Start</button>
+            <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+            <button className="btn btn-ghost" onClick={handleSqPrev} disabled={running || !sqFrames || sqFrameIdx <= 0} style={{ opacity: (running || !sqFrames || sqFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+            <button className="btn btn-ghost" onClick={handleSqNext} disabled={running || !sqFrames || sqFrameIdx >= sqFrames.length - 1} style={{ opacity: (running || !sqFrames || sqFrameIdx >= sqFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
           </>
         )}
 
         {isNGE && (
           <>
-            <button className="btn btn-ghost" onClick={()=>{setNgeArr(Array.from({length:7},()=>Math.floor(Math.random()*20)))}}>⟳ Randomize</button>
+            <button className="btn btn-ghost" onClick={()=>{setNgeArr(Array.from({length:7},()=>Math.floor(Math.random()*20))); setSqFrames(null);}}>⟳ Randomize</button>
             <button className="btn btn-primary" onClick={startNGE} disabled={running}>▶ Start</button>
+            <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+            <button className="btn btn-ghost" onClick={handleSqPrev} disabled={running || !sqFrames || sqFrameIdx <= 0} style={{ opacity: (running || !sqFrames || sqFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+            <button className="btn btn-ghost" onClick={handleSqNext} disabled={running || !sqFrames || sqFrameIdx >= sqFrames.length - 1} style={{ opacity: (running || !sqFrames || sqFrameIdx >= sqFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
           </>
         )}
 
@@ -210,7 +257,7 @@ export default function StackQueuePage() {
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Visualizer */}
@@ -269,10 +316,10 @@ export default function StackQueuePage() {
                   <div key={i} style={{
                     width:isQueue?56:160, height:isQueue?56:40,
                     borderRadius:8, display:"flex",alignItems:"center",justifyContent:"center",
-                    fontFamily:"JetBrains Mono,monospace",fontWeight:700,fontSize:14,
-                    background: i===highlighted ? "var(--active-bg)" : `linear-gradient(135deg,${COLORS[i%COLORS.length]}33,${COLORS[i%COLORS.length]}11)`,
-                    border:`1px solid ${COLORS[i%COLORS.length]}66`,
-                    color: i===highlighted ? "var(--active-text)" : COLORS[i%COLORS.length],
+                    fontFamily:"JetBrains Mono,monospace",fontWeight:800,fontSize:16,
+                    background: i===highlighted ? "var(--active-bg)" : "var(--surface2)",
+                    border: i===highlighted ? "2px solid var(--active-text)" : "1px solid var(--border2)",
+                    color: i===highlighted ? "var(--active-text)" : "var(--text)",
                     transition:"all 0.3s", boxShadow: i===0?"0 0 12px rgba(6,182,212,0.3)":"none"
                   }}>{v}</div>
                 ))}
@@ -296,6 +343,8 @@ export default function StackQueuePage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

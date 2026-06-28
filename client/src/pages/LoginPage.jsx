@@ -87,6 +87,7 @@ if (!password.trim()) {
 
     if (response.ok) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user_password", password);
       if (keepSession) {
         localStorage.setItem("keepSession", "true");
       } else {

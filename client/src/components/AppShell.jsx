@@ -3,13 +3,21 @@ import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AccountDetailsModal from "./AccountDetailsModal";
 import HelpModal from "./HelpModal";
+import { isMuted, toggleMute } from "../utils/sound";
 
 export default function AppShell({ children, breadcrumb }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null); // "account" or "help"
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
+  const [muted, setMuted] = useState(() => isMuted());
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleSoundToggle = (e) => setMuted(e.detail);
+    window.addEventListener("av-sound-toggle", handleSoundToggle);
+    return () => window.removeEventListener("av-sound-toggle", handleSoundToggle);
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.remove("dark", "light");
@@ -51,6 +59,11 @@ export default function AppShell({ children, breadcrumb }) {
         </div>
         
         <div style={{ display: "flex", gap: "8px", alignItems: "center", position: "relative" }}>
+          <button className="av-icon-btn" onClick={() => setMuted(toggleMute())} title={muted ? "Unmute Sound Feedback" : "Mute Sound Feedback"}>
+            <span className="material-symbols-outlined" style={{ color: muted ? "var(--red)" : "var(--green)" }}>
+              {muted ? "volume_off" : "volume_up"}
+            </span>
+          </button>
           <button className="av-icon-btn" onClick={() => setTheme(t => t === "dark" ? "light" : "dark")} title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}>
             <span className="material-symbols-outlined">{theme === "dark" ? "light_mode" : "dark_mode"}</span>
           </button>
