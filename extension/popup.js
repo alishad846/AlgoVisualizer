@@ -283,62 +283,123 @@ const title =
     url: window.location.href
   };
 
-  function extractFirstInputLine(text) {
-    const exampleOneMatch = text.match(
-      /Example\s*1\s*:[\s\S]*?Input\s*:\s*([^\n]+)/i
-    );
-
-    if (exampleOneMatch?.[1]) {
-      return exampleOneMatch[1].trim();
-    }
-
-    const inputMatch = text.match(
-      /Input\s*:\s*([^\n]+)/i
-    );
-
-    if (inputMatch?.[1]) {
-      return inputMatch[1].trim();
-    }
-
+ function extractFirstInputLine(text) {
+  if (!text) {
     return "";
   }
 
-  function parseInputAssignments(inputText) {
-    if (!inputText) {
-      return {};
+  const lines = text
+    .replace(/\r/g, "")
+    .split("\n")
+    .map((line) => line.trim());
+
+  const inputIndex = lines.findIndex((line) =>
+    /^Input\s*:?\s*/i.test(line)
+  );
+
+  if (inputIndex === -1) {
+    return "";
+  }
+
+  const inputLines = [];
+
+  const firstLine = lines[inputIndex]
+    .replace(/^Input\s*:?\s*/i, "")
+    .trim();
+
+  if (firstLine) {
+    inputLines.push(firstLine);
+  }
+
+  for (
+    let index = inputIndex + 1;
+    index < lines.length;
+    index += 1
+  ) {
+    const line = lines[index];
+
+    if (
+      /^(Output|Explanation|Constraints|Follow[- ]?up|Example\s*\d+)\s*:?\s*/i.test(
+        line
+      )
+    ) {
+      break;
     }
 
-    const parts =
-      splitOutsideBrackets(inputText);
-
-    const parsedInputs = {};
-
-    parts.forEach((part, index) => {
-      const equalPosition = part.indexOf("=");
-
-      if (equalPosition === -1) {
-        parsedInputs[`input${index + 1}`] =
-          parseValue(part);
-
-        return;
-      }
-
-      const variableName = part
-        .slice(0, equalPosition)
-        .trim();
-
-      const rawValue = part
-        .slice(equalPosition + 1)
-        .trim();
-
-      if (variableName) {
-        parsedInputs[variableName] =
-          parseValue(rawValue);
-      }
-    });
-
-    return parsedInputs;
+    if (line) {
+      inputLines.push(line);
+    }
   }
+
+  return inputLines.join("\n");
+}
+
+ function parseInputAssignments(inputText) {
+  if (!inputText) {
+    return {};
+  }
+
+  const normalizedInput = inputText
+    .replace(/\r/g, "")
+    .trim();
+
+  const lines = normalizedInput
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (
+    lines.length === 2 &&
+    lines[0].startsWith("[") &&
+    lines[1].startsWith("[")
+  ) {
+    return {
+      operations: parseValue(lines[0]),
+      arguments: parseValue(lines[1])
+    };
+  }
+
+  const singleLineInput =
+    normalizedInput.replace(/\n+/g, ",");
+
+  const parts =
+    splitOutsideBrackets(singleLineInput);
+
+  const parsedInputs = {};
+
+  parts.forEach((part, index) => {
+    const cleanedPart = part.trim();
+
+    if (!cleanedPart) {
+      return;
+    }
+
+    const equalPosition =
+      cleanedPart.indexOf("=");
+
+    if (equalPosition === -1) {
+      parsedInputs[`input${index + 1}`] =
+        parseValue(cleanedPart);
+
+      return;
+    }
+
+    const variableName = cleanedPart
+      .slice(0, equalPosition)
+      .trim();
+
+    const rawValue = cleanedPart
+      .slice(equalPosition + 1)
+      .trim();
+
+    if (variableName) {
+      parsedInputs[variableName] =
+        parseValue(rawValue);
+    }
+  });
+
+  return parsedInputs;
+}
 
   function splitOutsideBrackets(text) {
     const parts = [];
