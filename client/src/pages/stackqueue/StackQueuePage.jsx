@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -6,6 +6,13 @@ import StepLog from "../../components/StepLog";
 import { STACKQUEUE_EXPLANATIONS } from "../../data/algoExplanations";
 
 const COLORS = ["#06b6d4", "#8b5cf6", "#10b981", "#f97316", "#ef4444", "#eab308", "#ec4899"];
+
+const STACKQUEUE_ALGOS = {
+  "stack": { name: "Stack" },
+  "queue": { name: "Queue" },
+  "valid-parentheses": { name: "Valid Parentheses" },
+  "next-greater": { name: "Next Greater Element" }
+};
 
 function validParenthesesAlgo(str) {
   const frames = [];
@@ -69,12 +76,13 @@ function nextGreaterAlgo(arr) {
 
 export default function StackQueuePage() {
   const { algo } = useParams();
-  const explanation = STACKQUEUE_EXPLANATIONS[algo] || STACKQUEUE_EXPLANATIONS["stack"];
+  const currentAlgo = STACKQUEUE_ALGOS[algo] ? algo : "stack";
+  const explanation = STACKQUEUE_EXPLANATIONS[currentAlgo] || STACKQUEUE_EXPLANATIONS["stack"];
 
-  const isQueue = algo === "queue";
-  const isStack = algo === "stack";
-  const isParens = algo === "valid-parentheses";
-  const isNGE = algo === "next-greater";
+  const isQueue = currentAlgo === "queue";
+  const isStack = currentAlgo === "stack";
+  const isParens = currentAlgo === "valid-parentheses";
+  const isNGE = currentAlgo === "next-greater";
 
   // Shared state
   const [items, setItems] = useState([]);
@@ -83,9 +91,6 @@ export default function StackQueuePage() {
   const [stepLog, setStepLog] = useState([]);
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(400);
-  const stopRef = useRef(false);
-  const speedRef = useRef(speed);
-
 
   // Parens State
   const [parensStr, setParensStr] = useState("({[]})");
@@ -96,60 +101,274 @@ export default function StackQueuePage() {
   const [ngeResult, setNgeResult] = useState(new Array(7).fill(-1));
   const [ngeActiveIdx, setNgeActiveIdx] = useState(-1);
 
-  const push = () => {
+  // Refs for tracking, cancellation and state persistence
+  const runIdRef = useRef(0);
+  const runningRef = useRef(false);
+  const speedRef = useRef(speed);
+  const mountedRef = useRef(true);
+  const savedStatesRef = useRef({});
+  const previousAlgoRef = useRef(currentAlgo);
+
+  const latestStateRef = useRef({
+    items,
+    input,
+    highlighted,
+    stepLog,
+    parensStr,
+    parensActiveIdx,
+    ngeArr,
+    ngeResult,
+    ngeActiveIdx,
+  });
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  useEffect(() => {
+    latestStateRef.current = {
+      items,
+      input,
+      highlighted,
+      stepLog,
+      parensStr,
+      parensActiveIdx,
+      ngeArr,
+      ngeResult,
+      ngeActiveIdx,
+    };
+  }, [
+    items,
+    input,
+    highlighted,
+    stepLog,
+    parensStr,
+    parensActiveIdx,
+    ngeArr,
+    ngeResult,
+    ngeActiveIdx,
+  ]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      runningRef.current = false;
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  // Handle switching algorithm state save/restore
+  useEffect(() => {
+    const previousAlgo = previousAlgoRef.current;
+    if (previousAlgo === currentAlgo) {
+      return;
+    }
+
+    // Cancel previous running execution
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setRunning(false);
+
+    // Save previous state
+    savedStatesRef.current[previousAlgo] = {
+      items: [...latestStateRef.current.items],
+      input: latestStateRef.current.input,
+      highlighted: latestStateRef.current.highlighted,
+      stepLog: [...latestStateRef.current.stepLog],
+      parensStr: latestStateRef.current.parensStr,
+      parensActiveIdx: latestStateRef.current.parensActiveIdx,
+      ngeArr: [...latestStateRef.current.ngeArr],
+      ngeResult: [...latestStateRef.current.ngeResult],
+      ngeActiveIdx: latestStateRef.current.ngeActiveIdx,
+    };
+
+    // Restore next state
+    const savedState = savedStatesRef.current[currentAlgo];
+    if (savedState) {
+      setItems([...savedState.items]);
+      setInput(savedState.input);
+      setHighlighted(savedState.highlighted);
+      setStepLog([
+        ...savedState.stepLog,
+        {
+          text: `Returned to ${STACKQUEUE_ALGOS[currentAlgo].name}. Previous state restored.`,
+          type: "info",
+        }
+      ]);
+      setParensStr(savedState.parensStr);
+      setParensActiveIdx(savedState.parensActiveIdx);
+      setNgeArr([...savedState.ngeArr]);
+      setNgeResult([...savedState.ngeResult]);
+      setNgeActiveIdx(savedState.ngeActiveIdx);
+    } else {
+      // Default initial states
+      setItems([]);
+      setInput("");
+      setHighlighted(-1);
+
+      if (currentAlgo === "valid-parentheses") {
+        setParensStr("({[]})");
+        setParensActiveIdx(-1);
+      } else if (currentAlgo === "next-greater") {
+        const initialNgeArr = [4, 12, 5, 3, 1, 2, 5, 3, 1, 2, 4, 6].slice(0, 7);
+        setNgeArr(initialNgeArr);
+        setNgeResult(new Array(7).fill(-1));
+        setNgeActiveIdx(-1);
+      }
+
+      setStepLog([
+        {
+          text: `Switched to ${STACKQUEUE_ALGOS[currentAlgo].name}. New visualization created.`,
+          type: "info",
+        }
+      ]);
+    }
+
+    previousAlgoRef.current = currentAlgo;
+  }, [currentAlgo]);
+
+  const push = useCallback(() => {
+    if (runningRef.current) return;
     const val = input.trim() || Math.floor(Math.random() * 99) + 1;
     setItems(p => isQueue ? [...p, +val] : [+val, ...p]);
     setInput("");
     setStepLog(prev => [...prev, { text: `${isQueue ? "Enqueued" : "Pushed"}: ${val}`, type: "info" }]);
     setHighlighted(0);
-    setTimeout(() => setHighlighted(-1), 600);
-  };
+    setTimeout(() => {
+      if (mountedRef.current) setHighlighted(-1);
+    }, 600);
+  }, [input, isQueue]);
 
-  const pop = () => {
+  const pop = useCallback(() => {
+    if (runningRef.current) return;
     if (!items.length) { setStepLog(prev => [...prev, { text: "Empty!", type: "compare" }]); return; }
     const val = items[0];
     setStepLog(prev => [...prev, { text: `${isQueue ? "Dequeued" : "Popped"}: ${val}`, type: "swap" }]);
     setHighlighted(0);
-    setTimeout(() => { setItems(p => p.slice(1)); setHighlighted(-1); }, 400);
-  };
+    setTimeout(() => {
+      if (mountedRef.current) {
+        setItems(p => p.slice(1));
+        setHighlighted(-1);
+      }
+    }, 400);
+  }, [items, isQueue]);
 
-  const startParens = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
-    setItems([]); setParensActiveIdx(-1); setStepLog([]);
+  const startParens = useCallback(async () => {
+    if (runningRef.current) return;
+
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
+
+    setItems([]);
+    setParensActiveIdx(-1);
+    setStepLog([
+      { text: "Valid Parentheses visualization started.", type: "info" }
+    ]);
+
     const frames = validParenthesesAlgo(parensStr);
-    for (const f of frames) {
-      if (stopRef.current) break;
+    for (let index = 0; index < frames.length; index++) {
+      const f = frames[index];
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
+
       setItems(f.stack);
       setParensActiveIdx(f.activeIdx);
       setStepLog(prev => [...prev, { text: f.log, type: f.type }]);
-      await new Promise(r => setTimeout(r, speedRef.current));   //  latest speed use karega
+
+      await new Promise(r => setTimeout(r, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
 
       if (f.done) break;
     }
-    setRunning(false);
-  };
 
-  const startNGE = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
-    setItems([]); setNgeResult(new Array(ngeArr.length).fill(-1)); setNgeActiveIdx(-1); setStepLog([]);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      runningRef.current = false;
+      setRunning(false);
+    }
+  }, [parensStr]);
+
+  const startNGE = useCallback(async () => {
+    if (runningRef.current) return;
+
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
+
+    setItems([]);
+    setNgeResult(new Array(ngeArr.length).fill(-1));
+    setNgeActiveIdx(-1);
+    setStepLog([
+      { text: "Next Greater Element visualization started.", type: "info" }
+    ]);
+
     const frames = nextGreaterAlgo(ngeArr);
-    for (const f of frames) {
-      if (stopRef.current) break;
+    for (let index = 0; index < frames.length; index++) {
+      const f = frames[index];
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
+
       setItems(f.stack.slice().reverse()); // Reverse to show top of stack first
       setNgeResult(f.result);
       setNgeActiveIdx(f.activeI);
       setStepLog(prev => [...prev, { text: f.log, type: f.type }]);
-      await new Promise(r => setTimeout(r, speedRef.current));   //  latest speed use karega
+
+      await new Promise(r => setTimeout(r, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
 
       if (f.done) break;
     }
+
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      runningRef.current = false;
+      setRunning(false);
+    }
+  }, [ngeArr]);
+
+  const stop = useCallback(() => {
+    if (!runningRef.current) return;
+
+    runIdRef.current += 1;
+    runningRef.current = false;
     setRunning(false);
-  };
+
+    setStepLog(prev => [
+      ...prev,
+      { text: "Stopped by the user.", type: "warning" }
+    ]);
+  }, []);
 
   return (
-    <AppShell breadcrumb={`Stack & Queue / ${explanation?.title || algo}`}>
+    <AppShell breadcrumb={`Stack & Queue / ${explanation?.title || currentAlgo}`}>
       <div className="section-title">{explanation?.title || "Stack & Queue"}</div>
       <div className="section-sub">
         {isParens ? "Animate bracket matching using a stack" :
@@ -164,11 +383,12 @@ export default function StackQueuePage() {
             <input
               type="number" value={input} placeholder="Value"
               onChange={e => setInput(e.target.value)}
+              disabled={running}
               style={{ width: 80, background: "var(--surface2)", border: "1px solid var(--border2)", color: "var(--text)", padding: "6px 8px", borderRadius: 8, fontSize: 13 }}
             />
-            <button className="btn btn-primary" onClick={push}>{isQueue ? "Enqueue ↓" : "Push ↑"}</button>
-            <button className="btn btn-danger" onClick={pop} disabled={!items.length}>{isQueue ? "Dequeue ↑" : "Pop ↑"}</button>
-            <button className="btn btn-ghost" onClick={() => { setItems([]); setStepLog([{ text: "Cleared.", type: "info" }]); }}>Clear</button>
+            <button className="btn btn-primary" onClick={push} disabled={running}>{isQueue ? "Enqueue ↓" : "Push ↑"}</button>
+            <button className="btn btn-danger" onClick={pop} disabled={running || !items.length}>{isQueue ? "Dequeue ↑" : "Pop ↑"}</button>
+            <button className="btn btn-ghost" onClick={() => { setItems([]); setStepLog([{ text: "Cleared.", type: "info" }]); }} disabled={running}>Clear</button>
           </>
         )}
 
@@ -177,6 +397,7 @@ export default function StackQueuePage() {
             <input
               type="text" value={parensStr} placeholder="String..."
               onChange={e => setParensStr(e.target.value)}
+              disabled={running}
               style={{ width: 120, background: "var(--surface2)", border: "1px solid var(--border2)", color: "var(--text)", padding: "6px 8px", borderRadius: 8, fontSize: 13 }}
             />
             <button className="btn btn-primary" onClick={startParens} disabled={running}>▶ Start</button>
@@ -185,14 +406,14 @@ export default function StackQueuePage() {
 
         {isNGE && (
           <>
-            <button className="btn btn-ghost" onClick={() => { setNgeArr(Array.from({ length: 7 }, () => Math.floor(Math.random() * 20))) }}>⟳ Randomize</button>
+            <button className="btn btn-ghost" onClick={() => { setNgeArr(Array.from({ length: 7 }, () => Math.floor(Math.random() * 20))) }} disabled={running}>⟳ Randomize</button>
             <button className="btn btn-primary" onClick={startNGE} disabled={running}>▶ Start</button>
           </>
         )}
 
         {(isParens || isNGE) && (
           <>
-            <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
+            <button className="btn btn-danger" onClick={stop} disabled={!running}>■ Stop</button>
             <label>Speed</label>
             <input
               type="range"
@@ -204,7 +425,7 @@ export default function StackQueuePage() {
               onChange={e => {
                 const newSpeed = +e.target.value;
                 setSpeed(newSpeed);
-                speedRef.current = newSpeed;   //  latest value store
+                speedRef.current = newSpeed;
               }}
             />
             <span style={{ fontSize: 12, color: "var(--muted)", minWidth: 50 }}>{speed}ms</span>

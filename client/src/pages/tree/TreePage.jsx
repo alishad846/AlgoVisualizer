@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -14,7 +14,6 @@ function randTree(depth = 3) {
     right: randTree(depth - 1)
   };
 }
-
 
 function getTraversal(root, type) {
   const result = [];
@@ -52,65 +51,193 @@ function TreeNode({ node, activeSet, depth = 0, x = 50, spread = 25 }) {
   );
 }
 
+const TREE_ALGOS = {
+  "inorder": { name: "Inorder Traversal" },
+  "preorder": { name: "Preorder Traversal" },
+  "postorder": { name: "Postorder Traversal" },
+  "level-order": { name: "Level Order Traversal" }
+};
+
 export default function TreePage() {
   const { algo } = useParams();
-  const explanation = TREE_EXPLANATIONS[algo] || TREE_EXPLANATIONS["inorder"];
+  const currentAlgo = TREE_ALGOS[algo] ? algo : "inorder";
+  const explanation = TREE_EXPLANATIONS[currentAlgo] || TREE_EXPLANATIONS["inorder"];
 
-  const [tree, setTree] = useState(randTree(3));
+  const [tree, setTree] = useState(() => randTree(3));
   const [activeSet, setActiveSet] = useState(new Set());
   const [visited, setVisited] = useState([]);
-
-
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(500);
   const [stepLog, setStepLog] = useState([]);
-  const stopRef = useRef(false);
-  const speedRef = useRef(speed);
 
+  // Refs for tracking, cancellation and state persistence
+  const runIdRef = useRef(0);
+  const runningRef = useRef(false);
+  const speedRef = useRef(speed);
+  const mountedRef = useRef(true);
+  const savedStatesRef = useRef({});
+  const previousAlgoRef = useRef(currentAlgo);
+
+  const latestStateRef = useRef({
+    tree,
+    activeSet,
+    visited,
+    stepLog,
+  });
 
   useEffect(() => {
-    const newTree = randTree(3); // depth 3 ka random tree
-    setTree(newTree);
-    setActiveSet(new Set());
-    setVisited([]);
-    setStepLog([{ text: "New tree generated.", type: "info" }]);
-  }, [algo]);
+    speedRef.current = speed;
+  }, [speed]);
 
+  useEffect(() => {
+    latestStateRef.current = {
+      tree,
+      activeSet,
+      visited,
+      stepLog,
+    };
+  }, [tree, activeSet, visited, stepLog]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      runningRef.current = false;
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  // Handle switching algorithm state save/restore
+  useEffect(() => {
+    const previousAlgo = previousAlgoRef.current;
+    if (previousAlgo === currentAlgo) {
+      return;
+    }
+
+    // Cancel previous running execution
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setRunning(false);
+
+    // Save previous state
+    savedStatesRef.current[previousAlgo] = {
+      tree: latestStateRef.current.tree,
+      activeSet: new Set(latestStateRef.current.activeSet),
+      visited: [...latestStateRef.current.visited],
+      stepLog: [...latestStateRef.current.stepLog],
+    };
+
+    // Restore next state if exists
+    const savedState = savedStatesRef.current[currentAlgo];
+    if (savedState) {
+      setTree(savedState.tree);
+      setActiveSet(new Set(savedState.activeSet));
+      setVisited([...savedState.visited]);
+      setStepLog([
+        ...savedState.stepLog,
+        {
+          text: `Returned to ${TREE_ALGOS[currentAlgo].name}. Previous state restored.`,
+          type: "info",
+        }
+      ]);
+    } else {
+      // Default initial states
+      const initialTree = randTree(3);
+      setTree(initialTree);
+      setActiveSet(new Set());
+      setVisited([]);
+      setStepLog([
+        {
+          text: `Switched to ${TREE_ALGOS[currentAlgo].name}. New tree generated.`,
+          type: "info",
+        }
+      ]);
+    }
+
+    previousAlgoRef.current = currentAlgo;
+  }, [currentAlgo]);
 
   const typeMap = { inorder: "inorder", preorder: "preorder", postorder: "postorder", "level-order": "level" };
-  const travType = typeMap[algo] || "inorder";
+  const travType = typeMap[currentAlgo] || "inorder";
 
-  const start = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
-    setActiveSet(new Set()); setVisited([]); setStepLog([]);
+  const start = useCallback(async () => {
+    if (runningRef.current) return;
+
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
+
+    setActiveSet(new Set());
+    setVisited([]);
+    setStepLog([
+      { text: `${TREE_ALGOS[currentAlgo].name} started.`, type: "info" }
+    ]);
+
     const order = getTraversal(tree, travType === "level" ? "levelorder" : travType);
 
     for (let i = 0; i < order.length; i++) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
+
       setActiveSet(new Set([order[i]]));
       setVisited(order.slice(0, i + 1));
       setStepLog(prev => [...prev, { text: `Visiting node: ${order[i]}`, type: "compare" }]);
-      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+
+      await new Promise(r => setTimeout(r, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        if (runIdRef.current === currentRunId) {
+          runningRef.current = false;
+          setRunning(false);
+        }
+        return;
+      }
     }
-    if (!stopRef.current) { setStepLog(prev => [...prev, { text: `${algo} complete: [${order.join(" → ")}]`, type: "done" }]); }
+
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setStepLog(prev => [...prev, { text: `${TREE_ALGOS[currentAlgo].name} complete: [${order.join(" → ")}]`, type: "done" }]);
+      runningRef.current = false;
+      setRunning(false);
+    }
+  }, [tree, travType, currentAlgo]);
+
+  const stop = useCallback(() => {
+    if (!runningRef.current) return;
+
+    runIdRef.current += 1;
+    runningRef.current = false;
     setRunning(false);
-  };
+
+    setStepLog(prev => [
+      ...prev,
+      { text: "Stopped by the user.", type: "warning" }
+    ]);
+  }, []);
+
+  const reset = useCallback(() => {
+    if (runningRef.current) return;
+
+    setTree(randTree(3));
+    setActiveSet(new Set());
+    setVisited([]);
+    setStepLog([{ text: "Reset.", type: "info" }]);
+  }, []);
 
   return (
-    <AppShell breadcrumb={`Tree / ${explanation?.title || algo}`}>
-      <div className="section-title">{explanation?.title || algo}</div>
+    <AppShell breadcrumb={`Tree / ${explanation?.title || currentAlgo}`}>
+      <div className="section-title">{explanation?.title || currentAlgo}</div>
       <div className="section-sub">Watch tree nodes light up as the traversal visits each node</div>
 
       <div className="controls-bar" style={{ marginBottom: 12 }}>
         <button className="btn btn-primary" onClick={start} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
-        <button className="btn btn-ghost" onClick={() => {
-          setTree(randTree(3));
-          setActiveSet(new Set());
-          setVisited([]);
-          setStepLog([{ text: "Reset.", type: "info" }]);
-        }}>
+        <button className="btn btn-danger" onClick={stop} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={reset} disabled={running}>
           ⟳ Reset
         </button>
 
@@ -125,7 +252,7 @@ export default function TreePage() {
           onChange={e => {
             const newSpeed = +e.target.value;
             setSpeed(newSpeed);
-            speedRef.current = newSpeed;   // latest value store
+            speedRef.current = newSpeed;
           }}
         />
 
@@ -143,7 +270,6 @@ export default function TreePage() {
           <div className="card" style={{ padding: 16, minHeight: 340 }}>
             <svg width="100%" height={320}>
               <TreeNode node={tree} activeSet={activeSet} depth={0} x={50} spread={28} />
-
             </svg>
           </div>
 

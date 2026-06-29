@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import { GRAPH_EXPLANATIONS } from "../../data/algoExplanations";
 
-/* 6x6 grid graph — BFS/DFS/Dijkstra */
+/* 8x12 grid graph — BFS/DFS/Dijkstra */
 const ROWS = 8, COLS = 12;
 
 function makeGrid() {
@@ -79,12 +79,12 @@ function DagViz({ activeNode, visitedNodes, order }) {
   );
 }
 
-
 export default function GraphPage() {
   const { algo } = useParams();
-  const explanation = GRAPH_EXPLANATIONS[algo] || GRAPH_EXPLANATIONS["bfs"];
-  const isTopo = algo === "topological-sort";
-  const isDijkstra = algo === "dijkstra";
+  const currentAlgo = algo || "bfs";
+  const explanation = GRAPH_EXPLANATIONS[currentAlgo] || GRAPH_EXPLANATIONS["bfs"];
+  const isTopo = currentAlgo === "topological-sort";
+  const isDijkstra = currentAlgo === "dijkstra";
 
   const [grid, setGrid] = useState(makeGrid);
 
@@ -96,46 +96,181 @@ export default function GraphPage() {
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(isTopo ? 600 : 50);
   const [stepLog, setStepLog] = useState([]);
-  const stopRef = useRef(false);
+
+  const runIdRef = useRef(0);
+  const runningRef = useRef(false);
+  const mountedRef = useRef(true);
   const speedRef = useRef(speed);
 
+  // Stores the state of every graph algorithm.
+  const savedStatesRef = useRef({});
+
+  // Remembers the previously selected algorithm.
+  const previousAlgoRef = useRef(currentAlgo);
+
+  // Stores the latest visible state.
+  const latestStateRef = useRef({
+    grid,
+    activeNode,
+    visitedNodes,
+    topoOrder,
+    stepLog,
+    speed,
+  });
+
+  useEffect(() => {
+    latestStateRef.current = {
+      grid,
+      activeNode,
+      visitedNodes,
+      topoOrder,
+      stepLog,
+      speed,
+    };
+  }, [grid, activeNode, visitedNodes, topoOrder, stepLog, speed]);
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      runningRef.current = false;
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  /*
+   * Handles switching between graph algorithms.
+   *
+   * 1. Stops the previous algorithm.
+   * 2. Saves its current visualization state.
+   * 3. Restores the selected algorithm's previous state.
+   */
+  useEffect(() => {
+    const previousAlgo = previousAlgoRef.current;
+
+    if (previousAlgo === currentAlgo) {
+      return;
+    }
+
+    // Cancel the old algorithm execution.
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setRunning(false);
+
+    // Save the previous algorithm's state at the point it was stopped.
+    savedStatesRef.current[previousAlgo] = {
+      grid: latestStateRef.current.grid.map(row => row.map(cell => ({ ...cell }))),
+      activeNode: latestStateRef.current.activeNode,
+      visitedNodes: new Set(latestStateRef.current.visitedNodes),
+      topoOrder: [...latestStateRef.current.topoOrder],
+      stepLog: [...latestStateRef.current.stepLog],
+      speed: latestStateRef.current.speed,
+    };
+
+    const savedState = savedStatesRef.current[currentAlgo];
+
+    if (savedState) {
+      setGrid(savedState.grid);
+      setActiveNode(savedState.activeNode);
+      setVisitedNodes(savedState.visitedNodes);
+      setTopoOrder(savedState.topoOrder);
+      setSpeed(savedState.speed);
+      speedRef.current = savedState.speed;
+
+      setStepLog([
+        ...savedState.stepLog,
+        {
+          text: `Returned to ${GRAPH_EXPLANATIONS[currentAlgo]?.title || currentAlgo}. Previous state restored.`,
+          type: "info",
+        },
+      ]);
+    } else {
+      const isNewTopo = currentAlgo === "topological-sort";
+      
+      if (isNewTopo) {
+        setGrid(makeGrid());
+        setActiveNode(null);
+        setVisitedNodes(new Set());
+        setTopoOrder([]);
+      } else {
+        // Copy walls and weights from current grid, reset visualization states
+        const currentGrid = latestStateRef.current.grid;
+        const newGrid = currentGrid.map(row => row.map(cell => ({
+          ...cell,
+          visited: false,
+          active: false,
+          dist: Infinity,
+        })));
+        setGrid(newGrid);
+        setActiveNode(null);
+        setVisitedNodes(new Set());
+        setTopoOrder([]);
+      }
+
+      const initialSpeed = isNewTopo ? 600 : 50;
+      setSpeed(initialSpeed);
+      speedRef.current = initialSpeed;
+
+      setStepLog([
+        {
+          text: `Switched to ${GRAPH_EXPLANATIONS[currentAlgo]?.title || currentAlgo}. New visualization created.`,
+          type: "info",
+        },
+      ]);
+    }
+
+    previousAlgoRef.current = currentAlgo;
+  }, [currentAlgo]);
 
   const reset = () => {
-    stopRef.current = true;
-    setTimeout(() => {
-      setGrid(makeGrid());
-      setActiveNode(null); setVisitedNodes(new Set()); setTopoOrder([]);
-      setStepLog([{ text: "Reset.", type: "info" }]);
-      setRunning(false);
-      stopRef.current = false;
-    }, 50);
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setGrid(makeGrid());
+    setActiveNode(null);
+    setVisitedNodes(new Set());
+    setTopoOrder([]);
+    setStepLog([{ text: "Reset.", type: "info" }]);
+    setRunning(false);
   };
 
   const toggleWall = (r, c) => {
-    if (running || isTopo) return;
-    setGrid(g => { const ng = g.map(row => row.map(cell => ({ ...cell }))); ng[r][c].wall = !ng[r][c].wall; return ng; });
+    if (runningRef.current || isTopo) return;
+    setGrid(g => {
+      const ng = g.map(row => row.map(cell => ({ ...cell })));
+      ng[r][c].wall = !ng[r][c].wall;
+      return ng;
+    });
   };
 
-  const runBFSDFS = async (isBFS) => {
-    if (running) return;
-    stopRef.current = false; setRunning(true); setStepLog([]);
+  const runBFSDFS = async (isBFS, currentRunId) => {
+    // Reset steps while preserving walls/weights
     const g = grid.map(row => row.map(c => ({ ...c, visited: false, active: false, dist: Infinity })));
     const start = [0, 0];
 
     const frontier = [start];
     g[0][0].visited = true;
     setGrid(g.map(r => r.map(c => ({ ...c }))));
-    setStepLog(prev => [...prev, { text: `Starting ${isBFS ? "BFS" : "DFS"} from [0,0]`, type: "info" }]);
+    setStepLog([{ text: `Starting ${isBFS ? "BFS" : "DFS"} from [0,0]`, type: "info" }]);
 
     const pop = isBFS ? () => frontier.shift() : () => frontier.pop();
 
     while (frontier.length > 0) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
+
       const [r, c] = pop();
       g[r][c].active = true;
       setGrid(g.map(row => row.map(cc => ({ ...cc }))));
       setStepLog(prev => [...prev, { text: `Visiting [${r},${c}]`, type: "compare" }]);
-      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+
+      await new Promise(resolve => setTimeout(resolve, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
+
       g[r][c].active = false;
 
       let added = 0;
@@ -146,24 +281,28 @@ export default function GraphPage() {
           added++;
         }
       }
-      if (added > 0) setStepLog(prev => [...prev, { text: `Added ${added} neighbors of [${r},${c}]`, type: "swap" }]);
+      if (added > 0) {
+        setStepLog(prev => [...prev, { text: `Added ${added} neighbors of [${r},${c}]`, type: "swap" }]);
+      }
       setGrid(g.map(row => row.map(cc => ({ ...cc }))));
     }
-    if (!stopRef.current) setStepLog(prev => [...prev, { text: `${isBFS ? "BFS" : "DFS"} complete!`, type: "done" }]);
-    setRunning(false);
+
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setStepLog(prev => [...prev, { text: `${isBFS ? "BFS" : "DFS"} complete!`, type: "done" }]);
+      runningRef.current = false;
+      setRunning(false);
+    }
   };
 
-  const runDijkstra = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true); setStepLog([]);
+  const runDijkstra = async (currentRunId) => {
     const g = grid.map(row => row.map(c => ({ ...c, visited: false, active: false, dist: Infinity })));
 
     g[0][0].dist = 0;
     setGrid(g.map(r => r.map(c => ({ ...c }))));
-    setStepLog(prev => [...prev, { text: "Starting Dijkstra from [0,0]", type: "info" }]);
+    setStepLog([{ text: "Starting Dijkstra from [0,0]", type: "info" }]);
 
     while (true) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
 
       // Find min dist unvisited
       let minD = Infinity, minR = -1, minC = -1;
@@ -181,7 +320,10 @@ export default function GraphPage() {
       g[minR][minC].active = true;
       setGrid(g.map(row => row.map(cc => ({ ...cc }))));
       setStepLog(prev => [...prev, { text: `Extract min: [${minR},${minC}] with dist ${minD}`, type: "compare" }]);
-      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+
+      await new Promise(resolve => setTimeout(resolve, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
 
       for (const [nr, nc] of neighbors(minR, minC, g)) {
         if (!g[nr][nc].visited && !g[nr][nc].wall) {
@@ -195,13 +337,15 @@ export default function GraphPage() {
       g[minR][minC].active = false;
       setGrid(g.map(row => row.map(cc => ({ ...cc }))));
     }
-    if (!stopRef.current) setStepLog(prev => [...prev, { text: "Dijkstra complete!", type: "done" }]);
-    setRunning(false);
+
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setStepLog(prev => [...prev, { text: "Dijkstra complete!", type: "done" }]);
+      runningRef.current = false;
+      setRunning(false);
+    }
   };
 
-  const runTopoSort = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true); setStepLog([]);
+  const runTopoSort = async (currentRunId) => {
     setActiveNode(null); setVisitedNodes(new Set()); setTopoOrder([]);
 
     const inDegree = {};
@@ -212,11 +356,14 @@ export default function GraphPage() {
     const order = [];
     const visited = new Set();
 
-    setStepLog(prev => [...prev, { text: `Initial queue (in-degree 0): [${queue.join(",")}]`, type: "info" }]);
-    await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+    setStepLog([{ text: `Initial queue (in-degree 0): [${queue.join(",")}]`, type: "info" }]);
+    
+    await new Promise(resolve => setTimeout(resolve, speedRef.current));
+
+    if (runIdRef.current !== currentRunId || !mountedRef.current) return;
 
     while (queue.length > 0) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
       const u = queue.shift();
       setActiveNode(u);
       order.push(u);
@@ -225,7 +372,10 @@ export default function GraphPage() {
       setTopoOrder([...order]);
 
       setStepLog(prev => [...prev, { text: `Process node ${u}`, type: "compare" }]);
-      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+      
+      await new Promise(resolve => setTimeout(resolve, speedRef.current));
+
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
 
       const neighbors = DAG_EDGES.filter(e => e.from === u).map(e => e.to);
       for (const v of neighbors) {
@@ -236,26 +386,48 @@ export default function GraphPage() {
           setStepLog(prev => [...prev, { text: `Node ${v} in-degree is 0, add to queue`, type: "info" }]);
         }
       }
-      await new Promise(r => setTimeout(r, speedRef.current)); //  fixed
+      
+      await new Promise(resolve => setTimeout(resolve, speedRef.current));
+      
+      if (runIdRef.current !== currentRunId || !mountedRef.current) return;
     }
     setActiveNode(null);
-    if (!stopRef.current) setStepLog(prev => [...prev, { text: `Topological Sort complete!`, type: "done" }]);
-    setRunning(false);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setStepLog(prev => [...prev, { text: `Topological Sort complete!`, type: "done" }]);
+      runningRef.current = false;
+      setRunning(false);
+    }
   };
 
   const handleStart = () => {
-    if (algo === "bfs") runBFSDFS(true);
-    else if (algo === "dfs") runBFSDFS(false);
-    else if (algo === "dijkstra") runDijkstra();
-    else if (algo === "topological-sort") runTopoSort();
-    else runBFSDFS(true);
+    if (runningRef.current) return;
+
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
+
+    if (currentAlgo === "bfs") runBFSDFS(true, currentRunId);
+    else if (currentAlgo === "dfs") runBFSDFS(false, currentRunId);
+    else if (currentAlgo === "dijkstra") runDijkstra(currentRunId);
+    else if (currentAlgo === "topological-sort") runTopoSort(currentRunId);
+    else runBFSDFS(true, currentRunId);
+  };
+
+  const stop = () => {
+    if (!runningRef.current) return;
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setRunning(false);
+    const displayName = GRAPH_EXPLANATIONS[currentAlgo]?.title || currentAlgo;
+    setStepLog(prev => [...prev, { text: `${displayName} stopped by user.`, type: "warning" }]);
   };
 
   const CELL = 40;
 
   return (
-    <AppShell breadcrumb={`Graph / ${explanation?.title || algo}`}>
-      <div className="section-title">{explanation?.title || algo}</div>
+    <AppShell breadcrumb={`Graph / ${explanation?.title || currentAlgo}`}>
+      <div className="section-title">{explanation?.title || currentAlgo}</div>
       <div className="section-sub">
         {isTopo ? "Watch node ordering in a Directed Acyclic Graph" : "Click cells to toggle walls. Watch the algorithm explore the grid live."}
       </div>
@@ -265,7 +437,7 @@ export default function GraphPage() {
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>
           ▶ Start {isTopo ? "" : "from [0,0]"}
         </button>
-        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
+        <button className="btn btn-danger" onClick={stop} disabled={!running}>■ Stop</button>
         <label>Speed</label>
         <input
           type="range"

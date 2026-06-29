@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
@@ -9,6 +9,17 @@ import { RECURSION_EXPLANATIONS } from "../../data/algoExplanations";
 const DISK_COLORS = [
   "#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#8b5cf6", "#ec4899"
 ];
+
+const ALGOS = {
+  "tower-of-hanoi": "Tower of Hanoi",
+  "n-queens": "N-Queens",
+  "rat-in-maze": "Rat in a Maze",
+  subsets: "Subset Generation",
+};
+
+function createHanoiPegs(n) {
+  return [Array.from({ length: n }, (_, i) => n - i), [], []];
+}
 
 function hanoiMoves(n, from, to, aux) {
   if (n === 0) return [];
@@ -211,14 +222,15 @@ function generateSubsetsAlgo(n) {
 
 export default function RecursionPage() {
   const { algo } = useParams();
-  const explanation = RECURSION_EXPLANATIONS[algo] || RECURSION_EXPLANATIONS["tower-of-hanoi"];
+  const currentAlgo = ALGOS[algo] ? algo : "tower-of-hanoi";
+  const explanation = RECURSION_EXPLANATIONS[currentAlgo] || RECURSION_EXPLANATIONS["tower-of-hanoi"];
 
   const [numDisks, setNumDisks] = useState(4);
   const [queenN, setQueenN] = useState(5);
   const [mazeN, setMazeN] = useState(5);
   const [subsetN, setSubsetN] = useState(3);
 
-  const [pegs, setPegs] = useState([[4, 3, 2, 1], [], []]);
+  const [pegs, setPegs] = useState(() => createHanoiPegs(4));
   const [board, setBoard] = useState(() => Array.from({ length: 5 }, () => new Array(5).fill(0)));
   const [mazeData, setMazeData] = useState({ maze: null, path: null });
   const [subsetData, setSubsetData] = useState({ current: [], result: [], nums: null });
@@ -226,12 +238,146 @@ export default function RecursionPage() {
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(400);
   const [stepLog, setStepLog] = useState([]);
-  const stopRef = useRef(false);
   const speedRef = useRef(speed);
+  const runIdRef = useRef(0);
+  const runningRef = useRef(false);
+  const mountedRef = useRef(true);
+  const previousAlgoRef = useRef(currentAlgo);
+  const savedStatesRef = useRef({});
+  const latestStateRef = useRef({
+    numDisks,
+    queenN,
+    mazeN,
+    subsetN,
+    pegs,
+    board,
+    mazeData,
+    subsetData,
+    stepLog,
+  });
+
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+
+  useEffect(() => {
+    latestStateRef.current = {
+      numDisks,
+      queenN,
+      mazeN,
+      subsetN,
+      pegs,
+      board,
+      mazeData,
+      subsetData,
+      stepLog,
+    };
+  }, [
+    numDisks,
+    queenN,
+    mazeN,
+    subsetN,
+    pegs,
+    board,
+    mazeData,
+    subsetData,
+    stepLog,
+  ]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      runningRef.current = false;
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    const previousAlgo = previousAlgoRef.current;
+
+    if (previousAlgo === currentAlgo) {
+      return;
+    }
+
+    runIdRef.current += 1;
+    runningRef.current = false;
+    setRunning(false);
+
+    savedStatesRef.current[previousAlgo] = {
+      numDisks: latestStateRef.current.numDisks,
+      queenN: latestStateRef.current.queenN,
+      mazeN: latestStateRef.current.mazeN,
+      subsetN: latestStateRef.current.subsetN,
+      pegs: latestStateRef.current.pegs.map((peg) => [...peg]),
+      board: latestStateRef.current.board.map((row) => [...row]),
+      mazeData: {
+        maze: latestStateRef.current.mazeData.maze
+          ? latestStateRef.current.mazeData.maze.map((row) => [...row])
+          : null,
+        path: latestStateRef.current.mazeData.path
+          ? latestStateRef.current.mazeData.path.map((row) => [...row])
+          : null,
+      },
+      subsetData: {
+        current: [...latestStateRef.current.subsetData.current],
+        result: latestStateRef.current.subsetData.result.map((subset) => [...subset]),
+        nums: latestStateRef.current.subsetData.nums
+          ? [...latestStateRef.current.subsetData.nums]
+          : null,
+      },
+      stepLog: [...latestStateRef.current.stepLog],
+    };
+
+    const savedState = savedStatesRef.current[currentAlgo];
+
+    if (savedState) {
+      setNumDisks(savedState.numDisks);
+      setQueenN(savedState.queenN);
+      setMazeN(savedState.mazeN);
+      setSubsetN(savedState.subsetN);
+      setPegs(savedState.pegs.map((peg) => [...peg]));
+      setBoard(savedState.board.map((row) => [...row]));
+      setMazeData({
+        maze: savedState.mazeData.maze
+          ? savedState.mazeData.maze.map((row) => [...row])
+          : null,
+        path: savedState.mazeData.path
+          ? savedState.mazeData.path.map((row) => [...row])
+          : null,
+      });
+      setSubsetData({
+        current: [...savedState.subsetData.current],
+        result: savedState.subsetData.result.map((subset) => [...subset]),
+        nums: savedState.subsetData.nums
+          ? [...savedState.subsetData.nums]
+          : null,
+      });
+
+      setStepLog([
+        ...savedState.stepLog,
+        {
+          text: `Returned to ${ALGOS[currentAlgo]}. Previous state restored.`,
+          type: "info",
+        },
+      ]);
+    } else {
+      setRunning(false);
+      setStepLog([
+        {
+          text: `Switched to ${ALGOS[currentAlgo]}. New visualization created.`,
+          type: "info",
+        },
+      ]);
+    }
+
+    previousAlgoRef.current = currentAlgo;
+  }, [currentAlgo]);
 
   const initHanoi = (n) => {
     setNumDisks(n);
-    setPegs([Array.from({ length: n }, (_, i) => n - i), [], []]);
+    setPegs(createHanoiPegs(n));
     setStepLog([]);
   };
 
@@ -243,17 +389,21 @@ export default function RecursionPage() {
   };
 
   const startHanoi = async () => {
-    if (running) return;
-    stopRef.current = false;
+    if (runningRef.current) return;
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
     setRunning(true);
     setStepLog([]);
 
     const moves = hanoiMoves(numDisks, 0, 2, 1);
-    const state = [Array.from({ length: numDisks }, (_, i) => numDisks - i), [], []];
+    const state = createHanoiPegs(numDisks);
+    setPegs(state.map(p => [...p]));
 
     for (const move of moves) {
-      if (stopRef.current) {
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
         setRunning(false);
+        runningRef.current = false;
         return;
       }
       const disk = state[move.from].pop();
@@ -264,65 +414,167 @@ export default function RecursionPage() {
         type: "info"
       }]);
       await new Promise(r => setTimeout(r, speedRef.current));
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
     }
 
-    if (!stopRef.current) setStepLog(prev => [...prev, { text: `Done! ${moves.length} moves total.`, type: "done" }]);
-    setRunning(false);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setStepLog(prev => [...prev, { text: `Done! ${moves.length} moves total.`, type: "done" }]);
+      setRunning(false);
+      runningRef.current = false;
+    }
   };
 
   const startQueens = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
+    if (runningRef.current) return;
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
     setStepLog([]);
     setBoard(Array.from({ length: queenN }, () => new Array(queenN).fill(0)));
     const frames = solveNQueens(queenN);
     for (const f of frames) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
       setBoard(f.board);
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       await new Promise(r => setTimeout(r, speedRef.current));
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
       if (f.done) break;
     }
-    setRunning(false);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setRunning(false);
+      runningRef.current = false;
+    }
   };
 
   const startMaze = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
+    if (runningRef.current) return;
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
     setStepLog([]);
     const { frames, maze } = solveMazeAlgo(mazeN);
     for (const f of frames) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
       setMazeData({ maze, path: f.path });
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       await new Promise(r => setTimeout(r, speedRef.current));
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
       if (f.done) break;
     }
-    setRunning(false);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setRunning(false);
+      runningRef.current = false;
+    }
   };
 
   const startSubsets = async () => {
-    if (running) return;
-    stopRef.current = false; setRunning(true);
+    if (runningRef.current) return;
+    const currentRunId = runIdRef.current + 1;
+    runIdRef.current = currentRunId;
+    runningRef.current = true;
+    setRunning(true);
     setStepLog([]);
     const { frames, nums } = generateSubsetsAlgo(subsetN);
     for (const f of frames) {
-      if (stopRef.current) break;
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
       setSubsetData({ current: f.current, result: f.result, nums });
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       await new Promise(r => setTimeout(r, speedRef.current));
+      if (runIdRef.current !== currentRunId || !mountedRef.current) {
+        setRunning(false);
+        runningRef.current = false;
+        return;
+      }
     }
-    setRunning(false);
+    if (mountedRef.current && runIdRef.current === currentRunId) {
+      setRunning(false);
+      runningRef.current = false;
+    }
   };
 
-  const isHanoi = algo === "tower-of-hanoi";
-  const isQueens = algo === "n-queens";
-  const isMaze = algo === "rat-in-maze";
-  const isSubsets = algo === "subsets";
+  const isHanoi = currentAlgo === "tower-of-hanoi";
+  const isQueens = currentAlgo === "n-queens";
+  const isMaze = currentAlgo === "rat-in-maze";
+  const isSubsets = currentAlgo === "subsets";
 
   const handleStop = () => {
-    stopRef.current = true;
+    if (!runningRef.current) return;
+    runIdRef.current += 1;
+    runningRef.current = false;
     setRunning(false);
+    setStepLog(prev => [...prev, { text: `${ALGOS[currentAlgo]} stopped by the user.`, type: "warning" }]);
+  };
+
+  const handleHanoiDiskChange = (event) => {
+    if (runningRef.current) {
+      window.alert("Stop the algorithm before changing the number of disks.");
+      return;
+    }
+
+    runIdRef.current += 1;
+    initHanoi(+event.target.value);
+  };
+
+  const handleQueenNChange = (event) => {
+    if (runningRef.current) {
+      window.alert("Stop the algorithm before changing N.");
+      return;
+    }
+
+    const nextN = +event.target.value;
+    runIdRef.current += 1;
+    setQueenN(nextN);
+    setBoard(Array.from({ length: nextN }, () => new Array(nextN).fill(0)));
+    setStepLog([]);
+  };
+
+  const handleMazeNChange = (event) => {
+    if (runningRef.current) {
+      window.alert("Stop the algorithm before changing N.");
+      return;
+    }
+
+    runIdRef.current += 1;
+    initMaze(+event.target.value);
+  };
+
+  const handleSubsetNChange = (event) => {
+    if (runningRef.current) {
+      window.alert("Stop the algorithm before changing N.");
+      return;
+    }
+
+    const nextN = +event.target.value;
+    runIdRef.current += 1;
+    setSubsetN(nextN);
+    setSubsetData({ current: [], result: [], nums: Array.from({ length: nextN }, (_, i) => i + 1) });
+    setStepLog([]);
   };
 
   const stopButton = (
@@ -332,7 +584,7 @@ export default function RecursionPage() {
   );
 
   return (
-    <AppShell breadcrumb={`Recursion / ${explanation?.title || algo}`}>
+    <AppShell breadcrumb={`Recursion / ${explanation?.title || currentAlgo}`}>
       <div className="section-title">{explanation?.title || "Recursion"}</div>
       <div className="section-sub">Watch recursive calls animate step by step</div>
 
@@ -343,10 +595,7 @@ export default function RecursionPage() {
             <select
               className="size-select"
               value={numDisks}
-              onChange={e => {
-                initHanoi(+e.target.value);
-              }}
-              disabled={running}
+              onChange={handleHanoiDiskChange}
             >
               {[3, 4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -366,7 +615,7 @@ export default function RecursionPage() {
         {isQueens && (
           <>
             <label>N</label>
-            <select className="size-select" value={queenN} onChange={e => setQueenN(+e.target.value)} disabled={running}>
+            <select className="size-select" value={queenN} onChange={handleQueenNChange}>
               {[4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startQueens} disabled={running}>▶ Start</button>
@@ -376,7 +625,7 @@ export default function RecursionPage() {
         {isMaze && (
           <>
             <label>N</label>
-            <select className="size-select" value={mazeN} onChange={e => initMaze(+e.target.value)} disabled={running}>
+            <select className="size-select" value={mazeN} onChange={handleMazeNChange}>
               {[4, 5, 6].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startMaze} disabled={running}>▶ Start</button>
@@ -386,7 +635,7 @@ export default function RecursionPage() {
         {isSubsets && (
           <>
             <label>N</label>
-            <select className="size-select" value={subsetN} onChange={e => setSubsetN(+e.target.value)} disabled={running}>
+            <select className="size-select" value={subsetN} onChange={handleSubsetNChange}>
               {[2, 3, 4].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
             <button className="btn btn-primary" onClick={startSubsets} disabled={running}>▶ Start</button>
