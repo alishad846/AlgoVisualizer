@@ -493,7 +493,7 @@ export default function SearchingPage() {
    */
   useEffect(() => {
     if (
-      currentAlgo === "two-sum" &&
+      ["two-sum", "binary-search"].includes(currentAlgo) &&
       autoStart &&
       extensionNums &&
       extensionTarget !== null &&

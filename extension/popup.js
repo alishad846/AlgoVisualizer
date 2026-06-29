@@ -114,15 +114,24 @@ analyzeButton.addEventListener("click", async () => {
 
     outputLines.push("");
 
-    if (isTwoSum && hasNums && hasTarget) {
-      outputLines.push(
-        "Two Sum visualization is ready."
-      );
-    } else {
-      outputLines.push(
-        "This problem can be opened in AlgoVision. Automatic visualization is currently available for Two Sum."
-      );
-    }
+    const isBinarySearch =
+  problemData.title
+    .toLowerCase()
+    .includes("binary search");
+
+if (
+  (isTwoSum || isBinarySearch) &&
+  hasNums &&
+  hasTarget
+) {
+  outputLines.push(
+    `${isTwoSum ? "Two Sum" : "Binary Search"} visualization is ready.`
+  );
+} else {
+  outputLines.push(
+    "This problem can be opened in AlgoVision. Automatic visualization is currently available for Two Sum and Binary Search."
+  );
+}
 
     statusMessage.textContent = outputLines.join("\n");
   } catch (error) {
@@ -159,32 +168,45 @@ openVisualizerButton.addEventListener("click", async () => {
 
   try {
     const problemTitle =
-      detectedProblem.title?.toLowerCase() || "";
+  detectedProblem.title?.toLowerCase() || "";
 
-    const nums = detectedProblem.inputs?.nums;
-    const target = detectedProblem.inputs?.target;
+const nums = detectedProblem.inputs?.nums;
+const target = detectedProblem.inputs?.target;
 
-    let visualizerUrl =
-      "http://localhost:5173/dashboard";
+let visualizerUrl =
+  "http://localhost:5173/dashboard";
 
-    if (
-      problemTitle.includes("two sum") &&
-      Array.isArray(nums) &&
-      typeof target === "number"
-    ) {
-      const params = new URLSearchParams({
-        nums: JSON.stringify(nums),
-        target: String(target),
-        autoStart: "true"
-      });
+if (
+  problemTitle.includes("two sum") &&
+  Array.isArray(nums) &&
+  typeof target === "number"
+) {
+  const params = new URLSearchParams({
+    nums: JSON.stringify(nums),
+    target: String(target),
+    autoStart: "true"
+  });
 
-      visualizerUrl =
-        `http://localhost:5173/searching/two-sum?${params.toString()}`;
-    }
+  visualizerUrl =
+    `http://localhost:5173/searching/two-sum?${params.toString()}`;
+} else if (
+  problemTitle.includes("binary search") &&
+  Array.isArray(nums) &&
+  typeof target === "number"
+) {
+  const params = new URLSearchParams({
+    nums: JSON.stringify(nums),
+    target: String(target),
+    autoStart: "true"
+  });
 
-    await browserAPI.tabs.create({
-      url: visualizerUrl
-    });
+  visualizerUrl =
+    `http://localhost:5173/searching/binary-search?${params.toString()}`;
+}
+
+await browserAPI.tabs.create({
+  url: visualizerUrl
+});
   } catch (error) {
     statusMessage.textContent =
       error?.message ||
@@ -219,7 +241,24 @@ function analyzeLeetCodePage() {
     document.querySelector("main") ||
     document.body;
 
-  const title =
+  const problemSlug =
+  window.location.pathname
+    .split("/problems/")[1]
+    ?.split("/")[0] || "";
+
+const slugTitle = problemSlug
+  .split("-")
+  .map(
+    (word) =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+  )
+  .join(" ");
+
+const title =
+  slugTitle ||
+  pageTitle ||
+  titleElement?.textContent?.trim() ||
+  "Unknown problem";
     titleElement?.textContent?.trim() ||
     pageTitle ||
     "Unknown problem";
