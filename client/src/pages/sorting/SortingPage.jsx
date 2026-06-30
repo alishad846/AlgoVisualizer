@@ -1,537 +1,302 @@
-import {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-} from "react";
-import { useParams } from "react-router-dom";
-
+import React, { useEffect, useRef, useState } from "react";
 import AppShell from "../../components/AppShell";
-import CubeVisualizer from "../../components/CubeVisualizer";
-import AlgoExplain from "../../components/AlgoExplain";
-import StepLog from "../../components/StepLog";
-import { SORTING_EXPLANATIONS } from "../../data/algoExplanations";
+import "./SortingPage.css";
 
-import {
-  bubbleSortSteps,
-  selectionSortSteps,
-  insertionSortSteps,
-  mergeSortSteps,
-  quickSortSteps,
-  heapSortSteps,
-  countingSortSteps,
-  radixSortSteps,
-  shellSortSteps,
-  bucketSortSteps,
-} from "../../algorithms/sortingSteps";
-
-const ALGOS = {
-  "bubble-sort": {
-    name: "Bubble Sort",
-    fn: bubbleSortSteps,
-  },
-  "selection-sort": {
-    name: "Selection Sort",
-    fn: selectionSortSteps,
-  },
-  "insertion-sort": {
-    name: "Insertion Sort",
-    fn: insertionSortSteps,
-  },
-  "merge-sort": {
-    name: "Merge Sort",
-    fn: mergeSortSteps,
-  },
-  "quick-sort": {
-    name: "Quick Sort",
-    fn: quickSortSteps,
-  },
-  "heap-sort": {
-    name: "Heap Sort",
-    fn: heapSortSteps,
-  },
-  "counting-sort": {
-    name: "Counting Sort",
-    fn: countingSortSteps,
-  },
-  "radix-sort": {
-    name: "Radix Sort",
-    fn: radixSortSteps,
-  },
-  "shell-sort": {
-    name: "Shell Sort",
-    fn: shellSortSteps,
-  },
-  "bucket-sort": {
-    name: "Bucket Sort",
-    fn: bucketSortSteps,
-  },
-};
-
-function randArr(size) {
-  return Array.from(
-    { length: size },
-    () => Math.floor(Math.random() * 90) + 10
-  );
+function Icon({ children, className = "" }) {
+  return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default function SortingPage() {
-  const { algo } = useParams();
-
-  const currentAlgo = ALGOS[algo] ? algo : "bubble-sort";
-  const cfg = ALGOS[currentAlgo];
-
-  const explanation =
-    SORTING_EXPLANATIONS[currentAlgo] ||
-    SORTING_EXPLANATIONS["bubble-sort"];
-
-  const [size, setSize] = useState(12);
-  const [array, setArray] = useState(() => randArr(12));
-  const [states, setStates] = useState({});
-  const [steps, setSteps] = useState(0);
+  const [array, setArray] = useState([]);
+  const [size, setSize] = useState(24);
+  const [speed, setSpeed] = useState(100);
+  const [speedLabel, setSpeedLabel] = useState("2.0x");
   const [swaps, setSwaps] = useState(0);
-  const [speed, setSpeed] = useState(200);
-  const [running, setRunning] = useState(false);
-  const [done, setDone] = useState(false);
-  const [stepLog, setStepLog] = useState([]);
+  const [steps, setSteps] = useState(0);
+  const [active, setActive] = useState([]);
+  const [compare, setCompare] = useState([]);
+  const [sorted, setSorted] = useState([]);
+  const [logs, setLogs] = useState([]);
+  const [sizeOpen, setSizeOpen] = useState(false);
+  const [speedOpen, setSpeedOpen] = useState(false);
 
-  // Used for live speed updates.
-  const speedRef = useRef(speed);
+  const sortingRef = useRef(false);
+  const stopRef = useRef(false);
 
-  // Every algorithm execution receives a unique run ID.
-  // Changing this ID stops any previous execution.
-  const runIdRef = useRef(0);
+  const addLog = (msg, type = "info") => {
+    const time = new Date().toLocaleTimeString([], {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
 
-  // Stores the state of every sorting algorithm.
-  const savedStatesRef = useRef({});
+    setLogs((prev) => [{ time, msg, type }, ...prev].slice(0, 50));
+  };
 
-  // Remembers which algorithm was open previously.
-  const previousAlgoRef = useRef(currentAlgo);
+  const resetStats = () => {
+    setSwaps(0);
+    setSteps(0);
+    setActive([]);
+    setCompare([]);
+    setSorted([]);
+  };
 
-  // Keeps the latest visible state available while switching algorithms.
-  const latestStateRef = useRef({
-    size,
-    array,
-    states,
-    steps,
-    swaps,
-    done,
-    stepLog,
-  });
+  const generateArray = (newSize = size) => {
+    if (sortingRef.current) return;
 
-  // Prevent state updates after leaving the sorting page.
-  const mountedRef = useRef(true);
+    const next = Array.from(
+      { length: newSize },
+      () => Math.floor(Math.random() * 85) + 10
+    );
 
-  useEffect(() => {
-    latestStateRef.current = {
-      size,
-      array,
-      states,
-      steps,
-      swaps,
-      done,
-      stepLog,
-    };
-  }, [size, array, states, steps, swaps, done, stepLog]);
-
-  useEffect(() => {
-    speedRef.current = speed;
-  }, [speed]);
+    setArray(next);
+    resetStats();
+    addLog(`New array of size ${newSize} generated.`);
+  };
 
   useEffect(() => {
-    mountedRef.current = true;
-
-    return () => {
-      mountedRef.current = false;
-      runIdRef.current += 1;
-    };
+    generateArray(24);
   }, []);
 
-  /*
-   * Handles algorithm switching.
-   *
-   * 1. Stops the previous algorithm.
-   * 2. Saves its current visualization state.
-   * 3. Restores the selected algorithm's previous state.
-   */
-  useEffect(() => {
-    const previousAlgo = previousAlgoRef.current;
+  const startBubbleSort = async () => {
+    if (sortingRef.current) return;
 
-    if (previousAlgo === currentAlgo) {
-      return;
-    }
+    sortingRef.current = true;
+    stopRef.current = false;
+    resetStats();
 
-    // Stop the old algorithm execution.
-    runIdRef.current += 1;
-    setRunning(false);
+    let arr = [...array];
+    let localSwaps = 0;
+    let localSteps = 0;
+    let localSorted = [];
 
-    // Save the previous algorithm's state.
-    savedStatesRef.current[previousAlgo] = {
-      size: latestStateRef.current.size,
-      array: [...latestStateRef.current.array],
-      states: { ...latestStateRef.current.states },
-      steps: latestStateRef.current.steps,
-      swaps: latestStateRef.current.swaps,
-      done: latestStateRef.current.done,
-      stepLog: [...latestStateRef.current.stepLog],
-    };
-
-    const savedState = savedStatesRef.current[currentAlgo];
-
-    if (savedState) {
-      // Restore the previous state of the selected algorithm.
-      setSize(savedState.size);
-      setArray([...savedState.array]);
-      setStates({ ...savedState.states });
-      setSteps(savedState.steps);
-      setSwaps(savedState.swaps);
-      setDone(savedState.done);
-
-      setStepLog([
-        ...savedState.stepLog,
-        {
-          text: `Returned to ${ALGOS[currentAlgo].name}. Previous state restored.`,
-          type: "info",
-        },
-      ]);
-    } else {
-      // First time opening this algorithm.
-      const initialSize = 12;
-
-      setSize(initialSize);
-      setArray(randArr(initialSize));
-      setStates({});
-      setSteps(0);
-      setSwaps(0);
-      setDone(false);
-
-      setStepLog([
-        {
-          text: `Switched to ${ALGOS[currentAlgo].name}. New visualization created.`,
-          type: "info",
-        },
-      ]);
-    }
-
-    previousAlgoRef.current = currentAlgo;
-  }, [currentAlgo]);
-
-  const generate = useCallback(() => {
-    if (running) {
-      window.alert(
-        "Stop the algorithm before generating a new array."
-      );
-      return;
-    }
-
-    // Cancel any old unfinished execution.
-    runIdRef.current += 1;
-
-    const newArray = randArr(size);
-
-    setArray(newArray);
-    setStates({});
-    setSteps(0);
-    setSwaps(0);
-    setDone(false);
-
-    setStepLog([
-      {
-        text: `Generated a new array with ${size} elements.`,
-        type: "info",
-      },
-    ]);
-  }, [running, size]);
-
-  const start = useCallback(async () => {
-    if (running) {
-      return;
-    }
-
-    // Create a unique ID for this execution.
-    const currentRunId = runIdRef.current + 1;
-    runIdRef.current = currentRunId;
-
-    setRunning(true);
-    setDone(false);
-    setSteps(0);
-    setSwaps(0);
-
-    setStepLog([
-      {
-        text: `${cfg.name} started.`,
-        type: "info",
-      },
-    ]);
-
-    try {
-      // Pass a copy so the algorithm cannot directly mutate React state.
-      const frames = cfg.fn([...array]);
-
-      for (let i = 0; i < frames.length; i += 1) {
-        // Stop if another run started, the algorithm changed,
-        // Stop was clicked, or the page was closed.
-        if (
-          runIdRef.current !== currentRunId ||
-          !mountedRef.current
-        ) {
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = 0; j < arr.length - i - 1; j++) {
+        if (stopRef.current) {
+          sortingRef.current = false;
+          setActive([]);
+          setCompare([]);
           return;
         }
 
-        const frame = frames[i];
+        localSteps += 1;
+        setSteps(localSteps);
+        setCompare([j, j + 1]);
+        setActive([]);
+        addLog(`Comparing indices ${j} & ${j + 1} (${arr[j]} vs ${arr[j + 1]})`);
 
-        setArray([...frame.arr]);
-        setStates(frame.states || {});
-        setSteps(i + 1);
-        setSwaps(frame.swaps || 0);
+        await sleep(speed);
 
-        if (frame.log) {
-          setStepLog((previousLogs) => [
-            ...previousLogs,
-            {
-              text: frame.log,
-              type: frame.type || "info",
-            },
-          ]);
+        if (arr[j] > arr[j + 1]) {
+          localSwaps += 1;
+          setSwaps(localSwaps);
+
+          const beforeLeft = arr[j];
+          const beforeRight = arr[j + 1];
+
+          [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          setArray([...arr]);
+          setCompare([]);
+          setActive([j, j + 1]);
+          addLog(`SWAP: ${beforeLeft} > ${beforeRight}`, "swap");
+
+          await sleep(speed);
         }
-
-        await new Promise((resolve) => {
-          setTimeout(resolve, speedRef.current);
-        });
       }
 
-      if (
-        mountedRef.current &&
-        runIdRef.current === currentRunId
-      ) {
-        setDone(true);
-        setRunning(false);
-
-        setStepLog((previousLogs) => [
-          ...previousLogs,
-          {
-            text: `${cfg.name} completed successfully.`,
-            type: "success",
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error(`${cfg.name} failed:`, error);
-
-      if (
-        mountedRef.current &&
-        runIdRef.current === currentRunId
-      ) {
-        setRunning(false);
-
-        setStepLog((previousLogs) => [
-          ...previousLogs,
-          {
-            text: `${cfg.name} stopped because an error occurred.`,
-            type: "error",
-          },
-        ]);
-      }
-    }
-  }, [running, array, cfg]);
-
-  const stop = useCallback(() => {
-    if (!running) {
-      return;
+      localSorted = [...localSorted, arr.length - i - 1];
+      setSorted(localSorted);
     }
 
-    // Invalidate the current execution.
-    runIdRef.current += 1;
+    sortingRef.current = false;
+    setActive([]);
+    setCompare([]);
+    setSorted(Array.from({ length: arr.length }, (_, i) => i));
+    addLog("Algorithm completed. All elements sorted.");
+  };
 
-    setRunning(false);
-    setDone(false);
-    setStates({});
+  const stopSorting = () => {
+    stopRef.current = true;
+    addLog("Execution interrupted by user.");
+  };
 
-    setStepLog((previousLogs) => [
-      ...previousLogs,
-      {
-        text: `${cfg.name} stopped by the user.`,
-        type: "warning",
-      },
-    ]);
-  }, [running, cfg]);
+  const handleSize = (value) => {
+    setSize(value);
+    setSizeOpen(false);
+    generateArray(value);
+  };
 
-  const handleSizeChange = useCallback(
-    (event) => {
-      if (running) {
-        window.alert(
-          "Stop the algorithm before changing the array size."
-        );
-        return;
-      }
-
-      const newSize = Number(event.target.value);
-
-      runIdRef.current += 1;
-
-      setSize(newSize);
-      setArray(randArr(newSize));
-      setStates({});
-      setSteps(0);
-      setSwaps(0);
-      setDone(false);
-
-      setStepLog([
-        {
-          text: `Array size changed to ${newSize}.`,
-          type: "info",
-        },
-      ]);
-    },
-    [running]
-  );
-
-  const handleSpeedChange = useCallback((event) => {
-    const newSpeed = Number(event.target.value);
-
-    setSpeed(newSpeed);
-    speedRef.current = newSpeed;
-  }, []);
+  const handleSpeed = (value, label) => {
+    setSpeed(value);
+    setSpeedLabel(label);
+    setSpeedOpen(false);
+  };
 
   return (
-    <AppShell breadcrumb={`Sorting / ${cfg.name}`}>
-      <div className="section-title">{cfg.name}</div>
-
-      <div className="section-sub">
-        Watch cubes move in real-time as the algorithm runs
-      </div>
-
-      {/* Controls */}
-      <div
-        className="controls-bar"
-        style={{ marginBottom: 12 }}
-      >
-        <button
-          className="btn btn-ghost"
-          onClick={generate}
-          disabled={running}
-        >
-          ⟳ Generate
-        </button>
-
-        <button
-          className="btn btn-primary"
-          onClick={start}
-          disabled={running || done}
-        >
-          ▶ Start
-        </button>
-
-        <button
-          className="btn btn-danger"
-          onClick={stop}
-          disabled={!running}
-        >
-          ■ Stop
-        </button>
-
-        <div
-          style={{
-            width: 1,
-            height: 20,
-            background: "var(--border2)",
-            margin: "0 4px",
-          }}
-        />
-
-        <label>Size</label>
-
-        <select
-          className="size-select"
-          value={size}
-          onChange={handleSizeChange}
-        >
-          {[8, 12, 16, 20, 24].map((currentSize) => (
-            <option
-              key={currentSize}
-              value={currentSize}
-            >
-              {currentSize}
-            </option>
-          ))}
-        </select>
-
-        <label>Speed</label>
-
-        <input
-          type="range"
-          className="speed-slider"
-          min={30}
-          max={800}
-          step={10}
-          value={speed}
-          onChange={handleSpeedChange}
-        />
-
-        <span
-          style={{
-            fontSize: 12,
-            color: "var(--muted)",
-            minWidth: 45,
-          }}
-        >
-          {speed}ms
-        </span>
-
-        {/* Live stats */}
-        <div
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            gap: 12,
-            fontSize: 12,
-          }}
-        >
-          <span>
-            Steps:{" "}
-            <strong style={{ color: "var(--cyan)" }}>
-              {steps}
-            </strong>
-          </span>
-
-          <span>
-            Swaps:{" "}
-            <strong style={{ color: "var(--orange)" }}>
-              {swaps}
-            </strong>
-          </span>
-        </div>
-      </div>
-
-      {/* Visualization layout */}
-      <div className="viz-layout-3">
-        <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+    <AppShell breadcrumb="Bubble Sort">
+      <div className="bs-page">
+        <div className="bs-title-row">
+          <div>
+            <h1>Bubble Sort</h1>
+            <p>Sinking Sort • Comparison Algorithm</p>
+          </div>
         </div>
 
-        <div className="viz-center">
-          <CubeVisualizer
-            array={array}
-            states={states}
-          />
-
-          {done && (
-            <div
-              style={{
-                textAlign: "center",
-                color: "var(--green)",
-                fontWeight: 700,
-                fontSize: 13,
-                padding: "8px 0",
-              }}
-            >
-              ✓ Sorted in {steps} steps · {swaps} swaps
+        <div className="bs-info-grid">
+          <div className="bs-left-info">
+            <div className="bs-panel">
+              <h2>Bubble Sort Algorithm</h2>
+              <h3>
+                <Icon>info</Icon> Definition
+              </h3>
+              <p>
+                Bubble Sort is a simple comparison-based algorithm that repeatedly
+                steps through the list, compares adjacent elements and swaps them
+                if they are in the wrong order.
+              </p>
             </div>
-          )}
+
+            <div className="bs-panel">
+              <h3>
+                <Icon>analytics</Icon> Complexity Analysis
+              </h3>
+
+              <div className="bs-complexity-grid">
+                <div><span>BEST CASE</span><strong>O(n)</strong></div>
+                <div><span>AVERAGE</span><strong>O(n²)</strong></div>
+                <div><span>WORST CASE</span><strong>O(n²)</strong></div>
+                <div><span>SPACE</span><strong>O(1)</strong></div>
+              </div>
+
+              <div className="bs-tags-row">
+                <span><Icon>check_circle</Icon> STABLE</span>
+                <span><Icon>check_circle</Icon> IN-PLACE</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bs-panel bs-code-panel">
+            <div className="bs-code-head">
+              <h3><Icon>code</Icon> Pseudo Code</h3>
+              <span>JAVASCRIPT</span>
+            </div>
+
+            <pre>{`function bubbleSort(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      }
+    }
+  }
+  return arr;
+}`}</pre>
+          </div>
         </div>
 
-        <div className="viz-right">
-          <StepLog steps={stepLog} />
+        <div className="bs-controls">
+          <div className="bs-control-left">
+            <button className="bs-outline-btn" onClick={() => generateArray()}>
+              Generate
+            </button>
+
+            <button className="bs-primary-btn" onClick={startBubbleSort}>
+              <Icon>play_arrow</Icon> Start
+            </button>
+
+            <button className="bs-muted-btn" onClick={stopSorting}>
+              <Icon>stop</Icon> Stop
+            </button>
+          </div>
+
+          <div className="bs-control-right">
+            <div className="bs-dropdown">
+              <button onClick={() => { setSizeOpen(!sizeOpen); setSpeedOpen(false); }}>
+                <span>SIZE:</span>
+                <strong>{size}</strong>
+                <Icon>expand_more</Icon>
+              </button>
+
+              {sizeOpen && (
+                <div className="bs-dropdown-menu">
+                  {[8, 12, 16, 20, 24].map((n) => (
+                    <button key={n} onClick={() => handleSize(n)}>{n}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bs-dropdown">
+              <button onClick={() => { setSpeedOpen(!speedOpen); setSizeOpen(false); }}>
+                <span>SPEED:</span>
+                <strong>{speedLabel}</strong>
+                <Icon>expand_more</Icon>
+              </button>
+
+              {speedOpen && (
+                <div className="bs-dropdown-menu">
+                  <button onClick={() => handleSpeed(1000, "0.5x")}>0.5x</button>
+                  <button onClick={() => handleSpeed(500, "1.0x")}>1.0x</button>
+                  <button onClick={() => handleSpeed(250, "1.5x")}>1.5x</button>
+                  <button onClick={() => handleSpeed(100, "2.0x")}>2.0x</button>
+                </div>
+              )}
+            </div>
+
+            <div className="bs-stats">
+              <div>
+                <span>SWAPS</span>
+                <strong>{swaps}</strong>
+              </div>
+              <div>
+                <span>STEPS</span>
+                <strong>{steps}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bs-visual-wrap">
+          <div className="bs-bars">
+            <div className="bs-dot-bg" />
+
+            {array.map((value, index) => {
+              let className = "bs-bar";
+
+              if (active.includes(index)) className += " bs-bar-active";
+              else if (compare.includes(index)) className += " bs-bar-compare";
+              else if (sorted.includes(index)) className += " bs-bar-sorted";
+
+              return (
+                <div
+                  className={className}
+                  key={`${value}-${index}`}
+                  style={{ height: `${value}%` }}
+                >
+                  <span>{value}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="bs-log-panel">
+            <h3><Icon>terminal</Icon> Live Execution Trace</h3>
+
+            <div className="bs-log-list">
+              {logs.map((log, index) => (
+                <div
+                  className={`bs-log-item ${log.type === "swap" ? "bs-log-swap" : ""}`}
+                  key={index}
+                >
+                  <span>{log.time}</span>
+                  <strong>{log.msg}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </AppShell>

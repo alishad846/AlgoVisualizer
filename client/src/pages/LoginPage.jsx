@@ -1,219 +1,653 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [keepSession, setKeepSession] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // 3D Tilt Effect Setup
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  useEffect(() => {
+    if (localStorage.getItem("token") && localStorage.getItem("keepSession") === "true") {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
-  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
-  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
+  useEffect(() => {
+    const savedUser = location.state?.username || sessionStorage.getItem("autofill_username");
+    const savedPass = location.state?.password || sessionStorage.getItem("autofill_password");
+    if (savedUser) setUsername(savedUser);
+    if (savedPass) setPassword(savedPass);
+  }, [location.state]);
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
+  const [socialModal, setSocialModal] = useState(null);
+  const [socialEmail, setSocialEmail] = useState("");
+  const [socialUser, setSocialUser] = useState("");
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
-  const handleLogin = async (e) => {
+  const submitSocialAuth = async (e) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
-
+    setError("");
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch("http://localhost:5000/api/auth/social", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ provider: socialModal, email: socialEmail, username: socialUser }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem("token", data.token);
         navigate("/dashboard");
       } else {
-        setError(data.error || "Login failed");
+        setError(data.error || "Social sign-in failed");
       }
-    } catch (err) {
-      setError("Failed to connect to the server");
+    } catch {
+      setError("Server connection failed");
     } finally {
       setIsLoading(false);
+      setSocialModal(null);
     }
   };
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2, delayChildren: 0.1 } }
-  };
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
-  };
+ if (!username.trim() && !password.trim()) {
+  setError("All the fields are required.");
+  return;
+}
+
+if (!username.trim()) {
+  setError("Please enter username");
+  return;
+}
+
+if (!password.trim()) {
+  setError("Please enter password");
+  return;
+}
+
+  setIsLoading(true);
+
+  try {
+    const response = await fetch("http://localhost:5000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, keepSession }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem("token", data.token);
+      if (keepSession) {
+        localStorage.setItem("keepSession", "true");
+      } else {
+        localStorage.removeItem("keepSession");
+      }
+      navigate("/dashboard");
+    } else {
+      setError(data.error || "Login failed");
+    }
+  } catch {
+    setError("Failed to connect to the server");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
-    <div className="min-h-screen flex bg-canvas-white font-helveticanowdisplay overflow-hidden perspective-[1000px]">
-      {/* Left Panel - Imagery / Brand */}
-      <motion.div 
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden lg:flex lg:w-1/2 bg-obsidian flex-col justify-between p-68 relative overflow-hidden"
-      >
-        {/* Subtle decorative background element */}
-        <motion.div 
-          animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-0 right-0 w-[150%] h-[150%] -translate-y-1/4 translate-x-1/4 bg-[radial-gradient(ellipse_at_center,_var(--color-slate-mist)_0%,_transparent_60%)] opacity-10 pointer-events-none" 
-        />
-        
-        <div className="z-10">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="text-canvas-white text-heading-sm font-bold tracking-[length:var(--tracking-heading-sm)] leading-[var(--leading-heading-sm)] mb-2"
-          >
-            AlgoVision.
-          </motion.h1>
-        </div>
+    <>
+      <style>{`
+        .auth-terminal-page,
+        .auth-terminal-page * {
+          box-sizing: border-box;
+        }
 
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="z-10"
-        >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-canvas-white text-heading font-bold tracking-[length:var(--tracking-heading)] leading-[var(--leading-heading)] mb-23"
-          >
-            Master Algorithms
-            <br />
-            with Precision.
-          </motion.h2>
-          <motion.p 
-            variants={itemVariants}
-            className="text-slate-mist text-body-sm leading-[var(--leading-body-sm)] max-w-md"
-          >
-            Experience learning with unparalleled clarity. Our platform provides high-contrast, distraction-free visualisations designed for the modern developer.
-          </motion.p>
-        </motion.div>
-      </motion.div>
+        .auth-terminal-page {
+          min-height: 100vh;
+          width: 100%;
+          display: flex;
+          background: #131313;
+          color: #e2e2e2;
+          font-family: 'Inter', sans-serif;
+          overflow-x: hidden;
+        }
 
-      {/* Right Panel - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-22 sm:p-68 [perspective:1000px]">
-        <motion.div 
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-          className="w-full max-w-md bg-canvas-white rounded-3xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-mist/10"
-        >
-          <div className="lg:hidden mb-11" style={{ transform: "translateZ(30px)" }}>
-            <h1 className="text-obsidian text-heading-sm font-bold tracking-[length:var(--tracking-heading-sm)] leading-[var(--leading-heading-sm)]">
-              AlgoVision.
-            </h1>
-          </div>
+        .auth-left {
+          width: 50%;
+          min-height: 100vh;
+          background: #0e0e0e;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 96px;
+          position: relative;
+          overflow: hidden;
+        }
 
-          <div style={{ transform: "translateZ(40px)" }}>
-            <h2 className="text-obsidian text-heading-sm font-bold tracking-[length:var(--tracking-heading-sm)] leading-[var(--leading-heading-sm)] mb-11">
-              Log In
+        .auth-left-content {
+          max-width: 680px;
+          width: 100%;
+          position: relative;
+          z-index: 2;
+        }
+
+        .auth-brand-row {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 48px;
+        }
+
+        .auth-logo-box {
+          width: 56px;
+          height: 56px;
+          border: 2px solid #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 28px;
+          color: #ffffff;
+        }
+
+        .auth-brand-title {
+          font-size: 48px;
+          line-height: 1;
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0;
+          letter-spacing: -2px;
+        }
+
+        .auth-main-heading {
+          font-size: 72px;
+          line-height: 1.1;
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0 0 28px;
+          letter-spacing: -2px;
+        }
+
+        .auth-desc {
+          font-size: 20px;
+          line-height: 1.6;
+          color: #c4c7c8;
+          max-width: 620px;
+          margin: 0;
+        }
+
+        .auth-grid-art {
+          position: absolute;
+          right: 72px;
+          bottom: 80px;
+          display: grid;
+          grid-template-columns: repeat(6, 40px);
+          gap: 12px;
+          opacity: 0.1;
+        }
+
+        .auth-grid-box {
+          width: 40px;
+          height: 40px;
+          border: 1px solid #ffffff;
+        }
+
+        .auth-grid-box.fill {
+          background: #ffffff;
+        }
+
+        .auth-right {
+          width: 50%;
+          min-height: 100vh;
+          background: #131313;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 80px 96px;
+        }
+
+        .auth-panel {
+          width: 100%;
+          max-width: 540px;
+          background: rgba(27, 27, 27, 0.95);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          padding: 56px;
+          backdrop-filter: blur(12px);
+        }
+
+        .auth-panel-title {
+          font-size: 32px;
+          line-height: 1.2;
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0 0 56px;
+          letter-spacing: -1px;
+        }
+
+        .auth-form-group {
+          margin-bottom: 32px;
+        }
+
+        .auth-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 800;
+          color: #c4c7c8;
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .auth-password-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .auth-forgot {
+          background: none;
+          border: none;
+          color: #8e9192;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          text-transform: uppercase;
+        }
+
+        .auth-forgot:hover {
+          color: #ffffff;
+        }
+
+        .auth-input-wrap {
+          position: relative;
+        }
+
+        .auth-input-icon {
+          position: absolute;
+          left: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #8e9192;
+          font-size: 20px;
+          z-index: 2;
+        }
+
+        .auth-input {
+          width: 100%;
+          height: 58px;
+          background: #0e0e0e;
+          border: 1px solid #353535;
+          color: #ffffff;
+          padding: 0 50px 0 56px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-family: 'JetBrains Mono', monospace;
+          outline: none;
+        }
+
+        .auth-input::placeholder {
+          color: #555555;
+        }
+
+        .auth-input:focus {
+          border-color: #ffffff;
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .auth-check-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 8px 0 28px;
+        }
+
+        .auth-check {
+          width: 20px;
+          height: 20px;
+          accent-color: #ffffff;
+          cursor: pointer;
+        }
+
+        .auth-check-label {
+          color: #c4c7c8;
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+        .auth-submit {
+          width: 100%;
+          height: 64px;
+          background: #ffffff;
+          color: #000000;
+          border: none;
+          border-radius: 8px;
+          font-size: 20px;
+          font-weight: 800;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 56px;
+        }
+
+        .auth-submit:hover {
+          background: #e5e5e5;
+        }
+
+        .auth-submit:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .auth-divider-area {
+          border-top: 1px solid #353535;
+          padding-top: 40px;
+          text-align: center;
+        }
+
+        .auth-new-text {
+          color: #c4c7c8;
+          font-size: 18px;
+          margin: 0 0 24px;
+        }
+
+        .auth-create {
+          width: 100%;
+          height: 62px;
+          border: 2px solid #ffffff;
+          border-radius: 8px;
+          color: #ffffff;
+          background: transparent;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin-bottom: 40px;
+        }
+
+        .auth-create:hover {
+          background: #ffffff;
+          color: #000000;
+        }
+
+        .auth-social-area {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .auth-social-btn {
+          width: 100%;
+          height: 56px;
+          border: 1px solid #353535;
+          border-radius: 8px;
+          background: transparent;
+          color: #ffffff;
+          font-size: 16px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          cursor: pointer;
+        }
+
+        .auth-social-btn:hover {
+          background: #1b1b1b;
+        }
+
+        .auth-error {
+          padding: 14px;
+          border: 1px solid rgba(255, 180, 171, 0.4);
+          color: #ffb4ab;
+          background: rgba(147, 0, 10, 0.18);
+          border-radius: 8px;
+          margin-bottom: 24px;
+          font-size: 14px;
+        }
+
+        @media (max-width: 1024px) {
+          .auth-terminal-page {
+            flex-direction: column;
+          }
+
+          .auth-left,
+          .auth-right {
+            width: 100%;
+            min-height: auto;
+            padding: 56px 24px;
+          }
+
+          .auth-main-heading {
+            font-size: 44px;
+          }
+
+          .auth-brand-title {
+            font-size: 34px;
+          }
+
+          .auth-panel {
+            padding: 36px 24px;
+          }
+
+          .auth-grid-art {
+            display: none;
+          }
+        }
+      `}</style>
+
+      <main className="auth-terminal-page">
+        <section className="auth-left">
+          <div className="auth-left-content">
+            <div className="auth-brand-row">
+              <div className="auth-logo-box">▦</div>
+              <h1 className="auth-brand-title">AlgoVisualizer</h1>
+            </div>
+
+            <h2 className="auth-main-heading">
+              Translating Logic <br />
+              Into Intelligence.
             </h2>
-            <p className="text-slate-mist text-body-sm leading-[var(--leading-body-sm)] tracking-[length:var(--tracking-body-sm)] mb-38">
-              Welcome back. Enter your details to continue.
+
+            <p className="auth-desc">
+              A high-performance engine engineered for surgical precision.
+              AlgoVisualizer bridges the gap between complex computational logic
+              and clear, actionable visual intelligence. Experience real-time
+              insight into the architecture of your data.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-23" style={{ transform: "translateZ(50px)" }}>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-red-50 text-red-600 border border-red-200 rounded-[10px] text-body-sm"
-              >
-                {error}
-              </motion.div>
-            )}
-
-            <div className="flex flex-col gap-2 relative group">
-              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-desert-sienna">
-                Email Address
-              </label>
-              <input
-                type="email"
-                required
-                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-desert-sienna transition-colors placeholder:text-slate-mist/40"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+          <div className="auth-grid-art">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <div
+                key={index}
+                className={`auth-grid-box ${index === 3 ? "fill" : ""}`}
               />
-            </div>
+            ))}
+          </div>
+        </section>
 
-            <div className="flex flex-col gap-2 relative group">
-              <label className="text-obsidian text-[14px] font-bold transition-colors group-focus-within:text-desert-sienna">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                className="w-full border-b-2 border-slate-mist/20 bg-transparent py-3 text-obsidian text-body-sm focus:outline-none focus:border-desert-sienna transition-colors placeholder:text-slate-mist/40"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+        <section className="auth-right">
+          <div className="auth-panel">
+            <h3 className="auth-panel-title">AlgoVisualizer</h3>
 
-            <motion.button
-              type="submit"
-              disabled={isLoading}
-              whileHover={{ scale: 1.03, boxShadow: "0px 10px 30px rgba(188, 113, 85, 0.4)" }}
-              whileTap={{ scale: 0.98 }}
-              className="mt-23 w-full bg-desert-sienna text-canvas-white rounded-full pt-[15px] px-[22px] pb-[16px] font-bold text-[17px] transition-colors disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center gap-2"
-            >
-              {isLoading ? "Authenticating..." : "Continue"}
-            </motion.button>
-          </form>
+            <form onSubmit={handleLogin} noValidate>
+              {error && <div className="auth-error">{error}</div>}
 
-          <div style={{ transform: "translateZ(30px)" }}>
-            <p className="mt-38 text-center text-slate-mist text-body-sm">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-obsidian font-bold hover:text-desert-sienna transition-colors"
-              >
-                Create one
+              <div className="auth-form-group">
+                <label className="auth-label" htmlFor="username">
+                  Username
+                </label>
+
+                <div className="auth-input-wrap">
+                  <span className="auth-input-icon">👤</span>
+                  <input
+                    id="username"
+                    name="username"
+                    autoComplete="username"
+                    className="auth-input"
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      sessionStorage.setItem("last_typed_username", e.target.value);
+                    }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <div className="auth-password-row">
+                  <label className="auth-label" htmlFor="password">
+                    Password
+                  </label>
+
+                  <Link className="auth-forgot" to="/forgot-password" state={{ username }} style={{ textDecoration: "none" }}>
+                    Forgot Password?
+                  </Link>
+                </div>
+
+                <div className="auth-input-wrap">
+                        <span className="auth-input-icon">⌕</span>
+
+                        <input
+                          id="password"
+                          name="password"
+                          autoComplete="current-password"
+                          className="auth-input"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "18px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#8e9192",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                        </button>
+                      </div>    
+              </div>
+
+              <div className="auth-check-row">
+                <input
+                  id="persist"
+                  className="auth-check"
+                  type="checkbox"
+                  checked={keepSession}
+                  onChange={(e) => setKeepSession(e.target.checked)}
+                />
+                <label className="auth-check-label" htmlFor="persist">
+                  Keep session active
+                </label>
+              </div>
+
+              <button className="auth-submit" type="submit" disabled={isLoading}>
+                {isLoading ? "INITIALIZING..." : "Login →"}
+              </button>
+            </form>
+
+            <div className="auth-divider-area">
+              <p className="auth-new-text">New to AlgoVisualizer?</p>
+
+              <Link className="auth-create" to="/register">
+                Create an Account
               </Link>
-            </p>
+
+              <div className="auth-social-area">
+                <button className="auth-social-btn" type="button" onClick={() => { setSocialModal("Google"); setSocialEmail("user@gmail.com"); setSocialUser("GoogleUser"); }}>
+                  <span
+  style={{
+    fontSize: "20px",
+    fontWeight: "700",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  G
+</span>
+                  <span>Sign in with Google</span>
+                </button>
+
+                <button className="auth-social-btn" type="button" onClick={() => { setSocialModal("Email"); setSocialEmail("user@algovisualizer.com"); setSocialUser("EmailUser"); }}>
+  <span
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: "18px"
+    }}
+  >
+    ✉
+  </span>
+  <span>Sign in with Email</span>
+</button>
+              </div>
+            </div>
           </div>
-        </motion.div>
-      </div>
-    </div>
+        </section>
+
+        {socialModal && (
+          <div style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)"
+          }}>
+            <div style={{
+              background: "#131313", border: "1px solid #333", padding: "40px", borderRadius: "12px", width: "100%", maxWidth: "420px", color: "#fff"
+            }}>
+              <h3 style={{ marginTop: 0, fontSize: "24px", fontWeight: 800 }}>Simulated {socialModal} Auth</h3>
+              <p style={{ color: "#aaa", fontSize: "14px", marginBottom: "24px" }}>Enter simulated account details to verify instant JWT authentication.</p>
+              <form onSubmit={submitSocialAuth}>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase" }}>Username</label>
+                  <input type="text" required value={socialUser} onChange={e=>setSocialUser(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px" }} />
+                </div>
+                <div style={{ marginBottom: "24px" }}>
+                  <label style={{ display: "block", fontSize: "12px", color: "#888", marginBottom: "6px", textTransform: "uppercase" }}>Email</label>
+                  <input type="email" required value={socialEmail} onChange={e=>setSocialEmail(e.target.value)} style={{ width: "100%", padding: "12px", background: "#0e0e0e", border: "1px solid #333", color: "#fff", borderRadius: "6px" }} />
+                </div>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  <button type="button" onClick={()=>setSocialModal(null)} style={{ flex: 1, padding: "14px", background: "transparent", border: "1px solid #444", color: "#ccc", borderRadius: "6px", cursor: "pointer", fontWeight: 700 }}>Cancel</button>
+                  <button type="submit" disabled={isLoading} style={{ flex: 1, padding: "14px", background: "#fff", border: "none", color: "#000", borderRadius: "6px", cursor: "pointer", fontWeight: 800 }}>Authorize →</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </main>
+    </>
   );
 }
