@@ -294,145 +294,152 @@ export default function SearchingPage() {
   }, [running]);
 
   const start = useCallback(async () => {
-    if (running) {
-      return;
-    }
+  if (running) {
+    return;
+  }
 
-    const currentRunId =
-      runIdRef.current + 1;
+  const currentRunId =
+    runIdRef.current + 1;
 
-    runIdRef.current = currentRunId;
+  runIdRef.current = currentRunId;
 
-    setRunning(true);
-    setStates({});
-    setPointer(-1);
-    setSteps(0);
-    setFoundIdx(-1);
+  setRunning(true);
+  setStates({});
+  setPointer(-1);
+  setSteps(0);
+  setFoundIdx(-1);
 
-    setStepLog([
-      {
-        text: `${cfg.name} started.`,
-        type: "info",
-      },
-    ]);
+  setStepLog([
+    {
+      text: `${cfg.name} started.`,
+      type: "info",
+    },
+  ]);
 
-    try {
-      // Pass a copy to prevent direct mutation of React state.
-      const frames = cfg.fn([...array], target);
+  try {
+    const algorithmsThatRequireSorting = [
+      "binary-search",
+      "ternary-search",
+      "jump-search",
+      "interpolation-search",
+      "exponential-search",
+    ];
 
-      for (
-        let index = 0;
-        index < frames.length;
-        index += 1
-      ) {
-        /*
-         * Stop when:
-         * 1. Stop is clicked.
-         * 2. Another algorithm starts.
-         * 3. The user switches algorithms.
-         * 4. The page is closed.
-         */
-        if (
-          runIdRef.current !== currentRunId ||
-          !mountedRef.current
-        ) {
-          return;
-        }
-
-        const frame = frames[index];
-
-        setStates(frame.states || {});
-
-        setPointer(
-          typeof frame.pointer === "number"
-            ? frame.pointer
-            : -1
-        );
-
-        setSteps(index + 1);
-
-        if (frame.log) {
-          setStepLog((previousSteps) => [
-            ...previousSteps,
-            {
-              text: frame.log,
-              type: frame.type || "info",
-            },
-          ]);
-        }
-
-        if (
-          typeof frame.found === "number" &&
-          frame.found >= 0
-        ) {
-          setFoundIdx(frame.found);
-        }
-
-        await new Promise((resolve) => {
-          setTimeout(
-            resolve,
-            speedRef.current
-          );
-        });
-
-        if (
-          runIdRef.current !== currentRunId ||
-          !mountedRef.current
-        ) {
-          return;
-        }
-
-        if (
-          typeof frame.found === "number" &&
-          frame.found >= 0
-        ) {
-          break;
-        }
-      }
-
-      if (
-        mountedRef.current &&
-        runIdRef.current === currentRunId
-      ) {
-        setRunning(false);
-
-        setStepLog((previousSteps) => [
-          ...previousSteps,
-          {
-            text: `${cfg.name} completed.`,
-            type: "success",
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error(
-        "Visualization error:",
-        error
+    const shouldDisplaySortedArray =
+      algorithmsThatRequireSorting.includes(
+        currentAlgo
       );
 
-      if (
-        mountedRef.current &&
-        runIdRef.current === currentRunId
-      ) {
-        setRunning(false);
+    const workingArray = shouldDisplaySortedArray
+      ? [...array].sort((a, b) => a - b)
+      : [...array];
 
-        setStepLog((previousSteps) => [
-          ...previousSteps,
+    /*
+     * Keep the visible bars synchronized with the array
+     * used by sorted searching algorithms.
+     */
+    if (shouldDisplaySortedArray) {
+      setArray(workingArray);
+    }
+
+    const frames = cfg.fn(
+      workingArray,
+      target
+    );
+
+    for (
+      let index = 0;
+      index < frames.length;
+      index += 1
+    ) {
+      if (
+        runIdRef.current !== currentRunId ||
+        !mountedRef.current
+      ) {
+        return;
+      }
+
+      const frame = frames[index];
+
+      setStates(frame.states || {});
+      setPointer(
+        typeof frame.pointer === "number"
+          ? frame.pointer
+          : -1
+      );
+      setSteps(index + 1);
+
+      const frameFoundIndex =
+  typeof frame.foundIdx === "number"
+    ? frame.foundIdx
+    : frame.found;
+
+if (
+  typeof frameFoundIndex === "number"
+) {
+  setFoundIdx(frameFoundIndex);
+}
+
+      if (frame.message) {
+        setStepLog((previousLog) => [
+          ...previousLog,
           {
-            text:
-              error?.message ||
-              "Unable to run the visualization.",
-            type: "error",
+            text: frame.message,
+            type: frame.type || "info",
           },
         ]);
       }
+
+      await new Promise((resolve) => {
+        setTimeout(
+          resolve,
+          speedRef.current
+        );
+      });
     }
-  }, [
-    running,
-    cfg,
-    array,
-    target,
-  ]);
+
+    if (
+      runIdRef.current === currentRunId &&
+      mountedRef.current
+    ) {
+      setStepLog((previousLog) => [
+        ...previousLog,
+        {
+          text: `${cfg.name} completed.`,
+          type: "done",
+        },
+      ]);
+    }
+  } catch (error) {
+    console.error(
+      `${cfg.name} execution failed:`,
+      error
+    );
+
+    setStepLog((previousLog) => [
+      ...previousLog,
+      {
+        text:
+          error?.message ||
+          `${cfg.name} could not be completed.`,
+        type: "error",
+      },
+    ]);
+  } finally {
+    if (
+      runIdRef.current === currentRunId &&
+      mountedRef.current
+    ) {
+      setRunning(false);
+    }
+  }
+}, [
+  array,
+  cfg,
+  currentAlgo,
+  running,
+  target,
+]);
 
   const stop = useCallback(() => {
     if (!running) {
@@ -525,7 +532,20 @@ export default function SearchingPage() {
     start,
   ]);
 
-  const max = Math.max(...array, 1);
+  const algorithmsThatDisplaySorted = [
+  "binary-search",
+  "ternary-search",
+  "jump-search",
+  "interpolation-search",
+  "exponential-search",
+];
+
+const displayArray =
+  algorithmsThatDisplaySorted.includes(currentAlgo)
+    ? [...array].sort((a, b) => a - b)
+    : array;
+
+  const max = Math.max(...displayArray);
 
   return (
     <AppShell
@@ -661,7 +681,7 @@ export default function SearchingPage() {
               minHeight: 16,
             }}
           >
-            {array.map((_, index) => (
+            {displayArray.map((_, index) => (
               <div
                 key={index}
                 style={{
