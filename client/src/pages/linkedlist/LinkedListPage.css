@@ -398,6 +398,14 @@
   width: 96px;
 }
 
+.ll-speed strong {
+  color: #ffffff;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 700;
+}
+
 .ll-message {
   background: #0e0e0e;
   border: 1px solid #2a2a2a;

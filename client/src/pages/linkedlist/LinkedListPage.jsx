@@ -22,6 +22,13 @@ export default function LinkedListPage() {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const SPEED_LEVELS = [
+  { label: "0.5x", delay: 1000 },
+  { label: "1.0x", delay: 600 },
+  { label: "1.5x", delay: 350 },
+  { label: "2.0x", delay: 150 },
+];
+
 const OP_META = {
   traversal: {
     title: "Linked List Traversal",
@@ -242,9 +249,10 @@ function LegacyLinkedListPage({ algo }) {
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(0);
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(400);
+  const [speedIndex, setSpeedIndex] = useState(1);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const speedRef = useRef(SPEED_LEVELS[speedIndex].delay);
 
   useEffect(() => {
     stopRef.current = true;
@@ -253,6 +261,10 @@ function LegacyLinkedListPage({ algo }) {
       stopRef.current = true;
     };
   }, [algo]);
+
+  useEffect(() => {
+    speedRef.current = SPEED_LEVELS[speedIndex].delay;
+  }, [speedIndex]);
 
   const reset = () => {
     stopRef.current = true;
@@ -278,7 +290,7 @@ function LegacyLinkedListPage({ algo }) {
       if(stopRef.current) break;
       setActiveIdx(i);
       setStepLog(prev => [...prev, {text:`Processing node ${arr[i]}`, type:"compare"}]);
-      await sleep(speed);
+      await sleep(speedRef.current);
     }
     const reversed = [...arr].reverse();
     setNodes(reversed); setActiveIdx(-1);
@@ -296,7 +308,7 @@ function LegacyLinkedListPage({ algo }) {
       visited.add(slow); fast+=2; slow+=1;
       setActiveIdx(slow); setVisitedSet(new Set(visited));
       setStepLog(prev => [...prev, {text:`Slow at ${slow} (${nodes[slow]}), Fast at ${fast} (${nodes[fast]})`, type:"compare"}]);
-      await sleep(speed);
+      await sleep(speedRef.current);
     }
     if(!stopRef.current) setStepLog(prev => [...prev, {text:`Middle node is ${nodes[slow]} at index ${slow}`, type:"done"}]);
     setRunning(false);
@@ -312,7 +324,7 @@ function LegacyLinkedListPage({ algo }) {
       fast = (fast+2) % nodes.length;
       setActiveIdx(slow);
       setStepLog(prev => [...prev, {text:`Floyd's: slow at index ${slow}, fast at index ${fast}`, type:"compare"}]);
-      await sleep(speed);
+      await sleep(speedRef.current);
     }
     if(!stopRef.current) setStepLog(prev => [...prev, {text:"No cycle detected (linear list)", type:"done"}]);
     setRunning(false);
@@ -330,7 +342,7 @@ function LegacyLinkedListPage({ algo }) {
       if(stopRef.current) break;
       setP1(i); setP2(j);
       setStepLog(prev => [...prev, {text:`Comparing L1[${i}]=${l1[i]} and L2[${j}]=${l2[j]}`, type:"compare"}]);
-      await sleep(speed);
+      await sleep(speedRef.current);
       if (l1[i] <= l2[j]) {
         m.push(l1[i]);
         setMerged([...m]);
@@ -343,14 +355,14 @@ function LegacyLinkedListPage({ algo }) {
         j++;
       }
       setP1(i); setP2(j);
-      await sleep(speed/2);
+      await sleep(speedRef.current / 2);
     }
 
     while (i < l1.length) {
       if(stopRef.current) break;
       setP1(i); setP2(j);
       setStepLog(prev => [...prev, {text:`L2 empty, appending ${l1[i]} from L1`, type:"swap"}]);
-      await sleep(speed/2);
+      await sleep(speedRef.current / 2);
       m.push(l1[i]);
       setMerged([...m]);
       i++;
@@ -361,7 +373,7 @@ function LegacyLinkedListPage({ algo }) {
       if(stopRef.current) break;
       setP1(i); setP2(j);
       setStepLog(prev => [...prev, {text:`L1 empty, appending ${l2[j]} from L2`, type:"swap"}]);
-      await sleep(speed/2);
+      await sleep(speedRef.current / 2);
       m.push(l2[j]);
       setMerged([...m]);
       j++;
@@ -390,9 +402,9 @@ function LegacyLinkedListPage({ algo }) {
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>Start</button>
         <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>Stop</button>
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={100} max={1000}
-          value={speed} onChange={e=>setSpeed(+e.target.value)} />
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:50}}>{speed}ms</span>
+        <input type="range" className="speed-slider" min={0} max={3} step={1}
+          value={speedIndex} onChange={e=>setSpeedIndex(Number(e.target.value))} />
+        <span style={{fontSize:12,color:"var(--muted)",minWidth:50}}>{SPEED_LEVELS[speedIndex].label}</span>
       </div>
 
       <div className="viz-layout-3">
@@ -431,10 +443,11 @@ function LinkedListModulePage() {
   const [visitedSet, setVisitedSet] = useState(new Set());
   const [message, setMessage] = useState({ type: "info", text: "Ready." });
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(400);
+  const [speedIndex, setSpeedIndex] = useState(1);
   const [steps, setSteps] = useState(0);
   const [logs, setLogs] = useState([]);
   const stopRef = useRef(false);
+  const speedRef = useRef(SPEED_LEVELS[speedIndex].delay);
 
   const meta = OP_META[operation];
 
@@ -446,6 +459,10 @@ function LinkedListModulePage() {
       stopRef.current = true;
     };
   }, [algo]);
+
+  useEffect(() => {
+    speedRef.current = SPEED_LEVELS[speedIndex].delay;
+  }, [speedIndex]);
 
   const addLog = (msg, type = "info") => {
     const time = new Date().toLocaleTimeString([], {
@@ -497,7 +514,7 @@ function LinkedListModulePage() {
     setVisitedSet((prev) => new Set([...prev, index]));
     setSteps((prev) => prev + 1);
     addLog(text, type === "success" ? "swap" : type);
-    await sleep(speed);
+    await sleep(speedRef.current);
     return !stopRef.current;
   };
 
@@ -530,7 +547,7 @@ function LinkedListModulePage() {
     }
 
     if (index === 0) {
-      await sleep(speed);
+      await sleep(speedRef.current);
       setNodes([value, ...nodes]);
       setActiveIdx(0);
       setSteps(1);
@@ -754,7 +771,8 @@ function LinkedListModulePage() {
 
             <label className="ll-field ll-speed">
               <span>Speed</span>
-              <input type="range" min={100} max={1000} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
+              <input type="range" min={0} max={3} step={1} value={speedIndex} onChange={(e) => setSpeedIndex(Number(e.target.value))} />
+              <strong>{SPEED_LEVELS[speedIndex].label}</strong>
             </label>
 
             <div className="bs-stats">
