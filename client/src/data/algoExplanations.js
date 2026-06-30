@@ -236,7 +236,7 @@ export const SEARCHING_EXPLANATIONS = {
     timeWorst: "O(n)",
     space: "O(n)"
   },
-  
+
   "linear-search": {
     title: "Linear Search",
     theory: "Linear Search is the simplest search algorithm. It sequentially checks each element of the list until a match is found or the whole list has been searched. It works on both sorted and unsorted arrays.",
@@ -276,6 +276,48 @@ export const SEARCHING_EXPLANATIONS = {
   return -1`,
     timeBest: "O(1)", timeAvg: "O(log n)", timeWorst: "O(log n)", space: "O(1)"
   },
+  "ternary-search": {
+  title: "Ternary Search",
+  theory:
+    "Ternary Search works on a sorted array by dividing the current search range into three parts using two middle points. It compares the target with both middle values and continues only in the section where the target can exist.",
+  howItWorks: [
+    "Sort the array before searching.",
+    "Calculate two middle positions: mid1 and mid2.",
+    "Compare the target with arr[mid1] and arr[mid2].",
+    "If the target is smaller than arr[mid1], search the left section.",
+    "If the target is larger than arr[mid2], search the right section.",
+    "Otherwise, search the middle section.",
+    "Repeat until the target is found or the range becomes empty.",
+  ],
+  pseudocode: `ternarySearch(arr, target):
+  lo = 0
+  hi = length(arr) - 1
+
+  while lo <= hi:
+    third = (hi - lo) / 3
+    mid1 = lo + third
+    mid2 = hi - third
+
+    if arr[mid1] == target:
+      return mid1
+
+    if arr[mid2] == target:
+      return mid2
+
+    if target < arr[mid1]:
+      hi = mid1 - 1
+    else if target > arr[mid2]:
+      lo = mid2 + 1
+    else:
+      lo = mid1 + 1
+      hi = mid2 - 1
+
+  return -1`,
+  timeBest: "O(1)",
+  timeAvg: "O(log₃ n)",
+  timeWorst: "O(log₃ n)",
+  space: "O(1)",
+},
   "jump-search": {
     title: "Jump Search",
     theory: "Jump Search works on sorted arrays. Instead of searching one element at a time (linear) or halving (binary), it jumps ahead by a fixed block size (√n), then does a linear search within the block where the target might be. It's a middle ground between linear and binary search.",

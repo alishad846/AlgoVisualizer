@@ -21,6 +21,7 @@ import {
 import {
   linearSearchSteps,
   binarySearchSteps,
+  ternarySearchSteps,
   jumpSearchSteps,
   interpolationSearchSteps,
   exponentialSearchSteps,
@@ -42,6 +43,11 @@ const ALGOS = {
     name: "Binary Search",
     fn: binarySearchSteps,
   },
+
+  "ternary-search": {
+  name: "Ternary Search",
+  fn: ternarySearchSteps,
+},
 
   "jump-search": {
     name: "Jump Search",

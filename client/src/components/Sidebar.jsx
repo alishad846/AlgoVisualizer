@@ -27,6 +27,7 @@ const NAV = [
     items: [
       { label: "Linear Search", path: "/searching/linear-search" },
       { label: "Binary Search", path: "/searching/binary-search" },
+      { label: "Ternary Search", path: "/searching/ternary-search" },
       { label: "Jump Search", path: "/searching/jump-search" },
       { label: "Interpolation Search", path: "/searching/interpolation-search" },
       { label: "Exponential Search", path: "/searching/exponential-search" },

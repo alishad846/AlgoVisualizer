@@ -37,6 +37,123 @@ export function binarySearchSteps(arr, target) {
   return frames;
 }
 
+export function ternarySearchSteps(arr, target) {
+  const sorted = [...arr].sort((a, b) => a - b);
+  const frames = [];
+
+  let lo = 0;
+  let hi = sorted.length - 1;
+
+  frames.push(
+    makeFrame(
+      sorted,
+      {},
+      -1,
+      `Array sorted: [${sorted.join(",")}]. Searching for ${target}`,
+      -1,
+      "info"
+    )
+  );
+
+  while (lo <= hi) {
+    const third = Math.floor((hi - lo) / 3);
+    const mid1 = lo + third;
+    const mid2 = hi - third;
+
+    const st = {};
+
+    for (let i = lo; i <= hi; i++) {
+      st[i] = "current";
+    }
+
+    st[mid1] = "comparing";
+    st[mid2] = "comparing";
+
+    const foundAtMid1 = sorted[mid1] === target;
+    const foundAtMid2 = sorted[mid2] === target;
+
+    if (foundAtMid1) {
+      st[mid1] = "found";
+
+      frames.push(
+        makeFrame(
+          sorted,
+          st,
+          mid1,
+          `lo=${lo}, hi=${hi}, mid1=${mid1}, mid2=${mid2} → arr[${mid1}]=${sorted[mid1]} = FOUND!`,
+          mid1,
+          "done"
+        )
+      );
+
+      break;
+    }
+
+    if (foundAtMid2) {
+      st[mid2] = "found";
+
+      frames.push(
+        makeFrame(
+          sorted,
+          st,
+          mid2,
+          `lo=${lo}, hi=${hi}, mid1=${mid1}, mid2=${mid2} → arr[${mid2}]=${sorted[mid2]} = FOUND!`,
+          mid2,
+          "done"
+        )
+      );
+
+      break;
+    }
+
+    let message = "";
+
+    if (target < sorted[mid1]) {
+      message =
+        `${target} < arr[${mid1}]=${sorted[mid1]}, discard middle and right sections`;
+      hi = mid1 - 1;
+    } else if (target > sorted[mid2]) {
+      message =
+        `${target} > arr[${mid2}]=${sorted[mid2]}, discard left and middle sections`;
+      lo = mid2 + 1;
+    } else {
+      message =
+        `${target} lies between arr[${mid1}]=${sorted[mid1]} and arr[${mid2}]=${sorted[mid2]}, search middle section`;
+      lo = mid1 + 1;
+      hi = mid2 - 1;
+    }
+
+    frames.push(
+      makeFrame(
+        sorted,
+        st,
+        mid1,
+        `lo=${lo}, hi=${hi}, mid1=${mid1}, mid2=${mid2} → ${message}`,
+        -1,
+        "compare"
+      )
+    );
+  }
+
+  if (
+    frames.length === 1 ||
+    frames[frames.length - 1].type !== "done"
+  ) {
+    frames.push(
+      makeFrame(
+        sorted,
+        {},
+        -1,
+        `${target} was not found in the array`,
+        -1,
+        "done"
+      )
+    );
+  }
+
+  return frames;
+}
+
 export function jumpSearchSteps(arr, target) {
   const sorted = [...arr].sort((a, b) => a - b);
   const frames = [];
