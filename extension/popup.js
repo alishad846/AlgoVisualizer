@@ -120,7 +120,10 @@ analyzeButton.addEventListener("click", async () => {
 const isBinarySearch =
   normalizedTitle.includes("binary search") ||
   normalizedTitle.includes("search insert position") || 
-  normalizedTitle.includes("first bad version");
+  normalizedTitle.includes("first bad version") ||
+  normalizedTitle.includes(
+  "find first and last position of element in sorted array"
+);
   
 const isLinearSearch =
   normalizedTitle.includes("linear search");
@@ -209,7 +212,10 @@ openVisualizerButton.addEventListener("click", async () => {
     } else if (
       (
   problemTitle.includes("binary search") ||
-  problemTitle.includes("search insert position")
+  problemTitle.includes("search insert position") ||
+  problemTitle.includes(
+  "find first and last position of element in sorted array"
+  )
 )  &&
       hasSearchInputs
     ) {
