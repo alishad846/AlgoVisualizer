@@ -119,7 +119,8 @@ analyzeButton.addEventListener("click", async () => {
 
 const isBinarySearch =
   normalizedTitle.includes("binary search") ||
-  normalizedTitle.includes("search insert position");
+  normalizedTitle.includes("search insert position") || 
+  normalizedTitle.includes("first bad version");
   
 const isLinearSearch =
   normalizedTitle.includes("linear search");
@@ -183,6 +184,8 @@ openVisualizerButton.addEventListener("click", async () => {
 
     const nums = detectedProblem.inputs?.nums;
     const target = detectedProblem.inputs?.target;
+    const n = detectedProblem.inputs?.n;
+    const bad = detectedProblem.inputs?.bad;
 
     let visualizerUrl =
       "http://localhost:5173/dashboard";
@@ -230,7 +233,25 @@ openVisualizerButton.addEventListener("click", async () => {
 
       visualizerUrl =
         `http://localhost:5173/searching/linear-search?${params.toString()}`;
-    }
+    }else if (
+  problemTitle.includes("first bad version") &&
+  typeof n === "number" &&
+  typeof bad === "number"
+) {
+  const generatedNums = Array.from(
+    { length: n },
+    (_, index) => index + 1
+  );
+
+  const params = new URLSearchParams({
+    nums: JSON.stringify(generatedNums),
+    target: String(bad),
+    autoStart: "true"
+  });
+
+  visualizerUrl =
+    `http://localhost:5173/searching/binary-search?${params.toString()}`;
+}
 
     await browserAPI.tabs.create({
       url: visualizerUrl
