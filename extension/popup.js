@@ -120,14 +120,23 @@ analyzeButton.addEventListener("click", async () => {
 const isBinarySearch =
   normalizedTitle.includes("binary search") ||
   normalizedTitle.includes("search insert position");
+  
+const isLinearSearch =
+  normalizedTitle.includes("linear search");
 
 if (
-  (isTwoSum || isBinarySearch) &&
+  (isTwoSum || isBinarySearch || isLinearSearch) && 
   hasNums &&
   hasTarget
 ) {
   outputLines.push(
-    `${isTwoSum ? "Two Sum" : "Binary Search"} visualization is ready.`
+    `${
+  isTwoSum
+    ? "Two Sum"
+    : isBinarySearch
+      ? "Binary Search"
+      : "Linear Search"
+} visualization is ready.`
   );
 } else {
   outputLines.push(
