@@ -574,18 +574,24 @@ const displayArray =
 
         <label>Target</label>
 
-        <input
-          type="number"
-          value={target}
-          onChange={handleTargetChange}
-          style={{
-            width: 64,
-            background: "var(--surface2)",
-            border:
-              "1px solid var(--border2)",
-            color: "var(--text)",
-          }}
-        />
+       <input
+  type="number"
+  value={target}
+  onChange={handleTargetChange}
+  onFocus={(event) => {
+    if (String(target) === "0") {
+      event.currentTarget.select();
+    }
+  }}
+  style={{
+    width: 64,
+    background: "var(--surface2)",
+    border:
+      "1px solid var(--border2)",
+    color: "var(--text)",
+  }}
+/>
+        
 
         <button
           className="btn btn-primary"
