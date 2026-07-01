@@ -501,12 +501,14 @@ if (
   );
 
   /*
-   * Automatically starts Two Sum when values are
-   * received from the browser extension.
+   * Automatically starts supported search algorithms
+   * when values are received from the browser extension.
    */
   useEffect(() => {
     if (
-      ["two-sum", "binary-search"].includes(currentAlgo) &&
+      ["two-sum", "binary-search", "linear-search"].includes(
+  currentAlgo
+) &&
       autoStart &&
       extensionNums &&
       extensionTarget !== null &&

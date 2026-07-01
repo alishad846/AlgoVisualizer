@@ -114,10 +114,12 @@ analyzeButton.addEventListener("click", async () => {
 
     outputLines.push("");
 
-    const isBinarySearch =
-  problemData.title
-    .toLowerCase()
-    .includes("binary search");
+    const normalizedTitle =
+  problemData.title.toLowerCase();
+
+const isBinarySearch =
+  normalizedTitle.includes("binary search") ||
+  normalizedTitle.includes("search insert position");
 
 if (
   (isTwoSum || isBinarySearch) &&
@@ -159,54 +161,71 @@ openVisualizerButton.addEventListener("click", async () => {
   if (!detectedProblem) {
     statusMessage.textContent =
       "Analyze the LeetCode problem first.";
-
     return;
   }
 
   openVisualizerButton.disabled = true;
-  openVisualizerButton.textContent = "Opening AlgoVision...";
+  openVisualizerButton.textContent =
+    "Opening AlgoVision...";
 
   try {
     const problemTitle =
-  detectedProblem.title?.toLowerCase() || "";
+      detectedProblem.title?.toLowerCase() || "";
 
-const nums = detectedProblem.inputs?.nums;
-const target = detectedProblem.inputs?.target;
+    const nums = detectedProblem.inputs?.nums;
+    const target = detectedProblem.inputs?.target;
 
-let visualizerUrl =
-  "http://localhost:5173/dashboard";
+    let visualizerUrl =
+      "http://localhost:5173/dashboard";
 
-if (
-  problemTitle.includes("two sum") &&
-  Array.isArray(nums) &&
-  typeof target === "number"
-) {
-  const params = new URLSearchParams({
-    nums: JSON.stringify(nums),
-    target: String(target),
-    autoStart: "true"
-  });
+    const hasSearchInputs =
+      Array.isArray(nums) &&
+      typeof target === "number";
 
-  visualizerUrl =
-    `http://localhost:5173/searching/two-sum?${params.toString()}`;
-} else if (
-  problemTitle.includes("binary search") &&
-  Array.isArray(nums) &&
-  typeof target === "number"
-) {
-  const params = new URLSearchParams({
-    nums: JSON.stringify(nums),
-    target: String(target),
-    autoStart: "true"
-  });
+    if (
+      problemTitle.includes("two sum") &&
+      hasSearchInputs
+    ) {
+      const params = new URLSearchParams({
+        nums: JSON.stringify(nums),
+        target: String(target),
+        autoStart: "true"
+      });
 
-  visualizerUrl =
-    `http://localhost:5173/searching/binary-search?${params.toString()}`;
-}
+      visualizerUrl =
+        `http://localhost:5173/searching/two-sum?${params.toString()}`;
+    } else if (
+      (
+  problemTitle.includes("binary search") ||
+  problemTitle.includes("search insert position")
+)  &&
+      hasSearchInputs
+    ) {
+      const params = new URLSearchParams({
+        nums: JSON.stringify(nums),
+        target: String(target),
+        autoStart: "true"
+      });
 
-await browserAPI.tabs.create({
-  url: visualizerUrl
-});
+      visualizerUrl =
+        `http://localhost:5173/searching/binary-search?${params.toString()}`;
+    } else if (
+      problemTitle.includes("linear search") &&
+      hasSearchInputs
+    ) {
+      const params = new URLSearchParams({
+        nums: JSON.stringify(nums),
+        target: String(target),
+        autoStart: "true"
+      });
+
+      visualizerUrl =
+        `http://localhost:5173/searching/linear-search?${params.toString()}`;
+    }
+
+    await browserAPI.tabs.create({
+      url: visualizerUrl
+    });
   } catch (error) {
     statusMessage.textContent =
       error?.message ||
