@@ -1,15 +1,19 @@
 const browserAPI = globalThis.browser || globalThis.chrome;
 
-const analyzeButton = document.getElementById("analyzeButton");
-const openVisualizerButton = document.getElementById(
-  "openVisualizerButton"
-);
-const statusMessage = document.getElementById("statusMessage");
+const analyzeButton =
+  document.getElementById("analyzeButton");
+
+const openVisualizerButton =
+  document.getElementById("openVisualizerButton");
+
+const statusMessage =
+  document.getElementById("statusMessage");
 
 let detectedProblem = null;
 
 function setAnalyzing(isAnalyzing) {
   analyzeButton.disabled = isAnalyzing;
+
   analyzeButton.textContent = isAnalyzing
     ? "Analyzing..."
     : "Analyze Current Problem";
@@ -44,8 +48,14 @@ analyzeButton.addEventListener("click", async () => {
 
     const activeTab = tabs[0];
 
-    if (!activeTab || !activeTab.id || !activeTab.url) {
-      throw new Error("No active browser tab was found.");
+    if (
+      !activeTab ||
+      !activeTab.id ||
+      !activeTab.url
+    ) {
+      throw new Error(
+        "No active browser tab was found."
+      );
     }
 
     if (
@@ -66,7 +76,8 @@ analyzeButton.addEventListener("click", async () => {
         func: analyzeLeetCodePage
       });
 
-    const problemData = executionResults[0]?.result;
+    const problemData =
+      executionResults[0]?.result;
 
     if (!problemData) {
       throw new Error(
@@ -94,61 +105,104 @@ analyzeButton.addEventListener("click", async () => {
             ? value
             : JSON.stringify(value);
 
-        outputLines.push(`${name}: ${displayedValue}`);
+        outputLines.push(
+          `${name}: ${displayedValue}`
+        );
       });
     } else {
       outputLines.push("Inputs: Not detected");
     }
 
+    const normalizedTitle =
+      problemData.title.toLowerCase();
+
     const isTwoSum =
-      problemData.title.toLowerCase().includes("two sum");
+      normalizedTitle.includes("two sum");
+
+    const isLinearSearch =
+      normalizedTitle.includes(
+        "linear search"
+      );
+
+    const isFirstBadVersion =
+      normalizedTitle.includes(
+        "first bad version"
+      );
+
+    const isRotatedSearch =
+      normalizedTitle.includes(
+        "search in rotated sorted array"
+      );
+
+    const isBinarySearch =
+      normalizedTitle.includes(
+        "binary search"
+      ) ||
+      normalizedTitle.includes(
+        "search insert position"
+      ) ||
+      normalizedTitle.includes(
+        "find first and last position of element in sorted array"
+      );
 
     const hasNums =
-      Array.isArray(problemData.inputs?.nums) &&
+      Array.isArray(
+        problemData.inputs?.nums
+      ) &&
       problemData.inputs.nums.length > 0;
 
     const hasTarget =
-      typeof problemData.inputs?.target === "number";
+      typeof problemData.inputs?.target ===
+      "number";
+
+    const hasFirstBadVersionInputs =
+      typeof problemData.inputs?.n ===
+        "number" &&
+      typeof problemData.inputs?.bad ===
+        "number";
 
     openVisualizerButton.disabled = false;
 
     outputLines.push("");
 
-    const normalizedTitle =
-  problemData.title.toLowerCase();
+    if (isRotatedSearch) {
+      outputLines.push(
+        "Search in Rotated Sorted Array detected. A dedicated visualization is required."
+      );
+    } else if (
+      isFirstBadVersion &&
+      hasFirstBadVersionInputs
+    ) {
+      outputLines.push(
+        "Binary Search visualization is ready."
+      );
+    } else if (
+      (
+        isTwoSum ||
+        isBinarySearch ||
+        isLinearSearch
+      ) &&
+      hasNums &&
+      hasTarget
+    ) {
+      const visualizationName =
+        isTwoSum
+          ? "Two Sum"
+          : isBinarySearch
+            ? "Binary Search"
+            : "Linear Search";
 
-const isBinarySearch =
-  normalizedTitle.includes("binary search") ||
-  normalizedTitle.includes("search insert position") || 
-  normalizedTitle.includes("first bad version") ||
-  normalizedTitle.includes(
-  "find first and last position of element in sorted array"
-);
-  
-const isLinearSearch =
-  normalizedTitle.includes("linear search");
+      outputLines.push(
+        `${visualizationName} visualization is ready.`
+      );
+    } else {
+      outputLines.push(
+        "This problem can be opened in AlgoVision. Automatic visualization is currently unavailable for this problem."
+      );
+    }
 
-if (
-  (isTwoSum || isBinarySearch || isLinearSearch) && 
-  hasNums &&
-  hasTarget
-) {
-  outputLines.push(
-    `${
-  isTwoSum
-    ? "Two Sum"
-    : isBinarySearch
-      ? "Binary Search"
-      : "Linear Search"
-} visualization is ready.`
-  );
-} else {
-  outputLines.push(
-    "This problem can be opened in AlgoVision. Automatic visualization is currently available for Two Sum and Binary Search."
-  );
-}
-
-    statusMessage.textContent = outputLines.join("\n");
+    statusMessage.textContent =
+      outputLines.join("\n");
   } catch (error) {
     statusMessage.textContent =
       error?.message ||
@@ -166,125 +220,169 @@ if (
   }
 });
 
-openVisualizerButton.addEventListener("click", async () => {
-  if (openVisualizerButton.disabled) {
-    return;
-  }
+openVisualizerButton.addEventListener(
+  "click",
+  async () => {
+    if (openVisualizerButton.disabled) {
+      return;
+    }
 
-  if (!detectedProblem) {
-    statusMessage.textContent =
-      "Analyze the LeetCode problem first.";
-    return;
-  }
+    if (!detectedProblem) {
+      statusMessage.textContent =
+        "Analyze the LeetCode problem first.";
 
-  openVisualizerButton.disabled = true;
-  openVisualizerButton.textContent =
-    "Opening AlgoVision...";
+      return;
+    }
 
-  try {
-    const problemTitle =
-      detectedProblem.title?.toLowerCase() || "";
+    openVisualizerButton.disabled = true;
 
-    const nums = detectedProblem.inputs?.nums;
-    const target = detectedProblem.inputs?.target;
-    const n = detectedProblem.inputs?.n;
-    const bad = detectedProblem.inputs?.bad;
-
-    let visualizerUrl =
-      "http://localhost:5173/dashboard";
-
-    const hasSearchInputs =
-      Array.isArray(nums) &&
-      typeof target === "number";
-
-    if (
-      problemTitle.includes("two sum") &&
-      hasSearchInputs
-    ) {
-      const params = new URLSearchParams({
-        nums: JSON.stringify(nums),
-        target: String(target),
-        autoStart: "true"
-      });
-
-      visualizerUrl =
-        `http://localhost:5173/searching/two-sum?${params.toString()}`;
-    } else if (
-      (
-  problemTitle.includes("binary search") ||
-  problemTitle.includes("search insert position") ||
-  problemTitle.includes(
-  "find first and last position of element in sorted array"
-  )
-)  &&
-      hasSearchInputs
-    ) {
-      const params = new URLSearchParams({
-        nums: JSON.stringify(nums),
-        target: String(target),
-        autoStart: "true"
-      });
-
-      visualizerUrl =
-        `http://localhost:5173/searching/binary-search?${params.toString()}`;
-    } else if (
-      problemTitle.includes("linear search") &&
-      hasSearchInputs
-    ) {
-      const params = new URLSearchParams({
-        nums: JSON.stringify(nums),
-        target: String(target),
-        autoStart: "true"
-      });
-
-      visualizerUrl =
-        `http://localhost:5173/searching/linear-search?${params.toString()}`;
-    }else if (
-  problemTitle.includes("first bad version") &&
-  typeof n === "number" &&
-  typeof bad === "number"
-) {
-  const generatedNums = Array.from(
-    { length: n },
-    (_, index) => index + 1
-  );
-
-  const params = new URLSearchParams({
-    nums: JSON.stringify(generatedNums),
-    target: String(bad),
-    autoStart: "true"
-  });
-
-  visualizerUrl =
-    `http://localhost:5173/searching/binary-search?${params.toString()}`;
-}
-
-    await browserAPI.tabs.create({
-      url: visualizerUrl
-    });
-  } catch (error) {
-    statusMessage.textContent =
-      error?.message ||
-      "Unable to open AlgoVision.";
-
-    console.error(
-      "AlgoVision open error:",
-      error
-    );
-  } finally {
-    openVisualizerButton.disabled = false;
     openVisualizerButton.textContent =
-      "Open in AlgoVision";
+      "Opening AlgoVision...";
+
+    try {
+      const problemTitle =
+        detectedProblem.title
+          ?.toLowerCase() || "";
+
+      const nums =
+        detectedProblem.inputs?.nums;
+
+      const target =
+        detectedProblem.inputs?.target;
+
+      const n =
+        detectedProblem.inputs?.n;
+
+      const bad =
+        detectedProblem.inputs?.bad;
+
+      let visualizerUrl =
+        "http://localhost:5173/dashboard";
+
+      const hasSearchInputs =
+        Array.isArray(nums) &&
+        typeof target === "number";
+
+      if (
+        problemTitle.includes(
+          "two sum"
+        ) &&
+        hasSearchInputs
+      ) {
+        const params =
+          new URLSearchParams({
+            nums: JSON.stringify(nums),
+            target: String(target),
+            autoStart: "true"
+          });
+
+        visualizerUrl =
+          `http://localhost:5173/searching/two-sum?${params.toString()}`;
+      } else if (
+        (
+          problemTitle.includes(
+            "binary search"
+          ) ||
+          problemTitle.includes(
+            "search insert position"
+          ) ||
+          problemTitle.includes(
+            "find first and last position of element in sorted array"
+          )
+        ) &&
+        hasSearchInputs
+      ) {
+        const params =
+          new URLSearchParams({
+            nums: JSON.stringify(nums),
+            target: String(target),
+            autoStart: "true"
+          });
+
+        visualizerUrl =
+          `http://localhost:5173/searching/binary-search?${params.toString()}`;
+      } else if (
+        problemTitle.includes(
+          "linear search"
+        ) &&
+        hasSearchInputs
+      ) {
+        const params =
+          new URLSearchParams({
+            nums: JSON.stringify(nums),
+            target: String(target),
+            autoStart: "true"
+          });
+
+        visualizerUrl =
+          `http://localhost:5173/searching/linear-search?${params.toString()}`;
+      } else if (
+        problemTitle.includes(
+          "first bad version"
+        ) &&
+        typeof n === "number" &&
+        typeof bad === "number"
+      ) {
+        const generatedNums =
+          Array.from(
+            { length: n },
+            (_, index) => index + 1
+          );
+
+        const params =
+          new URLSearchParams({
+            nums: JSON.stringify(
+              generatedNums
+            ),
+            target: String(bad),
+            autoStart: "true"
+          });
+
+        visualizerUrl =
+          `http://localhost:5173/searching/binary-search?${params.toString()}`;
+      } else if (
+        problemTitle.includes(
+          "search in rotated sorted array"
+        )
+      ) {
+        visualizerUrl =
+          "http://localhost:5173/dashboard";
+      }
+
+      await browserAPI.tabs.create({
+        url: visualizerUrl
+      });
+    } catch (error) {
+      statusMessage.textContent =
+        error?.message ||
+        "Unable to open AlgoVision.";
+
+      console.error(
+        "AlgoVision open error:",
+        error
+      );
+    } finally {
+      openVisualizerButton.disabled =
+        false;
+
+      openVisualizerButton.textContent =
+        "Open in AlgoVision";
+    }
   }
-});
+);
 
 function analyzeLeetCodePage() {
   const pageTitle = document.title
-    .replace(/\s*-\s*LeetCode.*$/i, "")
+    .replace(
+      /\s*-\s*LeetCode.*$/i,
+      ""
+    )
     .trim();
 
   const titleElement =
-    document.querySelector('[data-cy="question-title"]') ||
+    document.querySelector(
+      '[data-cy="question-title"]'
+    ) ||
     document.querySelector("h1") ||
     document.querySelector("h2");
 
@@ -292,43 +390,50 @@ function analyzeLeetCodePage() {
     document.querySelector(
       '[data-track-load="description_content"]'
     ) ||
-    document.querySelector('[class*="description"]') ||
+    document.querySelector(
+      '[class*="description"]'
+    ) ||
     document.querySelector("main") ||
     document.body;
 
   const problemSlug =
-  window.location.pathname
-    .split("/problems/")[1]
-    ?.split("/")[0] || "";
+    window.location.pathname
+      .split("/problems/")[1]
+      ?.split("/")[0] || "";
 
-const slugTitle = problemSlug
-  .split("-")
-  .map(
-    (word) =>
-      word.charAt(0).toUpperCase() + word.slice(1)
-  )
-  .join(" ");
+  const slugTitle = problemSlug
+    .split("-")
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() +
+        word.slice(1)
+    )
+    .join(" ");
 
-const title =
-  slugTitle ||
-  pageTitle ||
-  titleElement?.textContent?.trim() ||
-  "Unknown problem";
-    titleElement?.textContent?.trim() ||
+  const title =
+    slugTitle ||
     pageTitle ||
+    titleElement?.textContent?.trim() ||
     "Unknown problem";
 
   const description =
-    descriptionElement?.innerText?.trim() || "";
+    descriptionElement
+      ?.innerText
+      ?.trim() || "";
 
   const firstInputLine =
     extractFirstInputLine(description);
 
   const inputs =
-    parseInputAssignments(firstInputLine);
+    parseInputAssignments(
+      firstInputLine
+    );
 
   const category =
-    detectCategory(title, description);
+    detectCategory(
+      title,
+      description
+    );
 
   return {
     title,
@@ -338,123 +443,158 @@ const title =
     url: window.location.href
   };
 
- function extractFirstInputLine(text) {
-  if (!text) {
-    return "";
+  function extractFirstInputLine(text) {
+    if (!text) {
+      return "";
+    }
+
+    const lines = text
+      .replace(/\r/g, "")
+      .split("\n")
+      .map(
+        (line) => line.trim()
+      );
+
+    const inputIndex =
+      lines.findIndex((line) =>
+        /^Input\s*:?\s*/i.test(line)
+      );
+
+    if (inputIndex === -1) {
+      return "";
+    }
+
+    const inputLines = [];
+
+    const firstLine =
+      lines[inputIndex]
+        .replace(
+          /^Input\s*:?\s*/i,
+          ""
+        )
+        .trim();
+
+    if (firstLine) {
+      inputLines.push(firstLine);
+    }
+
+    for (
+      let index = inputIndex + 1;
+      index < lines.length;
+      index += 1
+    ) {
+      const line = lines[index];
+
+      if (
+        /^(Output|Explanation|Constraints|Follow[- ]?up|Example\s*\d+)\s*:?\s*/i.test(
+          line
+        )
+      ) {
+        break;
+      }
+
+      if (line) {
+        inputLines.push(line);
+      }
+    }
+
+    return inputLines.join("\n");
   }
 
-  const lines = text
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((line) => line.trim());
-
-  const inputIndex = lines.findIndex((line) =>
-    /^Input\s*:?\s*/i.test(line)
-  );
-
-  if (inputIndex === -1) {
-    return "";
-  }
-
-  const inputLines = [];
-
-  const firstLine = lines[inputIndex]
-    .replace(/^Input\s*:?\s*/i, "")
-    .trim();
-
-  if (firstLine) {
-    inputLines.push(firstLine);
-  }
-
-  for (
-    let index = inputIndex + 1;
-    index < lines.length;
-    index += 1
+  function parseInputAssignments(
+    inputText
   ) {
-    const line = lines[index];
+    if (!inputText) {
+      return {};
+    }
+
+    const normalizedInput =
+      inputText
+        .replace(/\r/g, "")
+        .trim();
+
+    const lines = normalizedInput
+      .split("\n")
+      .map(
+        (line) => line.trim()
+      )
+      .filter(Boolean);
 
     if (
-      /^(Output|Explanation|Constraints|Follow[- ]?up|Example\s*\d+)\s*:?\s*/i.test(
-        line
-      )
+      lines.length === 2 &&
+      lines[0].startsWith("[") &&
+      lines[1].startsWith("[")
     ) {
-      break;
+      return {
+        operations:
+          parseValue(lines[0]),
+        arguments:
+          parseValue(lines[1])
+      };
     }
 
-    if (line) {
-      inputLines.push(line);
-    }
+    const singleLineInput =
+      normalizedInput.replace(
+        /\n+/g,
+        ","
+      );
+
+    const parts =
+      splitOutsideBrackets(
+        singleLineInput
+      );
+
+    const parsedInputs = {};
+
+    parts.forEach(
+      (part, index) => {
+        const cleanedPart =
+          part.trim();
+
+        if (!cleanedPart) {
+          return;
+        }
+
+        const equalPosition =
+          cleanedPart.indexOf("=");
+
+        if (equalPosition === -1) {
+          parsedInputs[
+            `input${index + 1}`
+          ] =
+            parseValue(
+              cleanedPart
+            );
+
+          return;
+        }
+
+        const variableName =
+          cleanedPart
+            .slice(
+              0,
+              equalPosition
+            )
+            .trim();
+
+        const rawValue =
+          cleanedPart
+            .slice(
+              equalPosition + 1
+            )
+            .trim();
+
+        if (variableName) {
+          parsedInputs[
+            variableName
+          ] =
+            parseValue(rawValue);
+        }
+      }
+    );
+
+    return parsedInputs;
   }
-
-  return inputLines.join("\n");
-}
-
- function parseInputAssignments(inputText) {
-  if (!inputText) {
-    return {};
-  }
-
-  const normalizedInput = inputText
-    .replace(/\r/g, "")
-    .trim();
-
-  const lines = normalizedInput
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (
-    lines.length === 2 &&
-    lines[0].startsWith("[") &&
-    lines[1].startsWith("[")
-  ) {
-    return {
-      operations: parseValue(lines[0]),
-      arguments: parseValue(lines[1])
-    };
-  }
-
-  const singleLineInput =
-    normalizedInput.replace(/\n+/g, ",");
-
-  const parts =
-    splitOutsideBrackets(singleLineInput);
-
-  const parsedInputs = {};
-
-  parts.forEach((part, index) => {
-    const cleanedPart = part.trim();
-
-    if (!cleanedPart) {
-      return;
-    }
-
-    const equalPosition =
-      cleanedPart.indexOf("=");
-
-    if (equalPosition === -1) {
-      parsedInputs[`input${index + 1}`] =
-        parseValue(cleanedPart);
-
-      return;
-    }
-
-    const variableName = cleanedPart
-      .slice(0, equalPosition)
-      .trim();
-
-    const rawValue = cleanedPart
-      .slice(equalPosition + 1)
-      .trim();
-
-    if (variableName) {
-      parsedInputs[variableName] =
-        parseValue(rawValue);
-    }
-  });
-
-  return parsedInputs;
-}
 
   function splitOutsideBrackets(text) {
     const parts = [];
@@ -468,16 +608,22 @@ const title =
       index < text.length;
       index += 1
     ) {
-      const character = text[index];
+      const character =
+        text[index];
+
       const previousCharacter =
         text[index - 1];
 
       if (
-        (character === '"' ||
-          character === "'") &&
+        (
+          character === '"' ||
+          character === "'"
+        ) &&
         previousCharacter !== "\\"
       ) {
-        if (activeQuote === character) {
+        if (
+          activeQuote === character
+        ) {
           activeQuote = null;
         } else if (!activeQuote) {
           activeQuote = character;
@@ -507,7 +653,10 @@ const title =
         bracketDepth === 0 &&
         !activeQuote
       ) {
-        parts.push(currentPart.trim());
+        parts.push(
+          currentPart.trim()
+        );
+
         currentPart = "";
       } else {
         currentPart += character;
@@ -515,24 +664,31 @@ const title =
     }
 
     if (currentPart.trim()) {
-      parts.push(currentPart.trim());
+      parts.push(
+        currentPart.trim()
+      );
     }
 
     return parts;
   }
 
   function parseValue(rawValue) {
-    const value = rawValue.trim();
+    const value =
+      rawValue.trim();
 
     if (!value) {
       return "";
     }
 
     if (
-      (value.startsWith('"') &&
-        value.endsWith('"')) ||
-      (value.startsWith("'") &&
-        value.endsWith("'"))
+      (
+        value.startsWith('"') &&
+        value.endsWith('"')
+      ) ||
+      (
+        value.startsWith("'") &&
+        value.endsWith("'")
+      )
     ) {
       return value.slice(1, -1);
     }
@@ -549,15 +705,23 @@ const title =
       return null;
     }
 
-    if (/^-?\d+(?:\.\d+)?$/.test(value)) {
+    if (
+      /^-?\d+(?:\.\d+)?$/.test(
+        value
+      )
+    ) {
       return Number(value);
     }
 
     if (
-      (value.startsWith("[") &&
-        value.endsWith("]")) ||
-      (value.startsWith("{") &&
-        value.endsWith("}"))
+      (
+        value.startsWith("[") &&
+        value.endsWith("]")
+      ) ||
+      (
+        value.startsWith("{") &&
+        value.endsWith("}")
+      )
     ) {
       try {
         return JSON.parse(value);
@@ -574,57 +738,93 @@ const title =
     problemDescription
   ) {
     const combinedText =
-      `${problemTitle} ${problemDescription}`.toLowerCase();
+      `${problemTitle} ${problemDescription}`
+        .toLowerCase();
 
     if (
-      combinedText.includes("linked list") ||
-      combinedText.includes("listnode")
+      combinedText.includes(
+        "linked list"
+      ) ||
+      combinedText.includes(
+        "listnode"
+      )
     ) {
       return "Linked List";
     }
 
     if (
-      combinedText.includes("binary tree") ||
-      combinedText.includes("treenode")
+      combinedText.includes(
+        "binary tree"
+      ) ||
+      combinedText.includes(
+        "treenode"
+      )
     ) {
       return "Tree";
     }
 
     if (
-      combinedText.includes("graph") ||
-      combinedText.includes("edges")
+      combinedText.includes(
+        "graph"
+      ) ||
+      combinedText.includes(
+        "edges"
+      )
     ) {
       return "Graph";
     }
 
-    if (combinedText.includes("two sum")) {
+    if (
+      combinedText.includes(
+        "two sum"
+      )
+    ) {
       return "Array / Hash Map";
     }
 
     if (
-      combinedText.includes("binary search") ||
-      combinedText.includes("sorted array")
+      combinedText.includes(
+        "binary search"
+      ) ||
+      combinedText.includes(
+        "sorted array"
+      ) ||
+      combinedText.includes(
+        "first bad version"
+      )
     ) {
       return "Searching";
     }
 
     if (
-      combinedText.includes("sort") ||
-      combinedText.includes("sorting")
+      combinedText.includes(
+        "sort"
+      ) ||
+      combinedText.includes(
+        "sorting"
+      )
     ) {
       return "Sorting";
     }
 
     if (
-      combinedText.includes("string") ||
-      combinedText.includes("substring")
+      combinedText.includes(
+        "string"
+      ) ||
+      combinedText.includes(
+        "substring"
+      )
     ) {
       return "String";
     }
 
     if (
-      combinedText.includes("array") ||
-      combinedText.includes("nums")
+      combinedText.includes(
+        "array"
+      ) ||
+      combinedText.includes(
+        "nums"
+      )
     ) {
       return "Array";
     }
