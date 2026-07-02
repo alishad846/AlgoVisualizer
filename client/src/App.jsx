@@ -14,6 +14,15 @@ import DPPage from "./pages/dp/DPPage";
 import MLPage from "./pages/ml/MLPage";
 import DocumentationPage from "./pages/DocumentationPage";
 import SupportPage from "./pages/SupportPage";
+import SortingDashboard from "./pages/dashboard/SortingDashboard";
+import SearchingDashboard from "./pages/dashboard/SearchingDashboard";
+import RecursionDashboard from "./pages/dashboard/RecursionDashboard";
+import LinkedListDashboard from "./pages/dashboard/LinkedListDashboard";
+import TreeDashboard from "./pages/dashboard/TreeDashboard";
+import GraphDashboard from "./pages/dashboard/GraphDashboard";
+import StackQueueDashboard from "./pages/dashboard/StackQueueDashboard";
+import DynamicProgrammingDashboard from "./pages/dashboard/DynamicProgrammingDashboard";
+import MachineLearningDashboard from "./pages/dashboard/MachineLearningDashboard";
 
 function App() {
   return (
@@ -24,7 +33,15 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/dashboard/sorting" element={<Dashboard page="sorting" />} />
+      <Route path="/dashboard/sorting" element={<SortingDashboard />} />
+      <Route path="/dashboard/searching" element={<SearchingDashboard />} />
+      <Route path="/dashboard/recursion" element={<RecursionDashboard />} />
+      <Route path="/dashboard/linked-list" element={<LinkedListDashboard />} />
+      <Route path="/dashboard/tree" element={<TreeDashboard />} />
+      <Route path="/dashboard/graph" element={<GraphDashboard />} />
+      <Route path="/dashboard/stack-queue" element={<StackQueueDashboard />} />
+      <Route path="/dashboard/dp" element={<DynamicProgrammingDashboard />} />
+      <Route path="/dashboard/ml" element={<MachineLearningDashboard />} />
       <Route path="/documentation" element={<DocumentationPage />} />
       <Route path="/support" element={<SupportPage />} />
 
