@@ -1,19 +1,33 @@
 import { useEffect, useRef } from "react";
+import { playAudioFeedback } from "../utils/sound";
 
 /**
  * Persistent scrolling step log. Accumulates all steps and auto-scrolls.
  * Props: steps = [{text, type}], where type = "info"|"swap"|"compare"|"done"
  */
 export default function StepLog({ steps }) {
-  const endRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [steps]);
+  const bodyRef = useRef(null);
+  const prevLenRef = useRef(steps.length);
+
+  useEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }
+    if (steps.length !== prevLenRef.current && steps.length > 0) {
+      const latest = steps[steps.length - 1];
+      if (latest && latest.type) {
+        playAudioFeedback(latest.type, latest.text);
+      }
+    }
+    prevLenRef.current = steps.length;
+  }, [steps]);
 
   const typeColors = {
     compare: "var(--yellow)",
     swap: "var(--orange)",
     done: "var(--green)",
     info: "var(--cyan)",
-    default: "var(--muted)",
+    default: "var(--text)",
   };
 
   return (
@@ -23,7 +37,7 @@ export default function StepLog({ steps }) {
         <span>Live Steps</span>
         <span className="step-log-count">{steps.length}</span>
       </div>
-      <div className="step-log-body">
+      <div className="step-log-body" ref={bodyRef}>
         {steps.length === 0 && (
           <div className="step-log-empty">Steps will appear here as the algorithm runs...</div>
         )}
@@ -35,7 +49,6 @@ export default function StepLog({ steps }) {
             </span>
           </div>
         ))}
-        <div ref={endRef} />
       </div>
     </div>
   );

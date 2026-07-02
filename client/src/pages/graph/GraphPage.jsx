@@ -1,8 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { GRAPH_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* 6x6 grid graph — BFS/DFS/Dijkstra */
@@ -20,61 +21,49 @@ function neighbors(r,c,grid) {
 
 /* Topological Sort DAG */
 const DAG_NODES = [
-  { id: 0, x: 50, y: 50, label: "0" },
-  { id: 1, x: 150, y: 50, label: "1" },
-  { id: 2, x: 50, y: 150, label: "2" },
-  { id: 3, x: 150, y: 150, label: "3" },
-  { id: 4, x: 250, y: 100, label: "4" },
-  { id: 5, x: 350, y: 100, label: "5" }
+  {id:1,label:"CSE101",x:40,y:40}, {id:2,label:"MATH101",x:40,y:140},
+  {id:3,label:"CSE102",x:160,y:40}, {id:4,label:"CSE201",x:280,y:90},
+  {id:5,label:"MATH201",x:160,y:140}, {id:6,label:"CSE301",x:400,y:90}
 ];
 const DAG_EDGES = [
-  { from: 0, to: 1 }, { from: 0, to: 2 },
-  { from: 1, to: 3 }, { from: 2, to: 3 },
-  { from: 3, to: 4 }, { from: 4, to: 5 }, { from: 1, to: 4 }
+  {from:1,to:3}, {from:3,to:4}, {from:2,to:5}, {from:5,to:4}, {from:4,to:6}
 ];
 
 function DagViz({ activeNode, visitedNodes, order }) {
   return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", width:"100%" }}>
-      <svg width={400} height={220} style={{ background:"var(--surface2)", borderRadius:8, border:"1px solid var(--border)" }}>
+    <div style={{ display:"flex", flexDirection:"column", gap:16, width:"100%", padding:16, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:12 }}>
+      <svg width={480} height={180}>
         <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="22" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="var(--border2)" />
+          <marker id="arrow" viewBox="0 0 10 10" refX={24} refY={5} markerWidth={6} markerHeight={6} orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--border2)" />
           </marker>
         </defs>
-        {DAG_EDGES.map((edge, i) => {
-          const n1 = DAG_NODES.find(n => n.id === edge.from);
-          const n2 = DAG_NODES.find(n => n.id === edge.to);
-          return (
-            <line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} 
-              stroke="var(--border2)" strokeWidth={2} markerEnd="url(#arrowhead)" />
-          );
+        {DAG_EDGES.map((e,i) => {
+          const fn = DAG_NODES.find(n=>n.id===e.from); const tn = DAG_NODES.find(n=>n.id===e.to);
+          return <line key={i} x1={fn.x} y1={fn.y} x2={tn.x} y2={tn.y} stroke="var(--border2)" strokeWidth={2} markerEnd="url(#arrow)" />;
         })}
         {DAG_NODES.map(n => {
           const isActive = activeNode === n.id;
           const isVisited = visitedNodes.has(n.id);
           return (
             <g key={n.id}>
-              <circle cx={n.x} cy={n.y} r={16} 
-                fill={isActive ? "var(--cyan)" : isVisited ? "rgba(6,182,212,0.2)" : "var(--surface)"}
-                stroke={isActive ? "var(--cyan)" : isVisited ? "var(--cyan)" : "var(--border)"}
-                strokeWidth={2} style={{transition:"all 0.3s"}} />
-              <text x={n.x} y={n.y+5} textAnchor="middle" fontSize={14} fontWeight="bold" 
-                fill={isActive ? "#000" : "var(--text)"}>{n.label}</text>
+              <circle cx={n.x} cy={n.y} r={18}
+                fill={isActive ? "var(--active-bg)" : isVisited ? "var(--surface2)" : "var(--surface)"}
+                stroke={isActive ? "var(--active-bg)" : isVisited ? "var(--green)" : "var(--border2)"} strokeWidth={2} />
+              <text x={n.x} y={n.y+4} textAnchor="middle" fontSize={10} fontWeight="bold" fontFamily="monospace"
+                fill={isActive ? "var(--active-text)" : "var(--text)"}>{n.label}</text>
             </g>
           );
         })}
       </svg>
-      {order.length > 0 && (
-        <div style={{ marginTop: 16, display:"flex", gap: 8, flexWrap:"wrap", justifyContent:"center" }}>
-          <div style={{ fontSize: 13, color:"var(--muted)", width:"100%", textAlign:"center", marginBottom:4 }}>Topological Order:</div>
-          {order.map((nodeId, i) => (
-            <div key={i} style={{ padding:"4px 12px", background:"var(--cyan)", color:"#000", borderRadius:16, fontWeight:"bold", fontSize:14 }}>
-              {nodeId}
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:12, fontWeight:700, color:"var(--green)" }}>Topo Order:</span>
+        {order.map(u => {
+          const node = DAG_NODES.find(n=>n.id===u);
+          return <span key={u} className="badge badge-green">{node.label}</span>;
+        })}
+        {order.length === 0 && <span style={{fontSize:12,color:"var(--muted)"}}>None</span>}
+      </div>
     </div>
   );
 }
@@ -94,9 +83,17 @@ export default function GraphPage() {
   const [topoOrder, setTopoOrder] = useState([]);
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(isTopo ? 600 : 50);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round((isTopo ? 600 : 50) / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const [graphFrames, setGraphFrames] = useState(null);
+  const [graphFrameIdx, setGraphFrameIdx] = useState(-1);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+  }, [algo]);
 
   const reset = () => { 
     stopRef.current=true; 
@@ -104,6 +101,7 @@ export default function GraphPage() {
       setGrid(makeGrid()); 
       setActiveNode(null); setVisitedNodes(new Set()); setTopoOrder([]);
       setStepLog([{text:"Reset.",type:"info"}]); 
+      setGraphFrames(null); setGraphFrameIdx(-1);
       setRunning(false); 
       stopRef.current=false; 
     }, 50); 
@@ -117,13 +115,22 @@ export default function GraphPage() {
   const runBFSDFS = async (isBFS) => {
     if(running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
+    setGraphFrames(null); setGraphFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (gState, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({ grid: gState.map(r=>r.map(c=>({...c}))), log: [...logAcc] });
+    };
+
     const g = grid.map(row=>row.map(c=>({...c,visited:false,active:false,dist:Infinity})));
     const start=[0,0];
     
     const frontier = [start];
     g[0][0].visited = true;
     setGrid(g.map(r=>r.map(c=>({...c}))));
-    setStepLog(prev => [...prev, {text:`Starting ${isBFS?"BFS":"DFS"} from [0,0]`, type:"info"}]);
+    setStepLog([{text:`Starting ${isBFS?"BFS":"DFS"} from [0,0]`, type:"info"}]);
+    addFrame(g, `Starting ${isBFS?"BFS":"DFS"} from [0,0]`, "info");
 
     const pop = isBFS ? () => frontier.shift() : () => frontier.pop();
 
@@ -133,6 +140,7 @@ export default function GraphPage() {
       g[r][c].active = true;
       setGrid(g.map(row=>row.map(cc=>({...cc}))));
       setStepLog(prev => [...prev, {text:`Visiting [${r},${c}]`, type:"compare"}]);
+      addFrame(g, `Visiting [${r},${c}]`, "compare");
       await new Promise(res=>setTimeout(res,speed));
       g[r][c].active = false;
 
@@ -144,26 +152,41 @@ export default function GraphPage() {
           added++;
         }
       }
-      if(added > 0) setStepLog(prev => [...prev, {text:`Added ${added} neighbors of [${r},${c}]`, type:"swap"}]);
+      if(added > 0) {
+        setStepLog(prev => [...prev, {text:`Added ${added} neighbors of [${r},${c}]`, type:"swap"}]);
+        addFrame(g, `Added ${added} neighbors of [${r},${c}]`, "swap");
+      }
       setGrid(g.map(row=>row.map(cc=>({...cc}))));
     }
-    if(!stopRef.current) setStepLog(prev => [...prev, {text:`${isBFS?"BFS":"DFS"} complete!`, type:"done"}]);
+    if(!stopRef.current) {
+      setStepLog(prev => [...prev, {text:`${isBFS?"BFS":"DFS"} complete!`, type:"done"}]);
+      addFrame(g, `${isBFS?"BFS":"DFS"} complete!`, "done");
+    }
+    setGraphFrames(recFrames); setGraphFrameIdx(recFrames.length - 1);
     setRunning(false);
   };
 
   const runDijkstra = async () => {
     if(running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
+    setGraphFrames(null); setGraphFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (gState, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({ grid: gState.map(r=>r.map(c=>({...c}))), log: [...logAcc] });
+    };
+
     const g = grid.map(row=>row.map(c=>({...c,visited:false,active:false,dist:Infinity})));
     
     g[0][0].dist = 0;
     setGrid(g.map(r=>r.map(c=>({...c}))));
-    setStepLog(prev => [...prev, {text:"Starting Dijkstra from [0,0]", type:"info"}]);
+    setStepLog([{text:"Starting Dijkstra from [0,0]", type:"info"}]);
+    addFrame(g, "Starting Dijkstra from [0,0]", "info");
 
     while(true){
       if(stopRef.current) break;
       
-      // Find min dist unvisited
       let minD = Infinity, minR = -1, minC = -1;
       for(let r=0; r<ROWS; r++){
         for(let c=0; c<COLS; c++){
@@ -173,12 +196,13 @@ export default function GraphPage() {
         }
       }
       
-      if(minR === -1) break; // done
+      if(minR === -1) break;
       
       g[minR][minC].visited = true;
       g[minR][minC].active = true;
       setGrid(g.map(row=>row.map(cc=>({...cc}))));
       setStepLog(prev => [...prev, {text:`Extract min: [${minR},${minC}] with dist ${minD}`, type:"compare"}]);
+      addFrame(g, `Extract min: [${minR},${minC}] with dist ${minD}`, "compare");
       await new Promise(res=>setTimeout(res,speed));
       
       for(const [nr,nc] of neighbors(minR,minC,g)){
@@ -187,13 +211,18 @@ export default function GraphPage() {
           if(alt < g[nr][nc].dist){
             g[nr][nc].dist = alt;
             setStepLog(prev => [...prev, {text:`Relax edge to [${nr},${nc}], new dist = ${alt}`, type:"swap"}]);
+            addFrame(g, `Relax edge to [${nr},${nc}], new dist = ${alt}`, "swap");
           }
         }
       }
       g[minR][minC].active = false;
       setGrid(g.map(row=>row.map(cc=>({...cc}))));
     }
-    if(!stopRef.current) setStepLog(prev => [...prev, {text:"Dijkstra complete!", type:"done"}]);
+    if(!stopRef.current) {
+      setStepLog(prev => [...prev, {text:"Dijkstra complete!", type:"done"}]);
+      addFrame(g, "Dijkstra complete!", "done");
+    }
+    setGraphFrames(recFrames); setGraphFrameIdx(recFrames.length - 1);
     setRunning(false);
   };
 
@@ -201,6 +230,13 @@ export default function GraphPage() {
     if(running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
     setActiveNode(null); setVisitedNodes(new Set()); setTopoOrder([]);
+    setGraphFrames(null); setGraphFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (act, vis, ord, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({ activeNode: act, visitedNodes: new Set(vis), topoOrder: [...ord], log: [...logAcc] });
+    };
     
     const inDegree = {};
     DAG_NODES.forEach(n => inDegree[n.id] = 0);
@@ -210,7 +246,8 @@ export default function GraphPage() {
     const order = [];
     const visited = new Set();
     
-    setStepLog(prev => [...prev, {text:`Initial queue (in-degree 0): [${queue.join(",")}]`, type:"info"}]);
+    setStepLog([{text:`Initial queue (in-degree 0): [${queue.join(",")}]`, type:"info"}]);
+    addFrame(null, visited, order, `Initial queue (in-degree 0): [${queue.join(",")}]`, "info");
     await new Promise(res=>setTimeout(res,speed));
 
     while(queue.length > 0){
@@ -223,22 +260,59 @@ export default function GraphPage() {
       setTopoOrder([...order]);
       
       setStepLog(prev => [...prev, {text:`Process node ${u}`, type:"compare"}]);
+      addFrame(u, visited, order, `Process node ${u}`, "compare");
       await new Promise(res=>setTimeout(res,speed));
       
       const neighbors = DAG_EDGES.filter(e => e.from === u).map(e => e.to);
       for(const v of neighbors){
         inDegree[v]--;
         setStepLog(prev => [...prev, {text:`Edge ${u}→${v}: decrement ${v} in-degree to ${inDegree[v]}`, type:"swap"}]);
+        addFrame(u, visited, order, `Edge ${u}→${v}: decrement ${v} in-degree to ${inDegree[v]}`, "swap");
         if(inDegree[v] === 0){
           queue.push(v);
           setStepLog(prev => [...prev, {text:`Node ${v} in-degree is 0, add to queue`, type:"info"}]);
+          addFrame(u, visited, order, `Node ${v} in-degree is 0, add to queue`, "info");
         }
       }
       await new Promise(res=>setTimeout(res,speed));
     }
     setActiveNode(null);
-    if(!stopRef.current) setStepLog(prev => [...prev, {text:`Topological Sort complete!`, type:"done"}]);
+    if(!stopRef.current) {
+      setStepLog(prev => [...prev, {text:`Topological Sort complete!`, type:"done"}]);
+      addFrame(null, visited, order, `Topological Sort complete!`, "done");
+    }
+    setGraphFrames(recFrames); setGraphFrameIdx(recFrames.length - 1);
     setRunning(false);
+  };
+
+  const handleGraphPrev = () => {
+    if (running || !graphFrames || graphFrameIdx <= 0) return;
+    const nextIdx = graphFrameIdx - 1;
+    const f = graphFrames[nextIdx];
+    setGraphFrameIdx(nextIdx);
+    if (isTopo) {
+      setActiveNode(f.activeNode);
+      setVisitedNodes(f.visitedNodes);
+      setTopoOrder(f.topoOrder);
+    } else {
+      setGrid(f.grid);
+    }
+    setStepLog(f.log);
+  };
+
+  const handleGraphNext = () => {
+    if (running || !graphFrames || graphFrameIdx >= graphFrames.length - 1) return;
+    const nextIdx = graphFrameIdx + 1;
+    const f = graphFrames[nextIdx];
+    setGraphFrameIdx(nextIdx);
+    if (isTopo) {
+      setActiveNode(f.activeNode);
+      setVisitedNodes(f.visitedNodes);
+      setTopoOrder(f.topoOrder);
+    } else {
+      setGrid(f.grid);
+    }
+    setStepLog(f.log);
   };
 
   const handleStart = () => {
@@ -263,17 +337,23 @@ export default function GraphPage() {
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>
           ▶ Start {isTopo ? "" : "from [0,0]"}
         </button>
-        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>■ Stop</button>
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleGraphPrev} disabled={running || !graphFrames || graphFrameIdx <= 0} style={{ opacity: (running || !graphFrames || graphFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleGraphNext} disabled={running || !graphFrames || graphFrameIdx >= graphFrames.length - 1} style={{ opacity: (running || !graphFrames || graphFrameIdx >= graphFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={10} max={800}
-          value={speed} onChange={e=>setSpeed(+e.target.value)}/>
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:45}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Visualizer */}
@@ -289,12 +369,12 @@ export default function GraphPage() {
                     width:CELL,height:CELL,borderRadius:6,cursor:"pointer",
                     background: cell.wall?"var(--border2)":
                                 r===0&&c===0?"var(--green)":
-                                cell.active?"var(--cyan)":
+                                cell.active?"var(--active-bg)":
                                 cell.visited?"rgba(6,182,212,0.25)":"var(--surface2)",
                     border:`1px solid var(--border)`,
                     transition:"background 0.15s",
                     display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                    fontSize:10,color:cell.active?"#000":"var(--muted)", position:"relative"
+                    fontSize:10,color:cell.active?"var(--active-text)":"var(--muted)", position:"relative"
                   }}>
                     {r===0&&c===0 && <span style={{position:"absolute", top:2, left:4, fontWeight:"bold", color:"#fff"}}>S</span>}
                     {isDijkstra && !cell.wall && <span style={{fontSize:9, opacity:0.6}}>{cell.weight}</span>}
@@ -306,8 +386,8 @@ export default function GraphPage() {
 
             {!isTopo && (
               <div style={{display:"flex",gap:12,marginTop:16,fontSize:11,color:"var(--muted)", flexWrap:"wrap", justifyContent:"center"}}>
-                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--cyan)",opacity:0.25}}/> Visited</span>
-                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--cyan)"}}/> Current</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--active-bg)",opacity:0.25}}/> Visited</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--active-bg)"}}/> Current</span>
                 <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"var(--border2)"}}/> Wall (click)</span>
                 {isDijkstra && <span style={{display:"flex",alignItems:"center",gap:4}}>Top num: Edge Weight, Center num: Dist</span>}
               </div>
@@ -320,6 +400,8 @@ export default function GraphPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

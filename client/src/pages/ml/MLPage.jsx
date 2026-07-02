@@ -1,12 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { ML_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* K-Means Clustering */
-const COLORS = ["#06b6d4","#8b5cf6","#10b981","#f97316","#ef4444"];
+const COLORS = ["var(--cyan)", "var(--purple)", "var(--green)", "var(--orange)", "var(--yellow)"];
 
 function randPoints(n) {
   return Array.from({length:n},()=>({ x:Math.random()*380+10, y:Math.random()*240+10, cluster:0 }));
@@ -17,17 +18,40 @@ function randCentroids(k) {
 function dist(a,b){ return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2); }
 
 /* Linear Regression */
+function randRegPoints(n) {
+  const slope = (Math.random() * 0.5) + 0.1; // 0.1 to 0.6
+  const intercept = Math.random() * 60 + 40; // 40 to 100
+  return Array.from({ length: n }, () => {
+    const x = Math.random() * 340 + 20;
+    const noise = (Math.random() - 0.5) * 50;
+    const y = Math.max(15, Math.min(260, slope * x + intercept + noise));
+    return { x, y };
+  });
+}
+
 function linRegSteps(points) {
   const n = points.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+  for (const p of points) {
+    sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumXX += p.x * p.x;
+  }
+  const meanX = sumX / n;
+  const meanY = sumY / n;
+  const m_target = (sumXY - n * meanX * meanY) / (sumXX - n * meanX * meanX);
+  const b_target = meanY - m_target * meanX;
+
   const frames = [];
-  let m=0, b=50;
-  const lr=0.0001;
-  for(let iter=0;iter<40;iter++){
-    let dm=0,db=0;
-    for(const p of points){ const pred=m*p.x+b; dm-=2*p.x*(p.y-pred); db-=2*(p.y-pred); }
-    m-=lr*dm; b-=lr*db;
-    const loss = points.reduce((s,p)=>s+(p.y-(m*p.x+b))**2,0)/n;
-    frames.push({ m,b,loss:loss.toFixed(2),iter, log:`Iter ${iter+1}: loss=${loss.toFixed(2)}, slope=${m.toFixed(4)}`, type:"info" });
+  let m = 0, b = meanY;
+  for (let iter = 0; iter < 35; iter++) {
+    const alpha = 0.15;
+    m = m + alpha * (m_target - m);
+    b = b + alpha * (b_target - b);
+    const loss = points.reduce((s, p) => s + (p.y - (m * p.x + b)) ** 2, 0) / n;
+    frames.push({
+      m, b, loss: loss.toFixed(2), iter,
+      log: `Epoch ${iter + 1}: MSE Loss = ${loss.toFixed(1)}, Slope = ${m.toFixed(3)}, Intercept = ${b.toFixed(1)}`,
+      type: iter === 34 ? "done" : "info"
+    });
   }
   return frames;
 }
@@ -51,12 +75,12 @@ function DtNode({ node, activeSet, depth=0, x=50, spread=25 }) {
       {node.right && <line x1={`${x}%`} y1={depth*70+20} x2={`${rx}%`} y2={(depth+1)*70+20} stroke="var(--border2)" strokeWidth={1.5}/>}
       
       <rect x={`${x-10}%`} y={depth*70+5} width="20%" height="30" rx="4"
-        fill={active?"var(--cyan)":node.isLeaf?"var(--surface2)":"var(--surface)"} 
-        stroke={active?"var(--cyan)":"var(--border2)"} strokeWidth={2}
+        fill={active?"var(--active-bg)":node.isLeaf?"var(--surface2)":"var(--surface)"} 
+        stroke={active?"var(--active-bg)":"var(--border2)"} strokeWidth={2}
         style={{transition:"all 0.3s"}} />
         
       <text x={`${x}%`} y={depth*70+25} textAnchor="middle" fontSize={11} fontWeight="bold"
-        fill={active?"#000":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val}</text>
+        fill={active?"var(--active-text)":"var(--text)"} style={{transition:"fill 0.3s"}}>{node.val}</text>
         
       {node.left && <DtNode node={node.left} activeSet={activeSet} depth={depth+1} x={lx} spread={spread}/>}
       {node.right && <DtNode node={node.right} activeSet={activeSet} depth={depth+1} x={rx} spread={spread}/>}
@@ -74,9 +98,15 @@ export default function MLPage() {
   const isDt = algo==="decision-tree";
 
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(200);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(200 / speedMultiplier);
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+
+  useEffect(() => {
+    stopRef.current = true;
+    setRunning(false);
+  }, [algo]);
 
   // K-Means state
   const K=3;
@@ -85,9 +115,11 @@ export default function MLPage() {
   const [iter, setIter] = useState(0);
 
   // Linear Regression state
-  const [regPoints] = useState(()=>Array.from({length:20},()=>({ x:Math.random()*350+10, y:Math.random()*200+20 })));
-  const [line, setLine] = useState({m:0,b:50});
+  const [regPoints, setRegPoints] = useState(()=>randRegPoints(25));
+  const [line, setLine] = useState({m:0,b:100});
   const [loss, setLoss] = useState("—");
+  const [mlFrames, setMlFrames] = useState(null);
+  const [mlFrameIdx, setMlFrameIdx] = useState(-1);
 
   // KNN state
   const [knnPoints, setKnnPoints] = useState(()=>Array.from({length:30},()=>({ 
@@ -132,14 +164,35 @@ export default function MLPage() {
   const startLinReg = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = linRegSteps(regPoints);
-    for(const f of frames){
+    setMlFrames(frames); setMlFrameIdx(0);
+    for(let i = 0; i < frames.length; i++){
       if(stopRef.current) break;
-      setLine({m:f.m,b:f.b}); setLoss(f.loss);
+      const f = frames[i];
+      setLine({m:f.m,b:f.b}); setLoss(f.loss); setMlFrameIdx(i);
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await new Promise(r=>setTimeout(r,speed));
     }
-    if(!stopRef.current) setStepLog(prev => [...prev, {text:"Linear Regression converged!", type:"done"}]);
+    if(!stopRef.current) {
+      setStepLog(prev => [...prev, {text:"Linear Regression converged!", type:"done"}]);
+      setMlFrameIdx(frames.length - 1);
+    }
     setRunning(false);
+  };
+
+  const handleMlPrev = () => {
+    if (running || !mlFrames || mlFrameIdx <= 0) return;
+    const nextIdx = mlFrameIdx - 1;
+    const f = mlFrames[nextIdx];
+    setLine({m:f.m, b:f.b}); setLoss(f.loss); setMlFrameIdx(nextIdx);
+    setStepLog(mlFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
+  };
+
+  const handleMlNext = () => {
+    if (running || !mlFrames || mlFrameIdx >= mlFrames.length - 1) return;
+    const nextIdx = mlFrameIdx + 1;
+    const f = mlFrames[nextIdx];
+    setLine({m:f.m, b:f.b}); setLoss(f.loss); setMlFrameIdx(nextIdx);
+    setStepLog(mlFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
   };
 
   const startKnn = async () => {
@@ -206,22 +259,33 @@ export default function MLPage() {
 
       <div className="controls-bar" style={{marginBottom:12}}>
         {isKMeans && <button className="btn btn-ghost" onClick={()=>{setPoints(randPoints(40));setCentroids(randCentroids(K));setStepLog([{text:"Reset.",type:"info"}]);}} disabled={running}>⟳ Randomize</button>}
+        {isLinReg && <button className="btn btn-ghost" onClick={()=>{setRegPoints(randRegPoints(25));setLine({m:0,b:100});setLoss("—");setMlFrames(null);setStepLog([{text:"Dataset randomized.",type:"info"}]);}} disabled={running}>⟳ Randomize</button>}
         {isKnn && <button className="btn btn-ghost" onClick={()=>{
           setTestPoint({x:Math.random()*300+50, y:Math.random()*150+50});
           setKNeighbors([]); setStepLog([{text:"Test point moved.",type:"info"}]);
         }} disabled={running}>⟳ Move Test Point</button>}
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
-        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>■ Stop</button>
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+        {isLinReg && (
+          <>
+            <button className="btn btn-ghost" onClick={handleMlPrev} disabled={running || !mlFrames || mlFrameIdx <= 0} style={{ opacity: (running || !mlFrames || mlFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+            <button className="btn btn-ghost" onClick={handleMlNext} disabled={running || !mlFrames || mlFrameIdx >= mlFrames.length - 1} style={{ opacity: (running || !mlFrames || mlFrameIdx >= mlFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
+          </>
+        )}
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={50} max={800}
-          value={speed} onChange={e=>setSpeed(+e.target.value)}/>
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:45}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">
         {/* LEFT — Explanation */}
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         {/* CENTER — Visualizer */}
@@ -247,7 +311,7 @@ export default function MLPage() {
               {/* Linear Regression */}
               {isLinReg && (<>
                 {regPoints.map((p,i)=>(
-                  <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--cyan)" opacity={0.7}/>
+                  <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--active-bg)" opacity={0.7}/>
                 ))}
                 <line x1={0} y1={line.b} x2={400} y2={line.m*400+line.b}
                   stroke="var(--orange)" strokeWidth={2}
@@ -267,7 +331,7 @@ export default function MLPage() {
                     stroke="var(--text)" strokeWidth={1} strokeDasharray="4" opacity={0.5} />
                 ))}
                 {/* Test Point */}
-                <circle cx={testPoint.x} cy={testPoint.y} r={8} fill="var(--text)" stroke="#000" strokeWidth={2}/>
+                <circle cx={testPoint.x} cy={testPoint.y} r={8} fill="var(--text)" stroke="var(--bg)" strokeWidth={2}/>
                 <text x={testPoint.x+12} y={testPoint.y-12} fill="var(--text)" fontSize={12} fontWeight="bold">Test</text>
               </>)}
 
@@ -290,6 +354,8 @@ export default function MLPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

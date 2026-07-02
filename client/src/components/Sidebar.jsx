@@ -1,14 +1,9 @@
-import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
-import {
-  BarChart2, Search, RefreshCw, List, GitBranch,
-  Binary, Database, Cpu, ChevronDown, ChevronRight,
-  LayoutDashboard, Menu, X, TrendingUp, Layers, Zap, AlignLeft, Triangle
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 
-const NAV = [
+export const NAV = [
   {
-    key: "sorting", label: "Sorting", icon: BarChart2, color: "#06b6d4",
+    key: "sorting", title: "Sorting", icon: "sort",
     items: [
       { label: "Bubble Sort", path: "/sorting/bubble-sort" },
       { label: "Selection Sort", path: "/sorting/selection-sort" },
@@ -23,7 +18,7 @@ const NAV = [
     ]
   },
   {
-    key: "searching", label: "Searching", icon: Search, color: "#10b981",
+    key: "searching", title: "Searching", icon: "search",
     items: [
       { label: "Linear Search", path: "/searching/linear-search" },
       { label: "Binary Search", path: "/searching/binary-search" },
@@ -33,7 +28,7 @@ const NAV = [
     ]
   },
   {
-    key: "recursion", label: "Recursion", icon: RefreshCw, color: "#f97316",
+    key: "recursion", title: "Recursion", icon: "rebase_edit",
     items: [
       { label: "Tower of Hanoi", path: "/recursion/tower-of-hanoi" },
       { label: "N-Queens", path: "/recursion/n-queens" },
@@ -42,7 +37,7 @@ const NAV = [
     ]
   },
   {
-    key: "linked-list", label: "Linked List", icon: List, color: "#8b5cf6",
+    key: "linked-list", title: "Linked List", icon: "link",
     items: [
       { label: "Reverse List", path: "/linked-list/reverse" },
       { label: "Detect Cycle", path: "/linked-list/detect-cycle" },
@@ -51,7 +46,7 @@ const NAV = [
     ]
   },
   {
-    key: "stack-queue", label: "Stack & Queue", icon: Layers, color: "#eab308",
+    key: "stack-queue", title: "Stack & Queue", icon: "view_agenda",
     items: [
       { label: "Stack (Push/Pop)", path: "/stack-queue/stack" },
       { label: "Queue", path: "/stack-queue/queue" },
@@ -60,17 +55,17 @@ const NAV = [
     ]
   },
   {
-    key: "tree", label: "Tree", icon: Binary, color: "#ec4899",
+    key: "tree", title: "Tree", icon: "account_tree",
     items: [
-      { label: "Inorder", path: "/tree/inorder" },
-      { label: "Preorder", path: "/tree/preorder" },
-      { label: "Postorder", path: "/tree/postorder" },
+      { label: "In Order", path: "/tree/inorder" },
+      { label: "Pre Order", path: "/tree/preorder" },
+      { label: "Post Order", path: "/tree/postorder" },
       { label: "Level Order", path: "/tree/level-order" },
       { label: "BST Insert", path: "/tree/bst-insert" },
     ]
   },
   {
-    key: "graph", label: "Graph", icon: GitBranch, color: "#14b8a6",
+    key: "graph", title: "Graph", icon: "hub",
     items: [
       { label: "BFS", path: "/graph/bfs" },
       { label: "DFS", path: "/graph/dfs" },
@@ -79,7 +74,7 @@ const NAV = [
     ]
   },
   {
-    key: "dp", label: "Dynamic Prog.", icon: Database, color: "#a78bfa",
+    key: "dp", title: "Dynamic Progress", icon: "layers",
     items: [
       { label: "Fibonacci", path: "/dp/fibonacci" },
       { label: "0/1 Knapsack", path: "/dp/knapsack" },
@@ -88,7 +83,7 @@ const NAV = [
     ]
   },
   {
-    key: "ml", label: "Machine Learning", icon: Cpu, color: "#f43f5e",
+    key: "ml", title: "Machine Learning", icon: "memory",
     items: [
       { label: "Linear Regression", path: "/ml/linear-regression" },
       { label: "K-Means", path: "/ml/k-means" },
@@ -98,73 +93,86 @@ const NAV = [
   },
 ];
 
-export default function Sidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
-  const [openCats, setOpenCats] = useState(() => {
-    const active = NAV.find(c => c.items.some(i => location.pathname.startsWith(i.path.split('/').slice(0,2).join('/'))));
-    return active ? { [active.key]: true } : { sorting: true };
-  });
+function Icon({ children, className = "" }) {
+  return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
+}
 
-  const toggleCat = (key) => setOpenCats(p => ({ ...p, [key]: !p[key] }));
+function SidebarItem({ section, location }) {
+  const isActiveCat = section.items.some(i => location.pathname === i.path);
+  const [isOpen, setIsOpen] = useState(isActiveCat);
+
+  useEffect(() => {
+    setIsOpen(isActiveCat);
+  }, [isActiveCat]);
 
   return (
-    <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-      <div className="sidebar-logo">
-        {!collapsed && <span className="sidebar-logo-text">AlgoVision</span>}
-        <button className="sidebar-toggle" onClick={() => setCollapsed(p => !p)}>
-          {collapsed ? <Menu size={16} /> : <X size={16} />}
-        </button>
-      </div>
-
-      <div className="sidebar-nav">
-        {/* Dashboard link */}
-        <Link
-          to="/dashboard"
-          className={`sidebar-item ${location.pathname === "/dashboard" ? "active" : ""}`}
-          style={{ paddingLeft: 10, marginBottom: 4 }}
-        >
-          <LayoutDashboard size={14} />
-          {!collapsed && "Dashboard"}
-        </Link>
-
-        {NAV.map(cat => {
-          const Icon = cat.icon;
-          const isOpen = openCats[cat.key];
-          const isActive = cat.items.some(i => location.pathname === i.path);
+    <div className="av-nav-item">
+      <button className="av-nav-button" onClick={() => setIsOpen(!isOpen)} style={{ color: isActiveCat ? "var(--primary)" : undefined }}>
+        <span className="av-nav-left">
+          <span className="av-nav-icon"><Icon>{section.icon}</Icon></span>
+          <span style={{ fontWeight: isActiveCat ? 700 : 500 }}>{section.title}</span>
+        </span>
+        <Icon className={`av-chevron ${isOpen ? "av-rotate" : ""}`}>chevron_right</Icon>
+      </button>
+      <div className={`av-submenu ${isOpen ? "av-submenu-open" : ""}`}>
+        {section.items.map((item) => {
+          const active = location.pathname === item.path;
           return (
-            <div key={cat.key} className="sidebar-category">
-              <button
-                className={`sidebar-cat-btn ${isActive ? "active" : ""}`}
-                onClick={() => !collapsed && toggleCat(cat.key)}
-                title={cat.label}
-              >
-                <Icon size={14} className="sidebar-cat-icon" style={{ color: isActive ? cat.color : undefined }} />
-                {!collapsed && (
-                  <>
-                    <span style={{ flex: 1, textAlign: "left" }}>{cat.label}</span>
-                    {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                  </>
-                )}
-              </button>
-              {!collapsed && isOpen && (
-                <div className="sidebar-items">
-                  {cat.items.map(item => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`sidebar-item ${location.pathname === item.path ? "active" : ""}`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Link
+              to={item.path}
+              key={item.path}
+              style={{
+                display: "block",
+                paddingTop: "6px",
+                paddingBottom: "6px",
+                color: active ? "var(--primary)" : "var(--on-surface-variant)",
+                fontWeight: active ? 700 : 400,
+                paddingLeft: active ? "10px" : undefined,
+                borderLeft: active ? "2px solid var(--primary)" : undefined,
+                textDecoration: "none"
+              }}
+            >
+              {item.label}
+            </Link>
           );
         })}
       </div>
     </div>
+  );
+}
+
+export default function Sidebar({ sidebarOpen = true }) {
+  const location = useLocation();
+
+  return (
+    <aside className={`av-sidebar ${sidebarOpen ? "" : "av-sidebar-collapsed"}`}>
+      <div className="av-sidebar-inner">
+        <div className="av-sidebar-main">
+          <p className="av-sidebar-label">ALGORITHM LIBRARY</p>
+          <nav className="av-nav">
+            <Link
+              className="av-nav-link"
+              to="/dashboard"
+              style={{
+                color: location.pathname === "/dashboard" ? "var(--primary)" : undefined,
+                fontWeight: location.pathname === "/dashboard" ? 700 : 400,
+                textDecoration: "none"
+              }}
+            >
+              <span className="av-nav-icon"><Icon>dashboard</Icon></span>
+              <span>Dashboard</span>
+            </Link>
+            {NAV.map((section) => (
+              <SidebarItem key={section.key} section={section} location={location} />
+            ))}
+          </nav>
+        </div>
+
+        <div className="av-sidebar-footer">
+          <Link to="/documentation" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>menu_book</Icon></span><span>Documentation</span></Link>
+          <Link to="/support" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>help_outline</Icon></span><span>Support</span></Link>
+        </div>
+      </div>
+    </aside>
   );
 }
