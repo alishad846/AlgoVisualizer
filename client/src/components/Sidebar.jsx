@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-=======
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
->>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 
 export const NAV = [
   {
@@ -102,7 +97,7 @@ function Icon({ children, className = "" }) {
   return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
 }
 
-function SidebarItem({ section, location, navigate }) {
+function SidebarItem({ section, location }) {
   const isActiveCat = section.items.some(i => location.pathname === i.path);
   const [isOpen, setIsOpen] = useState(isActiveCat);
 
@@ -112,21 +107,7 @@ function SidebarItem({ section, location, navigate }) {
 
   return (
     <div className="av-nav-item">
-<<<<<<< HEAD
-      <button
-  className="av-nav-button"
-  onClick={() => {
-    setIsOpen(!isOpen);
-
-    if (section.key === "sorting") {
-      navigate("/dashboard/sorting");
-    }
-  }}
-  style={{ color: isActiveCat ? "#ffffff" : undefined }}
->
-=======
       <button className="av-nav-button" onClick={() => setIsOpen(!isOpen)} style={{ color: isActiveCat ? "var(--primary)" : undefined }}>
->>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
         <span className="av-nav-left">
           <span className="av-nav-icon"><Icon>{section.icon}</Icon></span>
           <span style={{ fontWeight: isActiveCat ? 700 : 500 }}>{section.title}</span>
@@ -162,7 +143,7 @@ function SidebarItem({ section, location, navigate }) {
 
 export default function Sidebar({ sidebarOpen = true }) {
   const location = useLocation();
-  const navigate = useNavigate();
+
   return (
     <aside className={`av-sidebar ${sidebarOpen ? "" : "av-sidebar-collapsed"}`}>
       <div className="av-sidebar-inner">
@@ -181,14 +162,9 @@ export default function Sidebar({ sidebarOpen = true }) {
               <span className="av-nav-icon"><Icon>dashboard</Icon></span>
               <span>Dashboard</span>
             </Link>
-           {NAV.map((section) => (
-  <SidebarItem
-    key={section.key}
-    section={section}
-    location={location}
-    navigate={navigate}
-  />
-))}
+            {NAV.map((section) => (
+              <SidebarItem key={section.key} section={section} location={location} />
+            ))}
           </nav>
         </div>
 
