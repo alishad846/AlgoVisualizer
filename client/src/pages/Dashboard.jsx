@@ -15,10 +15,11 @@ function SmallCard({ icon, title, text, meta, onClick }) {
         <h3>{title}</h3>
         <p>{text}</p>
       </div>
+
       <div className="av-card-bottom">
-        <span>{meta}</span>
-        <Icon className="av-arrow">chevron_right</Icon>
-      </div>
+      <span className="av-chip">{meta}</span>
+      <Icon className="av-arrow">chevron_right</Icon>
+    </div>
     </div>
   );
 }
@@ -31,34 +32,78 @@ export default function Dashboard() {
       <section className="av-hero">
         <div>
           <h2>Algorithm Explorer</h2>
-          <p>Master complex logic through interactive high-fidelity visualizations. Select a category below to begin your visual execution path.</p>
+          <p>
+            Master complex logic through interactive high-fidelity visualizations. Select a
+            category below to begin your visual execution path.
+          </p>
         </div>
       </section>
 
       <section className="av-grid">
-        <div className="av-card av-sorting-card" onClick={() => navigate('/sorting/bubble-sort')} style={{ cursor: "pointer" }}>
+        <div
+          className="av-card av-sorting-card"
+          onClick={() => navigate("/dashboard/sorting")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="av-card-content">
             <Icon className="av-card-icon av-big-icon">sort</Icon>
             <h3>Sorting</h3>
-            <p>Visualizing the spatial efficiency of 10 distinct sorting protocols, from Bubble to Bucket Sort.</p>
+            <p>
+              Visualizing the spatial efficiency of 10 distinct sorting protocols, from Bubble
+              to Bucket Sort.
+            </p>
           </div>
+
           <div className="av-card-bottom av-z">
             <span className="av-chip">10 ALGORITHMS</span>
-            <button className="av-explore" onClick={(e) => { e.stopPropagation(); navigate('/sorting/bubble-sort'); }}>Explore <Icon>arrow_forward</Icon></button>
+            <Icon className="av-arrow">chevron_right</Icon>
           </div>
+
           <Icon className="av-watermark">sort</Icon>
         </div>
 
-        <SmallCard icon="search" title="Searching" text="Binary, Linear, and Jump paths." meta="5 VARIANTS" onClick={() => navigate('/searching/linear-search')} />
-        <SmallCard icon="rebase_edit" title="Recursion" text="Visualizing Tower of Hanoi and Backtracking." meta="4 TYPES" onClick={() => navigate('/recursion/tower-of-hanoi')} />
-        <SmallCard icon="link" title="Linked List" text="Pointers and memory allocation nodes." meta="4 ALGORITHMS" onClick={() => navigate('/linked-list/reverse')} />
-        <SmallCard icon="account_tree" title="Trees" text="In Order, Pre Order, and BST operations." meta="5 ALGORITHMS" onClick={() => navigate('/tree/inorder')} />
+        <SmallCard
+          icon="search"
+          title="Searching"
+          text="Binary, Linear, and Jump paths."
+          meta="5 VARIANTS"
+          onClick={() => navigate("/dashboard/searching")}
+        />
 
-        <div className="av-card av-graphs-card" onClick={() => navigate('/graph/bfs')} style={{ cursor: "pointer" }}>
+       <SmallCard
+          icon="rebase_edit"
+          title="Recursion"
+          text="Visualizing Tower of Hanoi and Backtracking."
+          meta="4 TYPES"
+          onClick={() => navigate("/dashboard/recursion")}
+        />
+
+        <SmallCard
+          icon="link"
+          title="Linked List"
+          text="Pointers and memory allocation nodes."
+          meta="4 ALGORITHMS"
+          onClick={() => navigate("/dashboard/linked-list")}
+        />
+
+        <SmallCard
+          icon="account_tree"
+          title="Trees"
+          text="In Order, Pre Order, and BST operations."
+          meta="4 ALGORITHMS"
+          onClick={() => navigate("/dashboard/tree")}
+        />
+
+        <div
+          className="av-card av-graphs-card"
+          onClick={() => navigate("/dashboard/graph")}
+          style={{ cursor: "pointer" }}
+        >
           <div>
             <Icon className="av-card-icon av-big-icon">hub</Icon>
             <h3>Graphs</h3>
             <p>Explore Dijkstra, BFS, and DFS through dynamic pathfinding visuals.</p>
+
             <ul>
               <li><span></span>Pathfinding Matrix</li>
               <li><span></span>Traversal Logic</li>
@@ -66,37 +111,46 @@ export default function Dashboard() {
               <li><span></span>Topological Sort</li>
             </ul>
           </div>
+
           <div className="av-graph-meta">4 VARIANTS</div>
-          <button className="av-graph-btn" onClick={(e) => { e.stopPropagation(); navigate('/graph/bfs'); }}>Launch Graph Runner</button>
+
+          
         </div>
 
-        <SmallCard icon="view_agenda" title="Stack & Queue" text="LIFO and FIFO operations." meta="4 VARIATIONS" onClick={() => navigate('/stack-queue/stack')} />
+       <SmallCard
+          icon="view_agenda"
+          title="Stack & Queue"
+          text="LIFO and FIFO operations."
+          meta="4 VARIATIONS"
+          onClick={() => navigate("/dashboard/stack-queue")}
+        />
 
-        <div className="av-card av-dp-card" onClick={() => navigate('/dp/fibonacci')} style={{ cursor: "pointer" }}>
+        <div
+          className="av-card av-dp-card"
+          onClick={() => navigate("/dashboard/dp")}
+          style={{ cursor: "pointer" }}
+        >
           <div>
             <Icon className="av-card-icon">layers</Icon>
             <h3>Dynamic Programming</h3>
             <p>Fibonacci, Knapsack, and LCS optimization.</p>
           </div>
+
           <div className="av-card-bottom">
-            <span>4 CORE CONCEPTS</span>
+            <span className="av-chip">4 CORE CONCEPTS</span>
             <Icon className="av-arrow">chevron_right</Icon>
           </div>
         </div>
 
-        <div className="av-card av-ml-card" onClick={() => navigate('/ml/linear-regression')} style={{ cursor: "pointer" }}>
-          <div className="av-ml-left">
-            <Icon className="av-card-icon av-ml-icon">memory</Icon>
-            <h3>Machine Learning</h3>
-            <p>Regression models, K-Means, and Decision Tree visualization.</p>
-            <div className="av-graph-meta">4 MODELS</div>
-            <div className="av-tags">
-              <span>LinReg</span><span>K-Means</span><span>KNN</span><span>Decision Tree</span>
-            </div>
-          </div>
-          <div className="av-ml-box"><Icon>hub</Icon></div>
-        </div>
+       <SmallCard
+          icon="memory"
+          title="Machine Learning"
+          text="Regression models, K-Means, and Decision Tree visualization."
+          meta="4 MODELS"
+          onClick={() => navigate("/dashboard/ml")}
+        />
       </section>
+
       <div className="av-bg-noise" />
     </AppShell>
   );

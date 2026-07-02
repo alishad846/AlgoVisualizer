@@ -1,0 +1,282 @@
+.hanoi-visual {
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px 32px;
+}
+
+.hanoi-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: end;
+}
+
+.hanoi-peg {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hanoi-label {
+  margin-bottom: 16px;
+  color: #c4c7c8;
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.hanoi-pole-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.hanoi-pole {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 6px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: #2a2a2a;
+  border: 1px solid #444748;
+  border-radius: 4px 4px 0 0;
+}
+
+.hanoi-stack {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.hanoi-disk {
+  height: 28px;
+  max-width: 100%;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.32);
+  transition: all 0.3s ease;
+}
+
+.hanoi-base {
+  width: 100%;
+  max-width: 240px;
+  height: 10px;
+  background: #2a2a2a;
+  border: 1px solid #444748;
+  border-radius: 4px;
+}
+
+.queens-visual {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+}
+
+.queens-board {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.queens-cell {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f3131;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+
+.queens-cell-light {
+  background: #c4c7c8;
+}
+
+.queens-cell-dark {
+  background: #353535;
+  color: #ffffff;
+}
+
+.queens-cell-active {
+  background: #ffffff;
+  color: #2f3131;
+  transform: scale(0.96);
+  box-shadow: inset 0 0 0 2px #8e9192, 0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 768px) {
+  .hanoi-visual {
+    padding: 40px 16px 24px;
+  }
+
+  .hanoi-stage {
+    gap: 8px;
+  }
+
+  .hanoi-pole-wrap,
+  .hanoi-stack {
+    height: 220px;
+    min-height: 220px;
+  }
+
+  .hanoi-disk {
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .queens-visual {
+    padding: 32px 16px;
+  }
+
+  .queens-board {
+    width: min(100%, 320px);
+    gap: 3px;
+  }
+
+  .queens-cell {
+    font-size: 18px;
+  }
+}
+
+
+.hanoi-visual {
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px 32px;
+}
+
+.hanoi-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: end;
+}
+
+.hanoi-peg {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hanoi-label {
+  margin-bottom: 16px;
+  color: #c4c7c8;
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.hanoi-pole-wrap {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.hanoi-pole {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 6px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: #2a2a2a;
+  border: 1px solid #444748;
+  border-radius: 4px 4px 0 0;
+}
+
+.hanoi-stack {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.hanoi-disk {
+  height: 28px;
+  max-width: 100%;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.32);
+  transition: all 0.3s ease;
+}
+
+.hanoi-base {
+  width: 100%;
+  max-width: 240px;
+  height: 10px;
+  background: #2a2a2a;
+  border: 1px solid #444748;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .hanoi-visual {
+    padding: 40px 16px 24px;
+  }
+
+  .hanoi-stage {
+    gap: 8px;
+  }
+
+  .hanoi-pole-wrap,
+  .hanoi-stack {
+    height: 220px;
+    min-height: 220px;
+  }
+
+  .hanoi-disk {
+    height: 24px;
+    font-size: 10px;
+  }
+}
