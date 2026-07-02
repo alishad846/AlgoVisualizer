@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { DP_EXPLANATIONS } from "../../data/algoExplanations";
 import "./DPPage.css";
 
@@ -114,17 +115,21 @@ export default function DPPage() {
   const isCoin = algo === "coin-change";
 
   const [running, setRunning] = useState(false);
+<<<<<<< HEAD
   const [speed, setSpeed] = useState(100);
   const [speedLabel, setSpeedLabel] = useState("2.0x");
+=======
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(200 / speedMultiplier);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
+  const [dpFrames, setDpFrames] = useState(null);
+  const [dpFrameIdx, setDpFrameIdx] = useState(-1);
 
   useEffect(() => {
     stopRef.current = true;
     setRunning(false);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
 
   const [fibN, setFibN] = useState(8);
@@ -190,6 +195,7 @@ export default function DPPage() {
     resetFibStats();
     addFibLog(`Starting Fibonacci DP for n=${fibN}.`);
     const frames = fibSteps(fibN);
+<<<<<<< HEAD
     let localSteps = 0;
     let localUpdates = 0;
     for(const f of frames){
@@ -201,6 +207,13 @@ export default function DPPage() {
         localUpdates += 1;
         setFibUpdates(localUpdates);
       }
+=======
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
+      if(stopRef.current) break;
+      const f = frames[i];
+      setFibDp(f.dp); setFibActive(f.active); setDpFrameIdx(i);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       addFibLog(f.log, f.type === "swap" ? "swap" : f.type);
       await sleep(speed);
@@ -218,9 +231,15 @@ export default function DPPage() {
   const startKnapsack = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = knapsackSteps(weights,values,cap);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
+<<<<<<< HEAD
       setKnapTable(f.dp); setKnapActiveCell([f.activeI,f.activeW]);
+=======
+      const f = frames[i];
+      setKnapTable(f.dp); setKnapActiveCell([f.activeI,f.activeW]); setDpFrameIdx(i);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await sleep(speed);
     }
@@ -230,9 +249,15 @@ export default function DPPage() {
   const startLcs = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = lcsSteps(s1,s2);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
+<<<<<<< HEAD
       setLcsTable(f.dp); setLcsActiveCell([f.activeI,f.activeJ]);
+=======
+      const f = frames[i];
+      setLcsTable(f.dp); setLcsActiveCell([f.activeI,f.activeJ]); setDpFrameIdx(i);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await sleep(speed);
     }
@@ -242,13 +267,43 @@ export default function DPPage() {
   const startCoin = async () => {
     if(running) return; stopRef.current=false; setRunning(true); setStepLog([]);
     const frames = coinChangeSteps(coins, coinAmt);
-    for(const f of frames){
+    setDpFrames(frames); setDpFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
+<<<<<<< HEAD
       setCoinDp(f.dp); setCoinActive(f.active);
+=======
+      const f = frames[i];
+      setCoinDp(f.dp); setCoinActive(f.active); setDpFrameIdx(i);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setStepLog(prev => [...prev, {text:f.log, type:f.type}]);
       await sleep(speed);
     }
     setRunning(false);
+  };
+
+  const handleDpPrev = () => {
+    if (running || !dpFrames || dpFrameIdx <= 0) return;
+    const nextIdx = dpFrameIdx - 1;
+    const f = dpFrames[nextIdx];
+    setDpFrameIdx(nextIdx);
+    if (isFib) { setFibDp(f.dp); setFibActive(f.active); }
+    else if (isKnapsack) { setKnapTable(f.dp); setKnapActiveCell([f.activeI, f.activeW]); }
+    else if (isLcs) { setLcsTable(f.dp); setLcsActiveCell([f.activeI, f.activeJ]); }
+    else if (isCoin) { setCoinDp(f.dp); setCoinActive(f.active); }
+    setStepLog(dpFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
+  };
+
+  const handleDpNext = () => {
+    if (running || !dpFrames || dpFrameIdx >= dpFrames.length - 1) return;
+    const nextIdx = dpFrameIdx + 1;
+    const f = dpFrames[nextIdx];
+    setDpFrameIdx(nextIdx);
+    if (isFib) { setFibDp(f.dp); setFibActive(f.active); }
+    else if (isKnapsack) { setKnapTable(f.dp); setKnapActiveCell([f.activeI, f.activeW]); }
+    else if (isLcs) { setLcsTable(f.dp); setLcsActiveCell([f.activeI, f.activeJ]); }
+    else if (isCoin) { setCoinDp(f.dp); setCoinActive(f.active); }
+    setStepLog(dpFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type })));
   };
 
   const handleStart = () => {
@@ -422,21 +477,57 @@ export default function DPPage() {
             {[5,7,9,11].map(v=><option key={v} value={v}>{v}</option>)}
           </select></>
         )}
+<<<<<<< HEAD
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>Start</button>
         <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>Stop</button>
+=======
+        <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleDpPrev} disabled={running || !dpFrames || dpFrameIdx <= 0} style={{ opacity: (running || !dpFrames || dpFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleDpNext} disabled={running || !dpFrames || dpFrameIdx >= dpFrames.length - 1} style={{ opacity: (running || !dpFrames || dpFrameIdx >= dpFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={50} max={800}
-          value={speed} onChange={e=>setSpeed(+e.target.value)}/>
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:45}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         <div className="viz-center">
           <div className="card" style={{overflow:"auto", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, minHeight: 350}}>
+<<<<<<< HEAD
+=======
+            
+            {/* Fibonacci */}
+            {isFib && (
+              <div style={{display:"flex",gap:6,flexWrap:"wrap", justifyContent:"center"}}>
+                {fibDp.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
+                {fibDp.map((v,i)=>(
+                  <div key={i} style={{
+                    textAlign:"center",minWidth:48,
+                    padding:"8px 4px",borderRadius:8,
+                    background:i===fibActive?"var(--active-bg)":"var(--surface2)",
+                    border:`1px solid ${i===fibActive?"var(--active-bg)":"var(--border)"}`,
+                    transition:"all 0.3s",
+                    color:i===fibActive?"var(--active-text)":"var(--text)"
+                  }}>
+                    <div style={{fontSize:10,color:i===fibActive?"var(--active-text)":"var(--muted)"}}>n={i}</div>
+                    <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Coin Change */}
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
             {isCoin && (
               <div style={{display:"flex",gap:6,flexWrap:"wrap", justifyContent:"center"}}>
                 {coinDp.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
@@ -444,13 +535,18 @@ export default function DPPage() {
                   <div key={i} style={{
                     textAlign:"center",minWidth:48,
                     padding:"8px 4px",borderRadius:8,
-                    background:i===coinActive?"var(--orange)":"var(--surface2)",
-                    border:`1px solid ${i===coinActive?"var(--orange)":"var(--border)"}`,
+                    background:i===coinActive?"var(--active-bg)":"var(--surface2)",
+                    border:`1px solid ${i===coinActive?"var(--active-bg)":"var(--border)"}`,
                     transition:"all 0.3s",
-                    color:i===coinActive?"#000":"var(--text)"
+                    color:i===coinActive?"var(--active-text)":"var(--text)"
                   }}>
+<<<<<<< HEAD
                     <div style={{fontSize:10,color:i===coinActive?"#0008":"var(--muted)"}}>amt={i}</div>
                     <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v===Infinity?"infinity":v}</div>
+=======
+                    <div style={{fontSize:10,color:i===coinActive?"var(--active-text)":"var(--muted)"}}>amt={i}</div>
+                    <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v===Infinity?"∞":v}</div>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
                   </div>
                 ))}
               </div>
@@ -469,8 +565,8 @@ export default function DPPage() {
                             return (
                               <td key={w} style={{
                                 width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--cyan)":val>0?"rgba(16,185,129,0.2)":"var(--surface2)",
-                                color:isActive?"#000":val>0?"var(--green)":"var(--muted)",
+                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
+                                color:isActive?"var(--active-text)":val>0?"var(--green)":"var(--muted)",
                                 fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
                                 transition:"all 0.3s"
                               }}>{val}</td>
@@ -504,8 +600,8 @@ export default function DPPage() {
                             return (
                               <td key={j} style={{
                                 width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--cyan)":val>0?"rgba(139,92,246,0.2)":"var(--surface2)",
-                                color:isActive?"#000":val>0?"var(--purple)":"var(--muted)",
+                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
+                                color:isActive?"var(--active-text)":val>0?"var(--purple)":"var(--muted)",
                                 fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
                                 transition:"all 0.3s"
                               }}>{val}</td>
@@ -525,6 +621,8 @@ export default function DPPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

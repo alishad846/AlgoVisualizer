@@ -103,7 +103,6 @@ function DashboardHomeContent() {
           <h2>Algorithm Explorer</h2>
           <p>Master complex logic through interactive high-fidelity visualizations. Select a category below to begin your visual execution path.</p>
         </div>
-        <div className="av-status"><span></span><strong>SYSTEM: ACTIVE</strong></div>
       </section>
 
       <section className="av-grid">

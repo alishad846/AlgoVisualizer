@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { RECURSION_EXPLANATIONS } from "../../data/algoExplanations";
 import "./RecursionPage.css";
 
@@ -14,7 +15,11 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* -- Tower of Hanoi animation -- */
 const DISK_COLORS = [
+<<<<<<< HEAD
   "#ffffff", "#e2e2e2", "#c4c7c8", "#8e9192", "#6f7273", "#535556", "#353535"
+=======
+  "var(--cyan)","var(--purple)","var(--green)","var(--orange)","var(--yellow)"
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 ];
 
 function hanoiMoves(n, from, to, aux) {
@@ -31,6 +36,7 @@ function HanoiViz({ pegs, numDisks }) {
   const labels = ["A", "B", "C"];
 
   return (
+<<<<<<< HEAD
     <div className="hanoi-stage">
       {pegs.map((stack, pi) => (
         <div className="hanoi-peg" key={pi}>
@@ -55,6 +61,31 @@ function HanoiViz({ pegs, numDisks }) {
                   </div>
                 );
               })}
+=======
+    <div className="hanoi-arena" style={{ display: "flex", justifyContent: "center", gap: 24 }}>
+      {pegs.map((stack, pi) => {
+        const labels = ["A", "B", "C"];
+        const poleH = (numDisks + 1) * 24;
+        return (
+          <div key={pi} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:0 }}>
+            <div style={{ fontSize:11,color:"var(--muted)",marginBottom:4 }}>{labels[pi]}</div>
+            <div style={{ position:"relative",display:"flex",flexDirection:"column",alignItems:"center" }}>
+              <div style={{ width:4,height:poleH,background:"var(--border2)",borderRadius:2,position:"absolute",bottom:0,left:"50%",transform:"translateX(-50%)",zIndex:0 }} />
+              <div style={{ display:"flex",flexDirection:"column-reverse",alignItems:"center",position:"relative",zIndex:1,gap:2,minHeight:poleH,justifyContent:"flex-start",paddingBottom:0 }}>
+                {stack.map(d => {
+                  const w = Math.round((d / numDisks) * maxW) + 20;
+                  return (
+                    <div key={d} style={{
+                      width:w, height:20, borderRadius:4,
+                      background: "var(--surface2)", border: "1px solid var(--border2)",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontSize:11,fontWeight:800,color:"var(--text)",
+                      transition:"all 0.4s ease", boxShadow:"0 2px 8px rgba(0,0,0,0.15)"
+                    }}>{d}</div>
+                  );
+                })}
+              </div>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
             </div>
           </div>
           <div className="hanoi-base" />
@@ -176,7 +207,7 @@ function SubsetsViz({ current, result, nums }) {
       <div style={{ display:"flex", gap:8, minHeight:40 }}>
         {current.length===0 && <span style={{color:"var(--muted)", alignSelf:"center"}}>empty</span>}
         {current.map(v => (
-          <div key={v} style={{ width:40,height:40,background:"var(--cyan)",color:"#000",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold" }}>{v}</div>
+          <div key={v} style={{ width:40,height:40,background:"var(--active-bg)",color:"var(--active-text)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold" }}>{v}</div>
         ))}
       </div>
       <div style={{ width:"100%", height:1, background:"var(--border)" }}/>
@@ -233,8 +264,13 @@ export default function RecursionPage() {
   const [subsetData, setSubsetData] = useState({ current:[], result:[], nums:null });
 
   const [running, setRunning] = useState(false);
+<<<<<<< HEAD
   const [speed, setSpeed] = useState(400);
   const [speedLabel, setSpeedLabel] = useState("1.0x");
+=======
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(400 / speedMultiplier);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
   const [stepLog, setStepLog] = useState([]);
   const [hanoiLogs, setHanoiLogs] = useState([]);
   const [hanoiSteps, setHanoiSteps] = useState(0);
@@ -246,6 +282,8 @@ export default function RecursionPage() {
   const [queenOpen, setQueenOpen] = useState(false);
   const [speedOpen, setSpeedOpen] = useState(false);
   const stopRef = useRef(false);
+  const [recFrames, setRecFrames] = useState(null);
+  const [recFrameIdx, setRecFrameIdx] = useState(-1);
 
   const addHanoiLog = (msg, type = "info") => {
     const time = new Date().toLocaleTimeString([], {
@@ -284,9 +322,6 @@ export default function RecursionPage() {
   useEffect(() => {
     stopRef.current = true;
     setRunning(false);
-    return () => {
-      stopRef.current = true;
-    };
   }, [algo]);
 
   const initHanoi = (n = numDisks) => {
@@ -326,10 +361,11 @@ export default function RecursionPage() {
     addHanoiLog(`Starting Tower of Hanoi with ${numDisks} disks.`);
     const moves = hanoiMoves(numDisks, 0, 2, 1);
     const state = [Array.from({length:numDisks},(_,i)=>numDisks-i),[],[]];
+    const hFrames = [{ pegs: state.map(p=>[...p]), log: "Starting Tower of Hanoi", type: "info" }];
     for(const move of moves){
-      if(stopRef.current) break;
       const disk = state[move.from].pop();
       state[move.to].push(disk);
+<<<<<<< HEAD
       setPegs(state.map(p=>[...p]));
       setHanoiSteps((prev) => prev + 1);
       setHanoiMovesDone((prev) => prev + 1);
@@ -340,6 +376,19 @@ export default function RecursionPage() {
     if(!stopRef.current) {
       setStepLog(prev => [...prev, { text: `Done! ${moves.length} moves total.`, type: "done" }]);
       addHanoiLog(`Algorithm completed in ${moves.length} moves.`);
+=======
+      hFrames.push({ pegs: state.map(p=>[...p]), log: `Move disk ${disk} from ${["A","B","C"][move.from]} → ${["A","B","C"][move.to]}`, type: "info" });
+    }
+    hFrames[hFrames.length - 1].type = "done";
+    setRecFrames(hFrames); setRecFrameIdx(0);
+
+    for(let i=0; i<hFrames.length; i++){
+      if(stopRef.current) break;
+      const f = hFrames[i];
+      setPegs(f.pegs); setRecFrameIdx(i);
+      setStepLog(prev => [...prev, { text: f.log, type: f.type }]);
+      await new Promise(r=>setTimeout(r,speed));
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     }
     setRunning(false);
   };
@@ -364,6 +413,7 @@ export default function RecursionPage() {
     addQueenLog(`Starting N-Queens search on ${queenN} x ${queenN} board.`);
     setBoard(Array.from({length:queenN},()=>new Array(queenN).fill(0)));
     const frames = solveNQueens(queenN);
+<<<<<<< HEAD
     let localSteps = 0;
     let localBacktracks = 0;
     for(const f of frames){
@@ -375,6 +425,13 @@ export default function RecursionPage() {
         localBacktracks += 1;
         setQueenBacktracks(localBacktracks);
       }
+=======
+    setRecFrames(frames); setRecFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
+      if(stopRef.current) break;
+      const f = frames[i];
+      setBoard(f.board); setRecFrameIdx(i);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       addQueenLog(f.log, f.type === "compare" ? "swap" : f.type || "info");
       await sleep(speed);
@@ -397,9 +454,11 @@ export default function RecursionPage() {
     stopRef.current = false; setRunning(true);
     setStepLog([]);
     const { frames, maze } = solveMazeAlgo(mazeN);
-    for(const f of frames){
+    setRecFrames(frames); setRecFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setMazeData({ maze, path: f.path });
+      const f = frames[i];
+      setMazeData({ maze, path: f.path }); setRecFrameIdx(i);
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       await sleep(speed);
       if(f.done) break;
@@ -412,9 +471,11 @@ export default function RecursionPage() {
     stopRef.current = false; setRunning(true);
     setStepLog([]);
     const { frames, nums } = generateSubsetsAlgo(subsetN);
-    for(const f of frames){
+    setRecFrames(frames); setRecFrameIdx(0);
+    for(let i=0; i<frames.length; i++){
       if(stopRef.current) break;
-      setSubsetData({ current: f.current, result: f.result, nums });
+      const f = frames[i];
+      setSubsetData({ current: f.current, result: f.result, nums }); setRecFrameIdx(i);
       setStepLog(prev => [...prev, { text: f.log, type: f.type || "info" }]);
       await sleep(speed);
     }
@@ -426,6 +487,7 @@ export default function RecursionPage() {
   const isMaze = algo === "rat-in-maze";
   const isSubsets = algo === "subsets";
 
+<<<<<<< HEAD
   if (isHanoi) {
     return (
       <AppShell breadcrumb="Tower of Hanoi">
@@ -733,6 +795,31 @@ export default function RecursionPage() {
       </AppShell>
     );
   }
+=======
+  const handleRecPrev = () => {
+    if (running || !recFrames || recFrameIdx <= 0) return;
+    const nextIdx = recFrameIdx - 1;
+    const f = recFrames[nextIdx];
+    setRecFrameIdx(nextIdx);
+    if (isHanoi) setPegs(f.pegs);
+    else if (isQueens) setBoard(f.board);
+    else if (isMaze) setMazeData(prev => ({ ...prev, path: f.path }));
+    else if (isSubsets) setSubsetData(prev => ({ ...prev, current: f.current, result: f.result }));
+    setStepLog(recFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" })));
+  };
+
+  const handleRecNext = () => {
+    if (running || !recFrames || recFrameIdx >= recFrames.length - 1) return;
+    const nextIdx = recFrameIdx + 1;
+    const f = recFrames[nextIdx];
+    setRecFrameIdx(nextIdx);
+    if (isHanoi) setPegs(f.pegs);
+    else if (isQueens) setBoard(f.board);
+    else if (isMaze) setMazeData(prev => ({ ...prev, path: f.path }));
+    else if (isSubsets) setSubsetData(prev => ({ ...prev, current: f.current, result: f.result }));
+    setStepLog(recFrames.slice(0, nextIdx + 1).map(frame => ({ text: frame.log, type: frame.type || "info" })));
+  };
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 
   return (
     <AppShell breadcrumb={`Recursion / ${explanation?.title || algo}`}>
@@ -767,16 +854,26 @@ export default function RecursionPage() {
             <button className="btn btn-primary" onClick={startSubsets} disabled={running}>Start</button>
           </>
         )}
+<<<<<<< HEAD
         <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}}>Stop</button>
+=======
+        <button className="btn btn-danger" onClick={()=>{stopRef.current=true;setRunning(false);}} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleRecPrev} disabled={running || !recFrames || recFrameIdx <= 0} style={{ opacity: (running || !recFrames || recFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleRecNext} disabled={running || !recFrames || recFrameIdx >= recFrames.length - 1} style={{ opacity: (running || !recFrames || recFrameIdx >= recFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
         <label>Speed</label>
-        <input type="range" className="speed-slider" min={50} max={1000}
-          value={speed} onChange={e=>setSpeed(+e.target.value)} />
-        <span style={{fontSize:12,color:"var(--muted)",minWidth:50}}>{speed}ms</span>
+        <select className="size-select" value={speedMultiplier} onChange={e=>setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
       </div>
 
       <div className="viz-layout-3">
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         <div className="viz-center">
@@ -794,6 +891,8 @@ export default function RecursionPage() {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }

@@ -61,6 +61,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("user_password", password);
         sessionStorage.setItem("autofill_username", username);
         sessionStorage.setItem("autofill_password", password);
         navigate("/login", { state: { username, password } });

@@ -12,9 +12,10 @@ import TreePage from "./pages/tree/TreePage";
 import GraphPage from "./pages/graph/GraphPage";
 import DPPage from "./pages/dp/DPPage";
 import MLPage from "./pages/ml/MLPage";
+import DocumentationPage from "./pages/DocumentationPage";
+import SupportPage from "./pages/SupportPage";
 
 function App() {
-  const location = useLocation();
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" />} />
@@ -22,25 +23,30 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+<<<<<<< HEAD
       <Route path="/dashboard/sorting" element={<Dashboard page="sorting" />} />
+=======
+      <Route path="/documentation" element={<DocumentationPage />} />
+      <Route path="/support" element={<SupportPage />} />
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       <Route path="/sorting" element={<Navigate to="/sorting/bubble-sort" />} />
-      <Route path="/sorting/:algo" element={<SortingPage key={location.pathname} />} />
+      <Route path="/sorting/:algo" element={<SortingPage />} />
       <Route path="/searching" element={<Navigate to="/searching/linear-search" />} />
-      <Route path="/searching/:algo" element={<SearchingPage key={location.pathname} />} />
+      <Route path="/searching/:algo" element={<SearchingPage />} />
       <Route path="/recursion" element={<Navigate to="/recursion/tower-of-hanoi" />} />
-      <Route path="/recursion/:algo" element={<RecursionPage key={location.pathname} />} />
+      <Route path="/recursion/:algo" element={<RecursionPage />} />
       <Route path="/stack-queue" element={<Navigate to="/stack-queue/stack" />} />
-      <Route path="/stack-queue/:algo" element={<StackQueuePage key={location.pathname} />} />
+      <Route path="/stack-queue/:algo" element={<StackQueuePage />} />
       <Route path="/linked-list" element={<Navigate to="/linked-list/reverse" />} />
-      <Route path="/linked-list/:algo" element={<LinkedListPage key={location.pathname} />} />
+      <Route path="/linked-list/:algo" element={<LinkedListPage />} />
       <Route path="/tree" element={<Navigate to="/tree/inorder" />} />
-      <Route path="/tree/:algo" element={<TreePage key={location.pathname} />} />
+      <Route path="/tree/:algo" element={<TreePage />} />
       <Route path="/graph" element={<Navigate to="/graph/bfs" />} />
-      <Route path="/graph/:algo" element={<GraphPage key={location.pathname} />} />
+      <Route path="/graph/:algo" element={<GraphPage />} />
       <Route path="/dp" element={<Navigate to="/dp/fibonacci" />} />
-      <Route path="/dp/:algo" element={<DPPage key={location.pathname} />} />
+      <Route path="/dp/:algo" element={<DPPage />} />
       <Route path="/ml" element={<Navigate to="/ml/linear-regression" />} />
-      <Route path="/ml/:algo" element={<MLPage key={location.pathname} />} />
+      <Route path="/ml/:algo" element={<MLPage />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

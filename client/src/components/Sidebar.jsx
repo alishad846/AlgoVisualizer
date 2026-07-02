@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+=======
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 
 export const NAV = [
   {
@@ -99,10 +104,15 @@ function Icon({ children, className = "" }) {
 
 function SidebarItem({ section, location, navigate }) {
   const isActiveCat = section.items.some(i => location.pathname === i.path);
-  const [isOpen, setIsOpen] = useState(isActiveCat || section.key === "sorting");
+  const [isOpen, setIsOpen] = useState(isActiveCat);
+
+  useEffect(() => {
+    setIsOpen(isActiveCat);
+  }, [isActiveCat]);
 
   return (
     <div className="av-nav-item">
+<<<<<<< HEAD
       <button
   className="av-nav-button"
   onClick={() => {
@@ -114,6 +124,9 @@ function SidebarItem({ section, location, navigate }) {
   }}
   style={{ color: isActiveCat ? "#ffffff" : undefined }}
 >
+=======
+      <button className="av-nav-button" onClick={() => setIsOpen(!isOpen)} style={{ color: isActiveCat ? "var(--primary)" : undefined }}>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
         <span className="av-nav-left">
           <span className="av-nav-icon"><Icon>{section.icon}</Icon></span>
           <span style={{ fontWeight: isActiveCat ? 700 : 500 }}>{section.title}</span>
@@ -131,10 +144,10 @@ function SidebarItem({ section, location, navigate }) {
                 display: "block",
                 paddingTop: "6px",
                 paddingBottom: "6px",
-                color: active ? "#ffffff" : "var(--on-surface-variant)",
+                color: active ? "var(--primary)" : "var(--on-surface-variant)",
                 fontWeight: active ? 700 : 400,
                 paddingLeft: active ? "10px" : undefined,
-                borderLeft: active ? "2px solid #ffffff" : undefined,
+                borderLeft: active ? "2px solid var(--primary)" : undefined,
                 textDecoration: "none"
               }}
             >
@@ -160,7 +173,7 @@ export default function Sidebar({ sidebarOpen = true }) {
               className="av-nav-link"
               to="/dashboard"
               style={{
-                color: location.pathname === "/dashboard" ? "#ffffff" : undefined,
+                color: location.pathname === "/dashboard" ? "var(--primary)" : undefined,
                 fontWeight: location.pathname === "/dashboard" ? 700 : 400,
                 textDecoration: "none"
               }}
@@ -180,11 +193,8 @@ export default function Sidebar({ sidebarOpen = true }) {
         </div>
 
         <div className="av-sidebar-footer">
-          <Link to="/sorting/bubble-sort" className="av-runner-btn" style={{ textDecoration: "none" }}>
-            <Icon>play_arrow</Icon><span>Launch Runner</span>
-          </Link>
-          <a className="av-footer-link" href="#"><span className="av-nav-icon"><Icon>menu_book</Icon></span><span>Documentation</span></a>
-          <a className="av-footer-link" href="#"><span className="av-nav-icon"><Icon>help_outline</Icon></span><span>Support</span></a>
+          <Link to="/documentation" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>menu_book</Icon></span><span>Documentation</span></Link>
+          <Link to="/support" className="av-footer-link" style={{ textDecoration: "none" }}><span className="av-nav-icon"><Icon>help_outline</Icon></span><span>Support</span></Link>
         </div>
       </div>
     </aside>

@@ -3,9 +3,11 @@ import { useParams } from "react-router-dom";
 import AppShell from "../../components/AppShell";
 import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
+import MultiLangCode from "../../components/MultiLangCode";
 import { LINKEDLIST_EXPLANATIONS } from "../../data/algoExplanations";
 import "./LinkedListPage.css";
 
+<<<<<<< HEAD
 function Icon({ children, className = "" }) {
   return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
 }
@@ -187,6 +189,15 @@ function LinkedListViz({ nodes, activeIdx, visitedSet, messageType }) {
         ))}
 
         <div className="ll-null">NULL</div>
+=======
+/* Linked List Node display */
+function LLNode({ val, active, visited, last, color = "var(--cyan)" }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <div className={`node-box ${active ? "active" : visited ? "visited" : ""}`}
+        style={active ? { borderColor: color, boxShadow: `0 0 12px ${color}66` } : {}}>
+        {val}
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       </div>
     </div>
   );
@@ -206,18 +217,28 @@ function LegacyNode({ val, active, visited, last, color = "var(--cyan)" }) {
 
 function LegacyLinkedListViz({ nodes, activeIdx, visitedSet, color }) {
   return (
+<<<<<<< HEAD
     <div style={{ display:"flex", alignItems:"center", flexWrap:"wrap", gap:4, padding:16,
       background:"var(--bg)", border:"1px solid var(--border)", borderRadius:12, minHeight:80, flex: 1 }}>
       {nodes.map((v,i) => (
         <LegacyNode key={i} val={v} active={activeIdx===i} visited={visitedSet.has(i)} last={i===nodes.length-1} color={color} />
+=======
+    <div style={{
+      display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, padding: 16,
+      background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, minHeight: 80, flex: 1
+    }}>
+      {nodes.map((v, i) => (
+        <LLNode key={i} val={v} active={activeIdx === i} visited={visitedSet.has(i)} last={i === nodes.length - 1} color={color} />
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       ))}
-      <div className="node-box" style={{borderStyle:"dashed",color:"var(--muted)"}}>null</div>
+      <div className="node-box" style={{ borderStyle: "dashed", color: "var(--muted)" }}>null</div>
     </div>
   );
 }
 
 function LegacyMergeSortedViz({ l1, l2, merged, p1, p2 }) {
   return (
+<<<<<<< HEAD
     <div style={{ display:"flex", flexDirection:"column", gap:16, width:"100%", padding: "0 20px" }}>
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
         <span style={{ width:40, color:"var(--muted)", fontSize:12, fontWeight:700 }}>L1:</span>
@@ -231,6 +252,21 @@ function LegacyMergeSortedViz({ l1, l2, merged, p1, p2 }) {
         <span style={{ width:40, color:"var(--green)", fontSize:12, fontWeight:700 }}>Res:</span>
         {merged.map((v,i) => <LegacyNode key={i} val={v} active={false} visited={true} last={i===merged.length-1} color="var(--green)" />)}
         {merged.length === 0 && <span style={{ color:"var(--muted)", fontSize:12 }}>Empty</span>}
+=======
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", padding: "0 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 30, fontWeight: "bold", color: "var(--cyan)", fontSize: 14 }}>L1:</div>
+        <LinkedListViz nodes={l1} activeIdx={p1} visitedSet={new Set(Array.from({ length: p1 }, (_, i) => i))} color="var(--cyan)" />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 30, fontWeight: "bold", color: "var(--orange)", fontSize: 14 }}>L2:</div>
+        <LinkedListViz nodes={l2} activeIdx={p2} visitedSet={new Set(Array.from({ length: p2 }, (_, i) => i))} color="var(--orange)" />
+      </div>
+      <div style={{ width: "100%", height: 1, background: "var(--border2)" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 60, fontWeight: "bold", color: "var(--green)", fontSize: 14 }}>Merged:</div>
+        <LinkedListViz nodes={merged} activeIdx={merged.length - 1} visitedSet={new Set()} color="var(--green)" />
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       </div>
     </div>
   );
@@ -240,16 +276,39 @@ function LegacyLinkedListPage({ algo }) {
   const explanation = LINKEDLIST_EXPLANATIONS[algo] || LINKEDLIST_EXPLANATIONS["reverse"];
   const isMerge = algo === "merge-sorted";
 
-  const [nodes, setNodes] = useState([10,20,30,40,50,60]);
+  // Random list generators
+  function randList(n = 6) {
+    return Array.from({ length: n }, () => Math.floor(Math.random() * 90) + 10);
+  }
+
+  function randSortedList(n = 5) {
+    const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 90) + 10);
+    return arr.sort((a, b) => a - b);
+  }
+
+  // States
+  const [nodes, setNodes] = useState(randList(6));
   const [activeIdx, setActiveIdx] = useState(-1);
   const [visitedSet, setVisitedSet] = useState(new Set());
+<<<<<<< HEAD
   const [l1] = useState([1, 3, 5, 7, 9]);
   const [l2] = useState([2, 4, 6, 8]);
+=======
+
+  // Merge Sorted State
+  const [l1, setL1] = useState(randSortedList(5));
+  const [l2, setL2] = useState(randSortedList(4));
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
   const [merged, setMerged] = useState([]);
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(0);
   const [running, setRunning] = useState(false);
+<<<<<<< HEAD
   const [speedIndex, setSpeedIndex] = useState(1);
+=======
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speed = Math.round(400 / speedMultiplier);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
   const speedRef = useRef(SPEED_LEVELS[speedIndex].delay);
@@ -257,18 +316,33 @@ function LegacyLinkedListPage({ algo }) {
   useEffect(() => {
     stopRef.current = true;
     setRunning(false);
-    return () => {
-      stopRef.current = true;
-    };
+    if (algo === "merge-sorted") {
+      setL1(randSortedList(5));
+      setL2(randSortedList(4));
+      setMerged([]);
+      setP1(0); setP2(0);
+    } else {
+      setNodes(randList(6));
+      setActiveIdx(-1);
+      setVisitedSet(new Set());
+    }
+    setStepLog([{ text: "New list generated.", type: "info" }]);
   }, [algo]);
+<<<<<<< HEAD
 
   useEffect(() => {
     speedRef.current = SPEED_LEVELS[speedIndex].delay;
   }, [speedIndex]);
+=======
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const [llFrames, setLlFrames] = useState(null);
+  const [llFrameIdx, setLlFrameIdx] = useState(-1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 
   const reset = () => {
     stopRef.current = true;
     setTimeout(() => {
+<<<<<<< HEAD
       setNodes([10,20,30,40,50,60]);
       setActiveIdx(-1);
       setVisitedSet(new Set());
@@ -276,15 +350,39 @@ function LegacyLinkedListPage({ algo }) {
       setMerged([]);
       setP1(0);
       setP2(0);
+=======
+      setNodes(randList(6));
+      setL1(randSortedList(5));
+      setL2(randSortedList(4));
+      setActiveIdx(-1);
+      setVisitedSet(new Set()); setStepLog([{ text: "Reset.", type: "info" }]);
+      setMerged([]); setP1(0); setP2(0);
+      setLlFrames(null); setLlFrameIdx(-1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       setRunning(false);
       stopRef.current = false;
     }, 50);
   };
 
   const animateReverse = async () => {
-    if(running) return;
+    if (running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
+    setLlFrames(null); setLlFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (sObj, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({
+        nodes: sObj.nodes ? [...sObj.nodes] : [...nodes],
+        l1: [...l1], l2: [...l2], merged: [...merged],
+        activeIdx: sObj.activeIdx !== undefined ? sObj.activeIdx : -1,
+        visitedSet: new Set(), p1: 0, p2: 0,
+        log: [...logAcc]
+      });
+    };
+
     const arr = [...nodes];
+<<<<<<< HEAD
     setStepLog(prev => [...prev, {text:"Reversing linked list...", type:"info"}]);
     for(let i=0;i<arr.length;i++){
       if(stopRef.current) break;
@@ -295,12 +393,32 @@ function LegacyLinkedListPage({ algo }) {
     const reversed = [...arr].reverse();
     setNodes(reversed); setActiveIdx(-1);
     if(!stopRef.current) setStepLog(prev => [...prev, {text:"List reversed!", type:"done"}]);
+=======
+    setStepLog([{ text: "Reversing linked list...", type: "info" }]);
+    addFrame({ nodes: arr, activeIdx: -1 }, "Reversing linked list...", "info");
+
+    for (let i = 0; i < arr.length; i++) {
+      if (stopRef.current) break;
+      setActiveIdx(i);
+      setStepLog(prev => [...prev, { text: `Processing node ${arr[i]}`, type: "compare" }]);
+      addFrame({ nodes: arr, activeIdx: i }, `Processing node ${arr[i]}`, "compare");
+      await sleep(speed);
+    }
+    const reversed = [...arr].reverse();
+    setNodes(reversed); setActiveIdx(-1);
+    if (!stopRef.current) {
+      setStepLog(prev => [...prev, { text: "List reversed! ✓", type: "done" }]);
+      addFrame({ nodes: reversed, activeIdx: -1 }, "List reversed! ✓", "done");
+    }
+    setLlFrames(recFrames); setLlFrameIdx(recFrames.length - 1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     setRunning(false);
   };
 
   const animateMiddle = async () => {
-    if(running) return;
+    if (running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
+<<<<<<< HEAD
     let slow=0, fast=0;
     const visited = new Set();
     while(fast < nodes.length-1 && fast+1 < nodes.length){
@@ -311,58 +429,148 @@ function LegacyLinkedListPage({ algo }) {
       await sleep(speedRef.current);
     }
     if(!stopRef.current) setStepLog(prev => [...prev, {text:`Middle node is ${nodes[slow]} at index ${slow}`, type:"done"}]);
+=======
+    setLlFrames(null); setLlFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (actIdx, visSet, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({
+        nodes: [...nodes], l1: [...l1], l2: [...l2], merged: [...merged],
+        activeIdx: actIdx, visitedSet: new Set(visSet), p1: 0, p2: 0,
+        log: [...logAcc]
+      });
+    };
+
+    let slow = 0, fast = 0;
+    const vis = new Set();
+    while (fast < nodes.length - 1 && fast + 1 < nodes.length) {
+      if (stopRef.current) break;
+      vis.add(slow); fast += 2; slow += 1;
+      setActiveIdx(slow); setVisitedSet(new Set(vis));
+      setStepLog(prev => [...prev, { text: `Slow at ${slow} (${nodes[slow]}), Fast at ${fast} (${nodes[fast]})`, type: "compare" }]);
+      addFrame(slow, vis, `Slow at ${slow} (${nodes[slow]}), Fast at ${fast} (${nodes[fast]})`, "compare");
+      await sleep(speed);
+    }
+    if (!stopRef.current) {
+      setStepLog(prev => [...prev, { text: `Middle node is ${nodes[slow]} at index ${slow} ✓`, type: "done" }]);
+      addFrame(slow, vis, `Middle node is ${nodes[slow]} at index ${slow} ✓`, "done");
+    }
+    setLlFrames(recFrames); setLlFrameIdx(recFrames.length - 1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     setRunning(false);
   };
 
   const animateCycle = async () => {
-    if(running) return;
+    if (running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
-    let slow=0, fast=0;
-    for(let step=0;step<nodes.length;step++){
-      if(stopRef.current) break;
-      slow = (slow+1) % nodes.length;
-      fast = (fast+2) % nodes.length;
+    setLlFrames(null); setLlFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (actIdx, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({
+        nodes: [...nodes], l1: [...l1], l2: [...l2], merged: [...merged],
+        activeIdx: actIdx, visitedSet: new Set(), p1: 0, p2: 0,
+        log: [...logAcc]
+      });
+    };
+
+    let slow = 0, fast = 0;
+    for (let step = 0; step < nodes.length; step++) {
+      if (stopRef.current) break;
+      slow = (slow + 1) % nodes.length;
+      fast = (fast + 2) % nodes.length;
       setActiveIdx(slow);
+<<<<<<< HEAD
       setStepLog(prev => [...prev, {text:`Floyd's: slow at index ${slow}, fast at index ${fast}`, type:"compare"}]);
       await sleep(speedRef.current);
     }
     if(!stopRef.current) setStepLog(prev => [...prev, {text:"No cycle detected (linear list)", type:"done"}]);
+=======
+      setStepLog(prev => [...prev, { text: `Floyd's: slow at index ${slow}, fast at index ${fast}`, type: "compare" }]);
+      addFrame(slow, `Floyd's: slow at index ${slow}, fast at index ${fast}`, "compare");
+      await sleep(speed);
+    }
+    if (!stopRef.current) {
+      setStepLog(prev => [...prev, { text: "No cycle detected (linear list) ✓", type: "done" }]);
+      addFrame(-1, "No cycle detected (linear list) ✓", "done");
+    }
+    setLlFrames(recFrames); setLlFrameIdx(recFrames.length - 1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     setRunning(false);
   };
 
   const animateMerge = async () => {
-    if(running) return;
+    if (running) return;
     stopRef.current = false; setRunning(true); setStepLog([]);
     setMerged([]); setP1(0); setP2(0);
-    let i=0, j=0;
+    setLlFrames(null); setLlFrameIdx(-1);
+    const recFrames = [];
+    const logAcc = [];
+    const addFrame = (mArr, idx1, idx2, text, type) => {
+      logAcc.push({ text, type });
+      recFrames.push({
+        nodes: [...nodes], l1: [...l1], l2: [...l2], merged: [...mArr],
+        activeIdx: -1, visitedSet: new Set(), p1: idx1, p2: idx2,
+        log: [...logAcc]
+      });
+    };
+
+    let i = 0, j = 0;
     const m = [];
+<<<<<<< HEAD
     setStepLog(prev => [...prev, {text:"Starting merge...", type:"info"}]);
+=======
+
+    setStepLog([{ text: "Starting merge...", type: "info" }]);
+    addFrame(m, i, j, "Starting merge...", "info");
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
 
     while (i < l1.length && j < l2.length) {
-      if(stopRef.current) break;
+      if (stopRef.current) break;
       setP1(i); setP2(j);
+<<<<<<< HEAD
       setStepLog(prev => [...prev, {text:`Comparing L1[${i}]=${l1[i]} and L2[${j}]=${l2[j]}`, type:"compare"}]);
       await sleep(speedRef.current);
+=======
+      setStepLog(prev => [...prev, { text: `Comparing L1[${i}]=${l1[i]} and L2[${j}]=${l2[j]}`, type: "compare" }]);
+      addFrame(m, i, j, `Comparing L1[${i}]=${l1[i]} and L2[${j}]=${l2[j]}`, "compare");
+      await sleep(speed);
+
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       if (l1[i] <= l2[j]) {
         m.push(l1[i]);
         setMerged([...m]);
-        setStepLog(prev => [...prev, {text:`${l1[i]} <= ${l2[j]}, appending ${l1[i]} from L1`, type:"swap"}]);
+        setStepLog(prev => [...prev, { text: `${l1[i]} <= ${l2[j]}, appending ${l1[i]} from L1`, type: "swap" }]);
+        addFrame(m, i + 1, j, `${l1[i]} <= ${l2[j]}, appending ${l1[i]} from L1`, "swap");
         i++;
       } else {
         m.push(l2[j]);
         setMerged([...m]);
-        setStepLog(prev => [...prev, {text:`${l1[i]} > ${l2[j]}, appending ${l2[j]} from L2`, type:"swap"}]);
+        setStepLog(prev => [...prev, { text: `${l1[i]} > ${l2[j]}, appending ${l2[j]} from L2`, type: "swap" }]);
+        addFrame(m, i, j + 1, `${l1[i]} > ${l2[j]}, appending ${l2[j]} from L2`, "swap");
         j++;
       }
       setP1(i); setP2(j);
+<<<<<<< HEAD
       await sleep(speedRef.current / 2);
+=======
+      await sleep(speed / 2);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     }
 
     while (i < l1.length) {
-      if(stopRef.current) break;
+      if (stopRef.current) break;
       setP1(i); setP2(j);
+<<<<<<< HEAD
       setStepLog(prev => [...prev, {text:`L2 empty, appending ${l1[i]} from L1`, type:"swap"}]);
       await sleep(speedRef.current / 2);
+=======
+      setStepLog(prev => [...prev, { text: `L2 empty, appending ${l1[i]} from L1`, type: "swap" }]);
+      addFrame(m, i + 1, j, `L2 empty, appending ${l1[i]} from L1`, "swap");
+      await sleep(speed / 2);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       m.push(l1[i]);
       setMerged([...m]);
       i++;
@@ -370,25 +578,59 @@ function LegacyLinkedListPage({ algo }) {
     }
 
     while (j < l2.length) {
-      if(stopRef.current) break;
+      if (stopRef.current) break;
       setP1(i); setP2(j);
+<<<<<<< HEAD
       setStepLog(prev => [...prev, {text:`L1 empty, appending ${l2[j]} from L2`, type:"swap"}]);
       await sleep(speedRef.current / 2);
+=======
+      setStepLog(prev => [...prev, { text: `L1 empty, appending ${l2[j]} from L2`, type: "swap" }]);
+      addFrame(m, i, j + 1, `L1 empty, appending ${l2[j]} from L2`, "swap");
+      await sleep(speed / 2);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       m.push(l2[j]);
       setMerged([...m]);
       j++;
       setP2(j);
     }
 
+<<<<<<< HEAD
     if(!stopRef.current) setStepLog(prev => [...prev, {text:"Merge complete!", type:"done"}]);
+=======
+    if (!stopRef.current) {
+      setStepLog(prev => [...prev, { text: "Merge complete! ✓", type: "done" }]);
+      addFrame(m, i, j, "Merge complete! ✓", "done");
+    }
+    setLlFrames(recFrames); setLlFrameIdx(recFrames.length - 1);
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
     setRunning(false);
   };
 
+  const handleLlPrev = () => {
+    if (running || !llFrames || llFrameIdx <= 0) return;
+    const nextIdx = llFrameIdx - 1;
+    const f = llFrames[nextIdx];
+    setLlFrameIdx(nextIdx);
+    setNodes(f.nodes); setL1(f.l1); setL2(f.l2); setMerged(f.merged);
+    setActiveIdx(f.activeIdx); setVisitedSet(f.visitedSet); setP1(f.p1); setP2(f.p2);
+    setStepLog(f.log);
+  };
+
+  const handleLlNext = () => {
+    if (running || !llFrames || llFrameIdx >= llFrames.length - 1) return;
+    const nextIdx = llFrameIdx + 1;
+    const f = llFrames[nextIdx];
+    setLlFrameIdx(nextIdx);
+    setNodes(f.nodes); setL1(f.l1); setL2(f.l2); setMerged(f.merged);
+    setActiveIdx(f.activeIdx); setVisitedSet(f.visitedSet); setP1(f.p1); setP2(f.p2);
+    setStepLog(f.log);
+  };
+
   const handleStart = () => {
-    if(algo==="reverse") animateReverse();
-    else if(algo==="find-middle") animateMiddle();
-    else if(algo==="detect-cycle") animateCycle();
-    else if(algo==="merge-sorted") animateMerge();
+    if (algo === "reverse") animateReverse();
+    else if (algo === "find-middle") animateMiddle();
+    else if (algo === "detect-cycle") animateCycle();
+    else if (algo === "merge-sorted") animateMerge();
     else animateReverse();
   };
 
@@ -397,6 +639,7 @@ function LegacyLinkedListPage({ algo }) {
       <div className="section-title">{explanation?.title || algo}</div>
       <div className="section-sub">Nodes animate as the pointer traverses the list</div>
 
+<<<<<<< HEAD
       <div className="controls-bar" style={{marginBottom:12}}>
         <button className="btn btn-ghost" onClick={reset} disabled={running}>Reset</button>
         <button className="btn btn-primary" onClick={handleStart} disabled={running}>Start</button>
@@ -405,15 +648,31 @@ function LegacyLinkedListPage({ algo }) {
         <input type="range" className="speed-slider" min={0} max={3} step={1}
           value={speedIndex} onChange={e=>setSpeedIndex(Number(e.target.value))} />
         <span style={{fontSize:12,color:"var(--muted)",minWidth:50}}>{SPEED_LEVELS[speedIndex].label}</span>
+=======
+      <div className="controls-bar" style={{ marginBottom: 12 }}>
+        <button className="btn btn-ghost" onClick={reset} disabled={running}>⟳ Reset</button>
+        <button className="btn btn-primary" onClick={handleStart} disabled={running}>▶ Start</button>
+        <button className="btn btn-danger" onClick={() => { stopRef.current = true; setRunning(false); }} disabled={!running}>■ Stop</button>
+        <button className="btn btn-ghost" onClick={handleLlPrev} disabled={running || !llFrames || llFrameIdx <= 0} style={{ opacity: (running || !llFrames || llFrameIdx <= 0) ? 0.4 : 1 }}>◀ Prev Step</button>
+        <button className="btn btn-ghost" onClick={handleLlNext} disabled={running || !llFrames || llFrameIdx >= llFrames.length - 1} style={{ opacity: (running || !llFrames || llFrameIdx >= llFrames.length - 1) ? 0.4 : 1 }}>Next Step ▶</button>
+        <label>Speed</label>
+        <select className="size-select" value={speedMultiplier} onChange={e => setSpeedMultiplier(+e.target.value)} disabled={running}>
+          <option value={0.5}>0.5x</option>
+          <option value={1}>1x</option>
+          <option value={2}>2x</option>
+          <option value={3}>3x</option>
+          <option value={4}>4x</option>
+        </select>
+>>>>>>> 1948f82f0a7c1ab5f237809752dd77b6b88e50f4
       </div>
 
       <div className="viz-layout-3">
         <div className="viz-left">
-          <AlgoExplain explanation={explanation} />
+          <AlgoExplain explanation={explanation} stepLog={stepLog} />
         </div>
 
         <div className="viz-center">
-          <div className="card" style={{minHeight: 300, display:"flex", justifyContent:"center", alignItems:"center"}}>
+          <div className="card" style={{ minHeight: 300, display: "flex", justifyContent: "center", alignItems: "center" }}>
             {isMerge ? (
               <LegacyMergeSortedViz l1={l1} l2={l2} merged={merged} p1={p1} p2={p2} />
             ) : (
@@ -426,6 +685,8 @@ function LegacyLinkedListPage({ algo }) {
           <StepLog steps={stepLog} />
         </div>
       </div>
+
+      <MultiLangCode algoKey={algo} />
     </AppShell>
   );
 }
