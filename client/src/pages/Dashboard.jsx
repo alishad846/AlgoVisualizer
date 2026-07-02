@@ -112,7 +112,10 @@ export default function Dashboard() {
             </ul>
           </div>
 
-          <div className="av-graph-meta">4 VARIANTS</div>
+          <div className="av-card-bottom">
+            <span className="av-chip">4 VARIANTS</span>
+            <Icon className="av-arrow">chevron_right</Icon>
+          </div>
 
           
         </div>
