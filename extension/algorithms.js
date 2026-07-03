@@ -14,6 +14,10 @@ complexity:"O(n²)",
 
 priority:70,
 
+aliases:[
+"Bubble Sort"
+],
+
 strongKeywords:[
 
 "bubble sort",
@@ -66,6 +70,10 @@ complexity:"O(n²)",
 
 priority:72,
 
+aliases:[
+"Selection Sort"
+],
+
 strongKeywords:[
 
 "selection sort",
@@ -111,6 +119,10 @@ difficulty:"Easy",
 complexity:"O(n²)",
 
 priority:74,
+
+aliases:[
+"Insertion Sort"
+],
 
 strongKeywords:[
 
@@ -158,6 +170,11 @@ complexity:"O(n log n)",
 
 priority:78,
 
+aliases:[
+"Merge Sort",
+"Sort an Array"
+],
+
 strongKeywords:[
 
 "merge sort",
@@ -204,6 +221,10 @@ complexity:"O(n log n)",
 
 priority:78,
 
+aliases:[
+"Quick Sort"
+],
+
 strongKeywords:[
 
 "quick sort",
@@ -249,6 +270,10 @@ difficulty:"Medium",
 complexity:"O(n log n)",
 
 priority:80,
+
+aliases:[
+"Heap Sort"
+],
 
 strongKeywords:[
 
@@ -297,6 +322,10 @@ complexity:"O(n+k)",
 
 priority:76,
 
+aliases:[
+"Counting Sort"
+],
+
 strongKeywords:[
 
 "counting sort",
@@ -342,6 +371,10 @@ complexity:"O(d(n+k))",
 
 priority:82,
 
+aliases:[
+"Radix Sort"
+],
+
 strongKeywords:[
 
 "radix sort",
@@ -386,6 +419,10 @@ complexity:"O(n log²n)",
 
 priority:72,
 
+aliases:[
+"Shell Sort"
+],
+
 strongKeywords:[
 
 "shell sort",
@@ -428,6 +465,10 @@ complexity:"O(n+k)",
 
 priority:74,
 
+aliases:[
+"Bucket Sort"
+],
+
 strongKeywords:[
 
 "bucket sort",
@@ -469,6 +510,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:65,
+
+aliases:[
+"Linear Search"
+],
 
 strongKeywords:[
 
@@ -515,6 +560,14 @@ difficulty:"Easy",
 complexity:"O(log n)",
 
 priority:95,
+
+aliases:[
+"Binary Search",
+"Search Insert Position",
+"First Bad Version",
+"Guess Number Higher or Lower",
+"Find Peak Element"
+],
 
 strongKeywords:[
 
@@ -563,6 +616,10 @@ complexity:"O(√n)",
 
 priority:70,
 
+aliases:[
+"Jump Search"
+],
+
 strongKeywords:[
 
 "jump search",
@@ -607,6 +664,10 @@ complexity:"O(log log n)",
 
 priority:74,
 
+aliases:[
+"Interpolation Search"
+],
+
 strongKeywords:[
 
 "interpolation search",
@@ -649,6 +710,10 @@ complexity:"O(log n)",
 
 priority:74,
 
+aliases:[
+"Exponential Search"
+],
+
 strongKeywords:[
 
 "exponential search",
@@ -690,6 +755,10 @@ difficulty:"Medium",
 complexity:"O(2ⁿ)",
 
 priority:75,
+
+aliases:[
+"Tower of Hanoi"
+],
 
 strongKeywords:[
 
@@ -735,6 +804,12 @@ difficulty:"Hard",
 complexity:"O(n!)",
 
 priority:110,
+
+aliases:[
+"N-Queens",
+"N Queens",
+"N-Queens II"
+],
 
 strongKeywords:[
 
@@ -784,6 +859,10 @@ complexity:"O(4^(n²))",
 
 priority:105,
 
+aliases:[
+"Rat in a Maze"
+],
+
 strongKeywords:[
 
 "rat in maze",
@@ -830,6 +909,11 @@ complexity:"O(2ⁿ)",
 
 priority:90,
 
+aliases:[
+"Subsets",
+"Subset Generation"
+],
+
 strongKeywords:[
 
 "subset",
@@ -873,6 +957,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:100,
+
+aliases:[
+"Reverse Linked List"
+],
 
 strongKeywords:[
 
@@ -921,6 +1009,11 @@ complexity:"O(n)",
 
 priority:102,
 
+aliases:[
+"Linked List Cycle",
+"Linked List Cycle II"
+],
+
 strongKeywords:[
 
 "linked list cycle",
@@ -967,6 +1060,10 @@ complexity:"O(n+m)",
 
 priority:98,
 
+aliases:[
+"Merge Two Sorted Lists"
+],
+
 strongKeywords:[
 
 "merge sorted lists",
@@ -1011,6 +1108,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:96,
+
+aliases:[
+"Middle of the Linked List"
+],
 
 strongKeywords:[
 
@@ -1057,6 +1158,10 @@ complexity:"O(1)",
 
 priority:75,
 
+aliases:[
+"Implement Stack"
+],
+
 strongKeywords:[
 
 "stack",
@@ -1100,6 +1205,10 @@ complexity:"O(1)",
 
 priority:75,
 
+aliases:[
+"Implement Queue"
+],
+
 strongKeywords:[
 
 "queue",
@@ -1142,6 +1251,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:108,
+
+aliases:[
+"Valid Parentheses"
+],
 
 strongKeywords:[
 
@@ -1189,6 +1302,11 @@ complexity:"O(n)",
 
 priority:104,
 
+aliases:[
+"Next Greater Element I",
+"Next Greater Element II"
+],
+
 strongKeywords:[
 
 "next greater element",
@@ -1232,6 +1350,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:80,
+
+aliases:[
+"Binary Tree Inorder Traversal"
+],
 
 strongKeywords:[
 
@@ -1282,6 +1404,10 @@ complexity:"O(n)",
 
 priority:80,
 
+aliases:[
+"Binary Tree Preorder Traversal"
+],
+
 strongKeywords:[
 
 "preorder traversal",
@@ -1325,6 +1451,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:80,
+
+aliases:[
+"Binary Tree Postorder Traversal"
+],
 
 strongKeywords:[
 
@@ -1370,6 +1500,10 @@ complexity:"O(n)",
 
 priority:88,
 
+aliases:[
+"Binary Tree Level Order Traversal"
+],
+
 strongKeywords:[
 
 "level order traversal",
@@ -1412,6 +1546,13 @@ difficulty:"Easy",
 complexity:"O(log n)",
 
 priority:120,
+
+aliases:[
+"Insert into a Binary Search Tree",
+"Validate Binary Search Tree",
+"Recover Binary Search Tree",
+"Search in a Binary Search Tree"
+],
 
 strongKeywords:[
 
@@ -1459,6 +1600,10 @@ complexity:"O(V+E)",
 
 priority:95,
 
+aliases:[
+"Breadth First Search"
+],
+
 strongKeywords:[
 
 "breadth first search",
@@ -1504,15 +1649,24 @@ complexity:"O(V+E)",
 
 priority:95,
 
-strongKeywords: [
-  "depth first search",
-  "graph dfs",
-  "dfs",
-  "graph traversal",
-  "number of islands",
-  "island",
-  "flood fill",
-  "grid traversal"
+aliases:[
+"Depth First Search",
+"Number of Islands",
+"Flood Fill",
+"Max Area of Island"
+],
+
+strongKeywords:[
+
+"depth first search",
+"graph dfs",
+"dfs",
+"graph traversal",
+"number of islands",
+"island",
+"flood fill",
+"grid traversal"
+
 ],
 
 weakKeywords:[
@@ -1551,6 +1705,11 @@ difficulty:"Medium",
 complexity:"O(V log V)",
 
 priority:115,
+
+aliases:[
+"Dijkstra",
+"Network Delay Time"
+],
 
 strongKeywords:[
 
@@ -1598,6 +1757,12 @@ complexity:"O(V+E)",
 
 priority:118,
 
+aliases:[
+"Topological Sort",
+"Course Schedule",
+"Course Schedule II"
+],
+
 strongKeywords:[
 
 "topological sort",
@@ -1641,6 +1806,10 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:90,
+
+aliases:[
+"Fibonacci Number"
+],
 
 strongKeywords:[
 
@@ -1687,6 +1856,10 @@ complexity:"O(nW)",
 
 priority:110,
 
+aliases:[
+"0/1 Knapsack"
+],
+
 strongKeywords:[
 
 "0/1 knapsack",
@@ -1731,6 +1904,10 @@ complexity:"O(nm)",
 
 priority:108,
 
+aliases:[
+"Longest Common Subsequence"
+],
+
 strongKeywords:[
 
 "longest common subsequence",
@@ -1773,6 +1950,11 @@ difficulty:"Medium",
 complexity:"O(n×amount)",
 
 priority:112,
+
+aliases:[
+"Coin Change",
+"Coin Change II"
+],
 
 strongKeywords:[
 
@@ -1818,6 +2000,10 @@ complexity:"O(n)",
 
 priority:100,
 
+aliases:[
+"Linear Regression"
+],
+
 strongKeywords:[
 
 "linear regression",
@@ -1862,6 +2048,11 @@ complexity:"O(nkt)",
 
 priority:105,
 
+aliases:[
+"K-Means",
+"K Means Clustering"
+],
+
 strongKeywords:[
 
 "k means",
@@ -1904,6 +2095,12 @@ difficulty:"Easy",
 complexity:"O(n)",
 
 priority:100,
+
+aliases:[
+"K Nearest Neighbors",
+"K Nearest Neighbour",
+"KNN"
+],
 
 strongKeywords:[
 
@@ -1948,6 +2145,10 @@ complexity:"O(n log n)",
 
 priority:104,
 
+aliases:[
+"Decision Tree"
+],
+
 strongKeywords:[
 
 "decision tree",
@@ -1978,4 +2179,4 @@ alternatives:[
 
 ];
 
-window.ALGORITHMS=ALGORITHMS;
+window.ALGORITHMS = ALGORITHMS;

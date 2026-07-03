@@ -7,8 +7,10 @@ function clean(text){
 
 return (text||"")
 .replace(/\u00A0/g," ")
-.replace(/\s+/g," ")
 .replace(/[\u200B-\u200D\uFEFF]/g,"")
+.replace(/\r/g,"")
+.replace(/\t/g," ")
+.replace(/\s+/g," ")
 .trim();
 
 }
@@ -17,9 +19,9 @@ function first(selectors){
 
 for(const selector of selectors){
 
-const el=document.querySelector(selector);
+const elements=document.querySelectorAll(selector);
 
-if(el){
+for(const el of elements){
 
 const text=clean(el.innerText||el.textContent);
 
@@ -39,23 +41,28 @@ return "";
 
 function getTitle(){
 
-let title=first([
+const selectors=[
 
-"h1",
-
+'h1 a',
+'h1',
 '[data-cy="question-title"]',
+'.text-title-large',
+'.mr-2.text-title-large',
+'a[href*="/problems/"]',
+'[class*="title"]',
+'[class*="Title"]'
 
-".text-title-large",
+];
 
-".mr-2.text-title-large",
+let title=first(selectors);
 
-".text-title-large a",
+if(title){
 
-'[class*="title"]'
+title=title.replace(/^\d+\.\s*/,"");
 
-]);
+return clean(title);
 
-if(title) return title;
+}
 
 const match=document.title.match(/^\d+\.\s*(.*?)\s*-\s*LeetCode$/);
 
@@ -71,15 +78,43 @@ return "";
 
 function getDifficulty(){
 
+const selectors=[
+
+'[diff]',
+'[class*="difficulty"]',
+'[class*="text-difficulty"]',
+'span[class*="text-olive"]',
+'span[class*="text-yellow"]',
+'span[class*="text-red"]',
+'div[class*="text-olive"]',
+'div[class*="text-yellow"]',
+'div[class*="text-red"]'
+
+];
+
+for(const selector of selectors){
+
+const elements=document.querySelectorAll(selector);
+
+for(const el of elements){
+
+const text=clean(el.innerText);
+
+if(text==="Easy"||text==="Medium"||text==="Hard"){
+
+return text;
+
+}
+
+}
+
+}
+
 const text=document.body.innerText;
 
-if(/\bEasy\b/i.test(text)) return "Easy";
+const match=text.match(/\b(Easy|Medium|Hard)\b/);
 
-if(/\bMedium\b/i.test(text)) return "Medium";
-
-if(/\bHard\b/i.test(text)) return "Hard";
-
-return "Unknown";
+return match?match[1]:"Unknown";
 
 }
 
@@ -88,34 +123,30 @@ function getDescription(){
 const selectors=[
 
 'div[data-track-load="description_content"]',
-
 'article',
-
 '.elfjS',
-
 '.content__u3I1',
-
 '[class*="description"]',
-
 '.xFUwe',
-
 '.content__1Y2H',
-
-'div[data-key="description-content"]'
+'div[data-key="description-content"]',
+'div[class*="content"]'
 
 ];
 
 for(const selector of selectors){
 
-const el=document.querySelector(selector);
+const elements=document.querySelectorAll(selector);
 
-if(!el) continue;
+for(const el of elements){
 
 const text=clean(el.innerText);
 
 if(text.length>150){
 
 return text;
+
+}
 
 }
 
@@ -137,11 +168,28 @@ const examples=[];
 
 document.querySelectorAll("pre").forEach(pre=>{
 
-const txt=clean(pre.innerText);
+const text=clean(pre.innerText);
 
-if(txt.length>5){
+if(text.length>5){
 
-examples.push(txt);
+examples.push(text);
+
+}
+
+});
+
+document.querySelectorAll("code").forEach(code=>{
+
+const text=clean(code.innerText);
+
+if(
+
+text.length>5&&
+!examples.includes(text)
+
+){
+
+examples.push(text);
 
 }
 
@@ -152,6 +200,8 @@ return [...new Set(examples)];
 }
 
 function getTags(){
+
+const tags=[];
 
 const ignore=[
 
@@ -171,37 +221,40 @@ const ignore=[
 "Avatar",
 "Jobs",
 "Articles",
-"Hint"
+"Hint",
+"Easy",
+"Medium",
+"Hard"
 
 ];
-
-const tags=[];
 
 const strongTags=[
 
 "Array",
 "String",
 "Hash Table",
+"Math",
+"Sorting",
+"Greedy",
 "Binary Search",
+"Two Pointers",
+"Sliding Window",
+"Stack",
+"Queue",
+"Heap",
+"Priority Queue",
+"Linked List",
+"Doubly Linked List",
 "Tree",
 "Binary Tree",
 "Binary Search Tree",
+"Trie",
 "Graph",
 "DFS",
 "BFS",
-"Heap",
-"Priority Queue",
-"Queue",
-"Stack",
-"Trie",
-"Dynamic Programming",
-"Backtracking",
 "Recursion",
-"Greedy",
-"Sliding Window",
-"Linked List",
-"Doubly Linked List",
-"Math",
+"Backtracking",
+"Dynamic Programming",
 "Bit Manipulation",
 "Union Find",
 "Segment Tree",
@@ -218,9 +271,7 @@ const text=clean(el.innerText);
 if(
 
 text.length<3||
-
 text.length>40||
-
 ignore.includes(text)
 
 ){
@@ -229,15 +280,9 @@ return;
 
 }
 
-for(const tag of strongTags){
+if(strongTags.includes(text)){
 
-if(text===tag){
-
-tags.push(tag);
-
-break;
-
-}
+tags.push(text);
 
 }
 
@@ -249,7 +294,7 @@ return [...new Set(tags)];
 
 function buildProblem(){
 
-return{
+const problem={
 
 platform:"LeetCode",
 
@@ -267,23 +312,24 @@ tags:getTags()
 
 };
 
+return problem;
+
 }
 
 chrome.runtime.onMessage.addListener((request,sender,sendResponse)=>{
 
 if(request.action!=="extractProblem") return;
 
-const waitUntilReady=()=>{
+const waitUntilReady=(attempt=0)=>{
 
 const problem=buildProblem();
 
-if(
+const ready=
 
-problem.title&&
-problem.description&&
-problem.description.length>100
+problem.title.length>0&&
+problem.description.length>100;
 
-){
+if(ready){
 
 sendResponse({
 
@@ -297,7 +343,25 @@ return;
 
 }
 
-setTimeout(waitUntilReady,250);
+if(attempt>=20){
+
+sendResponse({
+
+success:false,
+
+data:null
+
+});
+
+return;
+
+}
+
+setTimeout(()=>{
+
+waitUntilReady(attempt+1);
+
+},250);
 
 };
 
@@ -311,7 +375,11 @@ let previousUrl=location.href;
 
 new MutationObserver(()=>{
 
-if(location.href!==previousUrl){
+if(location.href===previousUrl){
+
+return;
+
+}
 
 previousUrl=location.href;
 
@@ -319,15 +387,22 @@ setTimeout(()=>{
 
 const problem=buildProblem();
 
+if(
+
+problem.title&&
+problem.description.length>100
+
+){
+
 console.clear();
 
 console.log("AlgoVision Loaded");
 
 console.log(problem);
 
-},800);
-
 }
+
+},800);
 
 }).observe(document.body,{
 
@@ -353,6 +428,8 @@ problem.description.length>100
 
 clearInterval(timer);
 
+console.clear();
+
 console.log("AlgoVision Loaded");
 
 console.log(problem);
@@ -360,6 +437,12 @@ console.log(problem);
 }
 
 },500);
+
+setTimeout(()=>{
+
+clearInterval(timer);
+
+},10000);
 
 }
 
