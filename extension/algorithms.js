@@ -1504,13 +1504,15 @@ complexity:"O(V+E)",
 
 priority:95,
 
-strongKeywords:[
-
-"depth first search",
-"graph dfs",
-"dfs",
-"graph traversal"
-
+strongKeywords: [
+  "depth first search",
+  "graph dfs",
+  "dfs",
+  "graph traversal",
+  "number of islands",
+  "island",
+  "flood fill",
+  "grid traversal"
 ],
 
 weakKeywords:[
