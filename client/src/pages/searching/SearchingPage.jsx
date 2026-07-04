@@ -6,8 +6,12 @@ import StepLog from "../../components/StepLog";
 import MultiLangCode from "../../components/MultiLangCode";
 import { SEARCHING_EXPLANATIONS } from "../../data/algoExplanations";
 import {
-  linearSearchSteps, binarySearchSteps,
-  jumpSearchSteps, interpolationSearchSteps, exponentialSearchSteps
+  linearSearchSteps,
+  binarySearchSteps,
+  jumpSearchSteps,
+  interpolationSearchSteps,
+  exponentialSearchSteps,
+  twoSumSteps
 } from "../../algorithms/searchingSteps";
 import { useAlgoManager } from "../../utils/algoCache";
 
@@ -17,6 +21,7 @@ const ALGOS = {
   "jump-search": { name: "Jump Search", fn: jumpSearchSteps },
   "interpolation-search": { name: "Interpolation Search", fn: interpolationSearchSteps },
   "exponential-search": { name: "Exponential Search", fn: exponentialSearchSteps },
+  "two-sum": { name: "Two Sum", fn: twoSumSteps },
 };
 
 function randArr(n) {

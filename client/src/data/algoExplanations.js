@@ -205,7 +205,8 @@ heapify(arr, i, n):
 export const SEARCHING_EXPLANATIONS = {
   "linear-search": {
     title: "Linear Search",
-    theory: "Linear Search is the simplest search algorithm. It sequentially checks each element of the list until a match is found or the whole list has been searched. It works on both sorted and unsorted arrays.",
+    theory:
+      "Linear Search is the simplest search algorithm. It sequentially checks each element of the list until a match is found or the whole list has been searched. It works on both sorted and unsorted arrays.",
     howItWorks: [
       "Start from the first element.",
       "Compare the current element with the target value.",
@@ -217,92 +218,188 @@ export const SEARCHING_EXPLANATIONS = {
   for i = 0 to n-1:
     if arr[i] == target:
       return i
-  return -1  // not found`,
-    timeBest: "O(1)", timeAvg: "O(n)", timeWorst: "O(n)", space: "O(1)"
+  return -1`,
+    timeBest: "O(1)",
+    timeAvg: "O(n)",
+    timeWorst: "O(n)",
+    space: "O(1)"
   },
+
   "binary-search": {
     title: "Binary Search",
-    theory: "Binary Search works on sorted arrays by repeatedly dividing the search interval in half. It compares the target with the middle element — if they match, it's found. If the target is smaller, search the left half; if larger, search the right half. This halving makes it extremely efficient.",
+    theory:
+      "Binary Search works on sorted arrays by repeatedly dividing the search interval in half. It compares the target with the middle element. If the target is smaller, it searches the left half. If it is larger, it searches the right half.",
     howItWorks: [
       "The array must be sorted first.",
-      "Set low = 0, high = n-1.",
-      "Find mid = (low + high) / 2.",
-      "If arr[mid] == target → found!",
-      "If arr[mid] < target → search right half (low = mid + 1).",
-      "If arr[mid] > target → search left half (high = mid - 1).",
-      "Repeat until found or low > high."
+      "Set low = 0 and high = n - 1.",
+      "Calculate mid = floor((low + high) / 2).",
+      "If arr[mid] equals the target, return mid.",
+      "If arr[mid] is smaller than the target, search the right half.",
+      "If arr[mid] is greater than the target, search the left half.",
+      "Continue until the target is found or low becomes greater than high."
     ],
     pseudocode: `binarySearch(arr, target):
-  low = 0, high = n-1
+  low = 0
+  high = n - 1
+
   while low <= high:
-    mid = (low + high) / 2
-    if arr[mid] == target: return mid
-    else if arr[mid] < target: low = mid + 1
-    else: high = mid - 1
+    mid = floor((low + high) / 2)
+
+    if arr[mid] == target:
+      return mid
+    else if arr[mid] < target:
+      low = mid + 1
+    else:
+      high = mid - 1
+
   return -1`,
-    timeBest: "O(1)", timeAvg: "O(log n)", timeWorst: "O(log n)", space: "O(1)"
+    timeBest: "O(1)",
+    timeAvg: "O(log n)",
+    timeWorst: "O(log n)",
+    space: "O(1)"
   },
+
   "jump-search": {
     title: "Jump Search",
-    theory: "Jump Search works on sorted arrays. Instead of searching one element at a time (linear) or halving (binary), it jumps ahead by a fixed block size (√n), then does a linear search within the block where the target might be. It's a middle ground between linear and binary search.",
+    theory:
+      "Jump Search works on sorted arrays. It jumps ahead by a fixed block size, usually the square root of the array length, and then performs a linear search within the block where the target may exist.",
     howItWorks: [
-      "Calculate step size as √n.",
-      "Jump ahead by step until arr[step] >= target or end of array.",
-      "Once the block is identified, do a linear search within it.",
-      "If found, return the index; otherwise return not found."
+      "Ensure the array is sorted.",
+      "Calculate the jump size as floor(square root of n).",
+      "Jump through the array block by block.",
+      "Stop when the current value is greater than or equal to the target.",
+      "Perform a linear search inside the identified block.",
+      "Return the target index if found."
     ],
     pseudocode: `jumpSearch(arr, target):
-  step = √n
-  prev = 0
-  while arr[min(step,n)-1] < target:
-    prev = step
-    step += √n
-    if prev >= n: return -1
-  for i = prev to min(step,n):
-    if arr[i] == target: return i
+  step = floor(sqrt(n))
+  previous = 0
+
+  while arr[min(step, n) - 1] < target:
+    previous = step
+    step = step + floor(sqrt(n))
+
+    if previous >= n:
+      return -1
+
+  for i = previous to min(step, n) - 1:
+    if arr[i] == target:
+      return i
+
   return -1`,
-    timeBest: "O(1)", timeAvg: "O(√n)", timeWorst: "O(√n)", space: "O(1)"
+    timeBest: "O(1)",
+    timeAvg: "O(√n)",
+    timeWorst: "O(√n)",
+    space: "O(1)"
   },
+
   "interpolation-search": {
     title: "Interpolation Search",
-    theory: "Interpolation Search is an improvement over Binary Search for uniformly distributed sorted data. Instead of always checking the middle, it estimates where the target might be based on the value — like how you'd search a phone book by name, jumping closer to where you expect the entry to be.",
+    theory:
+      "Interpolation Search is designed for sorted arrays with approximately uniform value distribution. Instead of always checking the middle element, it estimates the likely position of the target using its value.",
     howItWorks: [
-      "Requires a sorted array with uniformly distributed values.",
-      "Estimate position: pos = lo + ((target - arr[lo]) × (hi - lo)) / (arr[hi] - arr[lo]).",
-      "If arr[pos] == target → found!",
-      "If arr[pos] < target → search right portion.",
-      "If arr[pos] > target → search left portion.",
-      "Repeat until found or bounds cross."
+      "Ensure the array is sorted.",
+      "Set low and high boundaries.",
+      "Estimate the target position based on the values at low and high.",
+      "Compare the estimated position value with the target.",
+      "Move the low or high boundary depending on the comparison.",
+      "Continue until the target is found or the search range becomes invalid."
     ],
     pseudocode: `interpolationSearch(arr, target):
-  lo = 0, hi = n-1
-  while lo <= hi and target >= arr[lo] and target <= arr[hi]:
-    pos = lo + ((target-arr[lo])*(hi-lo)) / (arr[hi]-arr[lo])
-    if arr[pos] == target: return pos
-    if arr[pos] < target: lo = pos + 1
-    else: hi = pos - 1
+  low = 0
+  high = n - 1
+
+  while low <= high and
+        target >= arr[low] and
+        target <= arr[high]:
+
+    if arr[high] == arr[low]:
+      if arr[low] == target:
+        return low
+      return -1
+
+    position =
+      low +
+      ((target - arr[low]) * (high - low)) /
+      (arr[high] - arr[low])
+
+    position = floor(position)
+
+    if arr[position] == target:
+      return position
+    else if arr[position] < target:
+      low = position + 1
+    else:
+      high = position - 1
+
   return -1`,
-    timeBest: "O(1)", timeAvg: "O(log log n)", timeWorst: "O(n)", space: "O(1)"
+    timeBest: "O(1)",
+    timeAvg: "O(log log n)",
+    timeWorst: "O(n)",
+    space: "O(1)"
   },
+
   "exponential-search": {
     title: "Exponential Search",
-    theory: "Exponential Search first finds a range where the target might exist by repeatedly doubling the index (1, 2, 4, 8, 16...), then performs Binary Search within that range. It's particularly useful for unbounded or very large sorted arrays.",
+    theory:
+      "Exponential Search first finds a range where the target may exist by repeatedly doubling an index. It then performs Binary Search inside that range.",
     howItWorks: [
-      "Start with index 1, double it each time (1, 2, 4, 8, ...).",
-      "Stop when arr[i] >= target or i exceeds array length.",
-      "The target must be in range [i/2, min(i, n-1)].",
-      "Perform Binary Search within this range."
+      "Check whether the first element is the target.",
+      "Start at index 1.",
+      "Repeatedly double the index while its value is less than or equal to the target.",
+      "Use the previous and current index as the search boundaries.",
+      "Perform Binary Search within the identified range."
     ],
     pseudocode: `exponentialSearch(arr, target):
-  if arr[0] == target: return 0
-  i = 1
-  while i < n and arr[i] <= target:
-    i *= 2
-  return binarySearch(arr, i/2, min(i,n-1), target)`,
-    timeBest: "O(1)", timeAvg: "O(log n)", timeWorst: "O(log n)", space: "O(1)"
-  },
-};
+  if arr[0] == target:
+    return 0
 
+  index = 1
+
+  while index < n and arr[index] <= target:
+    index = index * 2
+
+  low = floor(index / 2)
+  high = min(index, n - 1)
+
+  return binarySearch(arr, low, high, target)`,
+    timeBest: "O(1)",
+    timeAvg: "O(log n)",
+    timeWorst: "O(log n)",
+    space: "O(1)"
+  },
+
+  "two-sum": {
+    title: "Two Sum",
+    theory:
+      "Two Sum finds two numbers in an array whose values add up to a target. An efficient solution uses a hash map to store previously visited numbers and their indices. For each value, the algorithm checks whether its required complement has already been stored.",
+    howItWorks: [
+      "Create an empty hash map.",
+      "Start from the first number in the array.",
+      "Calculate complement = target - current number.",
+      "Check whether the complement exists in the hash map.",
+      "If it exists, return the stored index and the current index.",
+      "Otherwise, store the current number and its index.",
+      "Continue until a valid pair is found."
+    ],
+    pseudocode: `twoSum(arr, target):
+  map = empty hash map
+
+  for i = 0 to n - 1:
+    complement = target - arr[i]
+
+    if complement exists in map:
+      return [map[complement], i]
+
+    map[arr[i]] = i
+
+  return no solution`,
+    timeBest: "O(1)",
+    timeAvg: "O(n)",
+    timeWorst: "O(n)",
+    space: "O(n)"
+  }
+};
 export const RECURSION_EXPLANATIONS = {
   "tower-of-hanoi": {
     title: "Tower of Hanoi",

@@ -117,3 +117,80 @@ export function exponentialSearchSteps(arr, target) {
   }
   return frames;
 }
+export function twoSumSteps(arr, target) {
+  const frames = [];
+  const seen = new Map();
+
+  frames.push(
+    makeFrame(
+      arr,
+      {},
+      -1,
+      `Find two numbers whose sum is ${target}`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < arr.length; i++) {
+    const complement = target - arr[i];
+    const states = { [i]: "comparing" };
+
+    frames.push(
+      makeFrame(
+        arr,
+        states,
+        i,
+        `At index ${i}: value = ${arr[i]}, complement = ${target} - ${arr[i]} = ${complement}`,
+        -1,
+        "compare"
+      )
+    );
+
+    if (seen.has(complement)) {
+      const firstIndex = seen.get(complement);
+
+      frames.push(
+        makeFrame(
+          arr,
+          {
+            [firstIndex]: "found",
+            [i]: "found"
+          },
+          i,
+          `Found pair: arr[${firstIndex}] + arr[${i}] = ${complement} + ${arr[i]} = ${target}. Indices: [${firstIndex}, ${i}]`,
+          i,
+          "done"
+        )
+      );
+
+      return frames;
+    }
+
+    seen.set(arr[i], i);
+
+    frames.push(
+      makeFrame(
+        arr,
+        { [i]: "current" },
+        i,
+        `Store ${arr[i]} at index ${i} in the hash map`,
+        -1,
+        "info"
+      )
+    );
+  }
+
+  frames.push(
+    makeFrame(
+      arr,
+      {},
+      -1,
+      `No two numbers add up to ${target}`,
+      -1,
+      "info"
+    )
+  );
+
+  return frames;
+}
