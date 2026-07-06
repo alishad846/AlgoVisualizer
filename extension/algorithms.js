@@ -264,7 +264,49 @@ const ALGORITHMS = [
       "Radix Sort"
     ]
   },
-
+{
+  name: "Sliding Window",
+  category: "Searching",
+  route: "http://localhost:5173/searching/sliding-window",
+  difficulty: "Medium",
+  complexity: "O(n)",
+  priority: 135,
+  strongKeywords: [
+    "sliding window",
+    "longest substring without repeating characters",
+    "longest substring",
+    "without repeating characters",
+    "maximum length substring",
+    "substring with unique characters",
+    "non repeating substring",
+    "unique substring",
+    "left pointer",
+    "right pointer",
+    "window start",
+    "window end"
+  ],
+  weakKeywords: [
+    "substring",
+    "characters",
+    "window",
+    "unique",
+    "maximum length"
+  ],
+  negativeKeywords: [
+    "longest common subsequence",
+    "longest common substring",
+    "lcs",
+    "binary search",
+    "linked list"
+  ],
+  aliases: [
+    "3 longest substring without repeating characters"
+  ],
+  alternatives: [
+    "Two Sum",
+    "Linear Search"
+  ]
+},
   {
     name: "Two Sum",
     category: "Searching",

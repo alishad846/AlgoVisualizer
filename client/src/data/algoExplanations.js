@@ -398,6 +398,42 @@ export const SEARCHING_EXPLANATIONS = {
     timeAvg: "O(n)",
     timeWorst: "O(n)",
     space: "O(n)"
+  },
+  "sliding-window": {
+    title: "Longest Substring Without Repeating Characters",
+    theory:
+      "The Sliding Window technique is used to find the longest substring without repeating characters. It maintains a window between two pointers. The right pointer expands the window, while the left pointer moves forward whenever a duplicate character is found.",
+    howItWorks: [
+      "Initialize left pointer at index 0.",
+      "Create a hash map to store the latest index of every character.",
+      "Move the right pointer through the string.",
+      "If the current character already exists inside the current window, move the left pointer to one position after its previous index.",
+      "Update the latest index of the current character.",
+      "Calculate the current window length.",
+      "Update the maximum length whenever a longer valid window is found."
+    ],
+    pseudocode: `longestSubstring(s):
+  left = 0
+  maxLength = 0
+  lastSeen = empty hash map
+
+  for right = 0 to length(s) - 1:
+    character = s[right]
+
+    if character exists in lastSeen
+       and lastSeen[character] >= left:
+      left = lastSeen[character] + 1
+
+    lastSeen[character] = right
+
+    currentLength = right - left + 1
+    maxLength = max(maxLength, currentLength)
+
+  return maxLength`,
+    timeBest: "O(n)",
+    timeAvg: "O(n)",
+    timeWorst: "O(n)",
+    space: "O(n)"
   }
 };
 export const RECURSION_EXPLANATIONS = {
