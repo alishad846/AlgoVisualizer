@@ -742,3 +742,87 @@ body::-webkit-scrollbar-thumb:hover {
     line-height: 32px;
   }
 }
+/* Sorting dashboard - light mode polish */
+html.light .av-sorting-page-header h2 {
+  color: var(--primary);
+  font-size: 42px;
+  line-height: 50px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  position: relative;
+  display: inline-block;
+}
+
+html.light .av-sorting-page-header h2::after {
+  content: "";
+  display: block;
+  width: 160px;
+  height: 3px;
+  margin-top: 12px;
+  background: var(--primary);
+  border-radius: 999px;
+  opacity: 0.85;
+}
+
+html.light .av-sorting-page-header p {
+  color: var(--on-surface-variant);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+html.light .av-active-module {
+  background: var(--surface-container);
+  border-color: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  border-radius: 8px;
+}
+
+html.light .av-active-module strong {
+  color: var(--primary);
+}
+
+html.light .av-sorting-page-grid {
+  gap: 24px;
+}
+
+html.light .av-algorithm-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--primary);
+}
+
+html.light .av-algorithm-card:hover {
+  border-color: var(--primary);
+  background: var(--surface2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+}
+
+html.light .av-algo-icon {
+  background: transparent;
+  color: var(--primary);
+}
+
+html.light .av-algo-complexity {
+  background: var(--surface-container);
+  color: var(--on-surface-variant);
+  border-color: var(--surface-container-high);
+}
+
+html.light .av-algorithm-card h3 {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+html.light .av-algorithm-card p {
+  color: var(--on-surface-variant);
+}
+
+html.light .av-open-visualizer {
+  border-top-color: var(--surface-container-high);
+  color: var(--primary);
+}
+
+html.light .av-algorithm-card:hover .av-open-visualizer {
+  color: var(--primary);
+}
