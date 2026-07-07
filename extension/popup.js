@@ -1,6 +1,7 @@
 let detectedRoute = "";
 let extractedProblem = null;
 let currentResult = null;
+let lastAnalyzedProblemKey = "";
 
 const dashboardURL = "http://localhost:5173/dashboard";
 
@@ -12,6 +13,12 @@ function normalize(text) {
     .replace(/[^a-z0-9 ]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function getProblemKey(problem) {
+  return normalize(
+    `${problem?.title || ""} ${problem?.description || ""}`
+  ).slice(0, 500);
 }
 
 function contains(text, keyword) {
@@ -116,6 +123,7 @@ function detectAlgorithm(problem) {
 
     const normalizedName = normalize(algo.name);
 
+    // Exact and partial title matches receive the highest priority.
     if (title === normalizedName) {
       score += 7000;
       matched.push(algo.name);
@@ -127,6 +135,7 @@ function detectAlgorithm(problem) {
       matched.push(algo.name);
     }
 
+    // Strong keywords are checked across all extracted content.
     const strongResult = scoreField(
       fullText,
       strong,
@@ -136,6 +145,17 @@ function detectAlgorithm(problem) {
     score += strongResult.score;
     matched.push(...strongResult.matched);
 
+    // Give extra value when strong keywords appear in the title.
+    const titleStrongResult = scoreField(
+      title,
+      strong,
+      1200
+    );
+
+    score += titleStrongResult.score;
+    matched.push(...titleStrongResult.matched);
+
+    // Weak keywords receive a smaller score.
     const weakResult = scoreField(
       `${title} ${description}`,
       weak,
@@ -145,6 +165,7 @@ function detectAlgorithm(problem) {
     score += weakResult.score;
     matched.push(...weakResult.matched);
 
+    // Aliases are especially useful for numbered LeetCode titles.
     const aliasResult = scoreField(
       title,
       aliases,
@@ -154,6 +175,7 @@ function detectAlgorithm(problem) {
     score += aliasResult.score;
     matched.push(...aliasResult.matched);
 
+    // Penalize algorithms that contain conflicting keywords.
     negative.forEach((keyword) => {
       if (contains(fullText, keyword)) {
         score -= 2500;
@@ -162,6 +184,7 @@ function detectAlgorithm(problem) {
 
     score += algo.priority || 0;
 
+    // Category-level scoring.
     if (
       algo.category === "Tree" &&
       (
@@ -208,7 +231,9 @@ function detectAlgorithm(problem) {
       (
         contains(fullText, "binary search") ||
         contains(fullText, "sorted array") ||
-        contains(fullText, "search")
+        contains(fullText, "search") ||
+        contains(fullText, "substring") ||
+        contains(fullText, "sliding window")
       )
     ) {
       score += 2200;
@@ -247,7 +272,7 @@ function detectAlgorithm(problem) {
       score += 2200;
     }
 
-    // Tie breakers
+    // Tie breakers.
 
     if (
       contains(fullText, "binary search tree") ||
@@ -290,6 +315,31 @@ function detectAlgorithm(problem) {
       }
     }
 
+    if (
+      (
+        contains(fullText, "longest substring") ||
+        contains(
+          fullText,
+          "without repeating characters"
+        ) ||
+        contains(fullText, "sliding window")
+      ) &&
+      normalize(algo.name) === "sliding window"
+    ) {
+      score += 5000;
+    }
+
+    if (
+      (
+        contains(fullText, "two sum") ||
+        contains(fullText, "indices of two numbers") ||
+        contains(fullText, "two numbers add up")
+      ) &&
+      normalize(algo.name) === "two sum"
+    ) {
+      score += 5000;
+    }
+
     if (score > bestScore) {
       bestScore = score;
       best = algo;
@@ -308,7 +358,7 @@ function detectAlgorithm(problem) {
       complexity: "-",
       confidence: "0%",
       reason:
-        "No suitable algorithm detected.",
+        "No suitable supported algorithm was detected.",
       matchedKeywords: [],
       alternatives: "None",
       route: dashboardURL,
@@ -334,7 +384,7 @@ function detectAlgorithm(problem) {
         )
       )}%`,
     reason:
-      "Detected using priority-based classifier.",
+      "Detected using title, keywords and priority-based scoring.",
     matchedKeywords,
     alternatives:
       (best.alternatives || []).join(", ") ||
@@ -407,15 +457,17 @@ function displayResult(result) {
 }
 
 async function analyzeCurrentProblem() {
-  extractedProblem =
-    await getProblemFromPage();
+  extractedProblem = await getProblemFromPage();
 
   if (!extractedProblem) {
     alert(
-      "Unable to extract the problem."
+      "Unable to extract the problem. Refresh the LeetCode page and try again."
     );
     return;
   }
+
+  lastAnalyzedProblemKey =
+    getProblemKey(extractedProblem);
 
   const result =
     detectAlgorithm(extractedProblem);
@@ -436,13 +488,19 @@ async function analyzeManualInput() {
     return;
   }
 
-  const result = detectAlgorithm({
-    title: "Manual Input",
+  const manualProblem = {
+    title: text,
     description: text,
     difficulty: "Unknown",
     tags: [],
     examples: []
-  });
+  };
+
+  lastAnalyzedProblemKey =
+    getProblemKey(manualProblem);
+
+  const result =
+    detectAlgorithm(manualProblem);
 
   displayResult(result);
 }
@@ -541,6 +599,7 @@ document.addEventListener(
       document.visibilityState === "visible"
     ) {
       currentResult = null;
+      lastAnalyzedProblemKey = "";
     }
   }
 );
@@ -557,24 +616,38 @@ setInterval(
       if (
         !tab ||
         !tab.url ||
-        !tab.url.includes("leetcode.com")
+        !tab.url.includes(
+          "leetcode.com/problems/"
+        )
       ) {
-        return;
-      }
-
-      if (currentResult) {
         return;
       }
 
       const problem =
         await getProblemFromPage();
 
-      if (problem) {
-        const result =
-          detectAlgorithm(problem);
-
-        displayResult(result);
+      if (!problem) {
+        return;
       }
+
+      const problemKey =
+        getProblemKey(problem);
+
+      // Ignore repeated analysis of the same page,
+      // but detect again when another problem is opened.
+      if (
+        problemKey &&
+        problemKey === lastAnalyzedProblemKey
+      ) {
+        return;
+      }
+
+      lastAnalyzedProblemKey = problemKey;
+
+      const result =
+        detectAlgorithm(problem);
+
+      displayResult(result);
     } catch (error) {
       console.error(
         "AlgoVision:",
@@ -582,7 +655,7 @@ setInterval(
       );
     }
   },
-  3000
+  2000
 );
 
 console.log(
