@@ -14,6 +14,10 @@ import {
   twoSumSteps,
   reverseIntegerSteps,
   zigzagConversionSteps,
+  containerWithMostWaterSteps,
+  integerToRomanSteps,
+  romanToIntegerSteps,
+  longestCommonPrefixSteps,
   slidingWindowSteps
 } from "../../algorithms/searchingSteps";
 import { useAlgoManager } from "../../utils/algoCache";
@@ -50,6 +54,22 @@ const ALGOS = {
 "zigzag-conversion": {
   name: "Zigzag Conversion",
   fn: zigzagConversionSteps
+},
+"container-with-most-water": {
+  name: "Container With Most Water",
+  fn: containerWithMostWaterSteps
+},
+"integer-to-roman": {
+  name: "Integer to Roman",
+  fn: integerToRomanSteps
+},
+"roman-to-integer": {
+  name: "Roman to Integer",
+  fn: romanToIntegerSteps
+},
+"longest-common-prefix": {
+  name: "Longest Common Prefix",
+  fn: longestCommonPrefixSteps
 },
   "sliding-window": {
     name: "Longest Substring Without Repeating Characters",

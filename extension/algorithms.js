@@ -381,7 +381,191 @@ const ALGORITHMS = [
       "Dashboard"
     ]
   },
-
+{
+    name: "Palindrome Number",
+    category: "Math",
+    route: "http://localhost:5173/searching/reverse-integer",
+    difficulty: "Easy",
+    complexity: "O(log n)",
+    priority: 145,
+    strongKeywords: [
+      "palindrome number",
+      "integer is a palindrome",
+      "return true if x is a palindrome",
+      "reads as",
+      "from left to right",
+      "from right to left",
+      "not a palindrome"
+    ],
+    weakKeywords: [
+      "palindrome",
+      "integer",
+      "reverse",
+      "number"
+    ],
+    negativeKeywords: [
+      "palindrome linked list",
+      "longest palindromic substring",
+      "string palindrome"
+    ],
+    aliases: [
+      "9 palindrome number"
+    ],
+    alternatives: [
+      "Reverse Integer"
+    ]
+  },
+  {
+    name: "Container With Most Water",
+    category: "Two Pointers",
+    route: "http://localhost:5173/searching/container-with-most-water",
+    difficulty: "Medium",
+    complexity: "O(n)",
+    priority: 145,
+    strongKeywords: [
+      "container with most water",
+      "maximum amount of water",
+      "vertical lines",
+      "height of length n",
+      "two lines",
+      "x-axis form a container",
+      "may not slant the container",
+      "max area"
+    ],
+    weakKeywords: [
+      "container",
+      "water",
+      "height",
+      "area",
+      "two pointers"
+    ],
+    negativeKeywords: [
+      "rain water",
+      "trapping rain water",
+      "graph",
+      "linked list"
+    ],
+    aliases: [
+      "11 container with most water"
+    ],
+    alternatives: [
+      "Two Pointers",
+      "Sliding Window"
+    ]
+  },
+  {
+    name: "Integer to Roman",
+    category: "Math",
+    route: "http://localhost:5173/searching/integer-to-roman",
+    difficulty: "Medium",
+    complexity: "O(1)",
+    priority: 145,
+    strongKeywords: [
+      "integer to roman",
+      "roman numerals",
+      "seven different symbols",
+      "symbol value",
+      "decimal place values",
+      "append that symbol",
+      "subtract its value",
+      "convert the remainder",
+      "roman numeral"
+    ],
+    weakKeywords: [
+      "roman",
+      "integer",
+      "symbol",
+      "numeral",
+      "value"
+    ],
+    negativeKeywords: [
+      "roman to integer",
+      "string",
+      "linked list",
+      "tree"
+    ],
+    aliases: [
+      "12 integer to roman"
+    ],
+    alternatives: [
+      "Math",
+      "Greedy"
+    ]
+  },
+  {
+    name: "Roman to Integer",
+    category: "Math",
+    route: "http://localhost:5173/searching/roman-to-integer",
+    difficulty: "Easy",
+    complexity: "O(n)",
+    priority: 145,
+    strongKeywords: [
+      "roman to integer",
+      "roman numeral",
+      "convert to an integer",
+      "roman numerals are represented by seven different symbols",
+      "symbol value",
+      "i can be placed before v",
+      "x can be placed before l",
+      "c can be placed before d",
+      "subtraction"
+    ],
+    weakKeywords: [
+      "roman",
+      "integer",
+      "symbol",
+      "value",
+      "numeral"
+    ],
+    negativeKeywords: [
+      "integer to roman",
+      "linked list",
+      "tree",
+      "graph"
+    ],
+    aliases: [
+      "13 roman to integer"
+    ],
+    alternatives: [
+      "Math",
+      "Hash Map"
+    ]
+  },
+  {
+    name: "Longest Common Prefix",
+    category: "String",
+    route: "http://localhost:5173/searching/longest-common-prefix",
+    difficulty: "Easy",
+    complexity: "O(nm)",
+    priority: 145,
+    strongKeywords: [
+      "longest common prefix",
+      "common prefix",
+      "amongst an array of strings",
+      "array of strings",
+      "write a function to find the longest common prefix",
+      "if there is no common prefix",
+      "return an empty string"
+    ],
+    weakKeywords: [
+      "prefix",
+      "string",
+      "strings",
+      "common"
+    ],
+    negativeKeywords: [
+      "longest common subsequence",
+      "longest substring",
+      "sliding window",
+      "linked list"
+    ],
+    aliases: [
+      "14 longest common prefix"
+    ],
+    alternatives: [
+      "String"
+    ]
+  },
   {
     name: "Zigzag Conversion",
     category: "String",
