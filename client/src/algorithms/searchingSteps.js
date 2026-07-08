@@ -729,3 +729,266 @@ export function slidingWindowSteps(arr) {
 
   return frames;
 }
+export function containerWithMostWaterSteps(arr) {
+  const frames = [];
+  let left = 0;
+  let right = arr.length - 1;
+  let bestArea = 0;
+  let bestLeft = 0;
+  let bestRight = right;
+
+  frames.push(
+    makeFrame(
+      arr,
+      {},
+      -1,
+      "Use two pointers: one at the start and one at the end.",
+      -1,
+      "info"
+    )
+  );
+
+  while (left < right) {
+    const width = right - left;
+    const height = Math.min(arr[left], arr[right]);
+    const area = width * height;
+
+    if (area > bestArea) {
+      bestArea = area;
+      bestLeft = left;
+      bestRight = right;
+    }
+
+    frames.push(
+      makeFrame(
+        arr,
+        {
+          [left]: "comparing",
+          [right]: "comparing",
+          [bestLeft]: "found",
+          [bestRight]: "found"
+        },
+        left,
+        `left=${left}, right=${right}, width=${width}, height=min(${arr[left]}, ${arr[right]})=${height}, area=${area}. Best=${bestArea}`,
+        -1,
+        "compare"
+      )
+    );
+
+    if (arr[left] < arr[right]) {
+      left++;
+    } else {
+      right--;
+    }
+  }
+
+  frames.push(
+    makeFrame(
+      arr,
+      {
+        [bestLeft]: "found",
+        [bestRight]: "found"
+      },
+      bestLeft,
+      `Maximum water area = ${bestArea}`,
+      bestLeft,
+      "done"
+    )
+  );
+
+  return frames;
+}
+
+export function integerToRomanSteps(arr) {
+  const frames = [];
+
+  let num = Number(arr[0] ?? 1994);
+  if (num <= 0) num = 1994;
+
+  const values = [
+    1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1
+  ];
+
+  const symbols = [
+    "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"
+  ];
+
+  const display = values;
+  let result = "";
+
+  frames.push(
+    makeFrame(
+      display,
+      {},
+      -1,
+      `Convert ${num} to Roman numeral using highest values first.`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < values.length; i++) {
+    while (num >= values[i]) {
+      num -= values[i];
+      result += symbols[i];
+
+      frames.push(
+        makeFrame(
+          display,
+          { [i]: "comparing" },
+          i,
+          `Use ${symbols[i]} = ${values[i]}. Remaining number = ${num}. Result = ${result}`,
+          -1,
+          "compare"
+        )
+      );
+    }
+  }
+
+  frames.push(
+    makeFrame(
+      display,
+      {},
+      -1,
+      `Final Roman numeral = ${result}`,
+      0,
+      "done"
+    )
+  );
+
+  return frames;
+}
+
+export function romanToIntegerSteps(arr) {
+  const frames = [];
+
+  const roman = "MCMXCIV";
+  const chars = roman.split("");
+
+  const values = {
+    I: 1,
+    V: 5,
+    X: 10,
+    L: 50,
+    C: 100,
+    D: 500,
+    M: 1000
+  };
+
+  let total = 0;
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Convert Roman numeral ${roman} to integer.`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < chars.length; i++) {
+    const current = values[chars[i]];
+    const next = values[chars[i + 1]] || 0;
+
+    if (current < next) {
+      total -= current;
+
+      frames.push(
+        makeFrame(
+          chars,
+          { [i]: "comparing" },
+          i,
+          `${chars[i]}=${current} is less than next value ${next}, so subtract. Total=${total}`,
+          -1,
+          "compare"
+        )
+      );
+    } else {
+      total += current;
+
+      frames.push(
+        makeFrame(
+          chars,
+          { [i]: "comparing" },
+          i,
+          `${chars[i]}=${current}, add it. Total=${total}`,
+          -1,
+          "compare"
+        )
+      );
+    }
+  }
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Final integer value = ${total}`,
+      0,
+      "done"
+    )
+  );
+
+  return frames;
+}
+
+export function longestCommonPrefixSteps(arr) {
+  const frames = [];
+
+  const words = ["flower", "flow", "flight"];
+  const chars = words[0].split("");
+
+  let prefix = "";
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Find longest common prefix among: ${words.join(", ")}`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < words[0].length; i++) {
+    const char = words[0][i];
+
+    const isCommon = words.every((word) => word[i] === char);
+
+    frames.push(
+      makeFrame(
+        chars,
+        { [i]: isCommon ? "found" : "comparing" },
+        i,
+        isCommon
+          ? `Character '${char}' is common at index ${i}. Prefix = ${prefix + char}`
+          : `Character '${char}' is not common for all strings. Stop.`,
+        -1,
+        isCommon ? "compare" : "done"
+      )
+    );
+
+    if (!isCommon) {
+      break;
+    }
+
+    prefix += char;
+  }
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Longest common prefix = "${prefix}"`,
+      0,
+      "done"
+    )
+  );
+
+  return frames;
+}

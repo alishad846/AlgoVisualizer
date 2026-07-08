@@ -462,6 +462,129 @@ export const SEARCHING_EXPLANATIONS = {
     space: "O(n)"
   }
 },
+"container-with-most-water": {
+  title: "Container With Most Water",
+  theory:
+    "Container With Most Water uses two pointers to find the maximum area formed between two vertical lines. The area depends on the smaller height and the distance between the two pointers.",
+  howItWorks: [
+    "Place one pointer at the start and one pointer at the end.",
+    "Calculate width = right - left.",
+    "Calculate height = minimum of the two pointer heights.",
+    "Area = width × height.",
+    "Move the pointer with the smaller height inward.",
+    "Keep track of the maximum area."
+  ],
+  pseudocode: `containerWithMostWater(height):
+  left = 0
+  right = n - 1
+  maxArea = 0
+
+  while left < right:
+    width = right - left
+    h = min(height[left], height[right])
+    area = width * h
+    maxArea = max(maxArea, area)
+
+    if height[left] < height[right]:
+      left++
+    else:
+      right--
+
+  return maxArea`,
+  complexity: {
+    time: "O(n)",
+    space: "O(1)"
+  }
+},
+
+"integer-to-roman": {
+  title: "Integer to Roman",
+  theory:
+    "Integer to Roman converts a number into Roman numerals by repeatedly choosing the largest possible Roman value and subtracting it from the number.",
+  howItWorks: [
+    "Store Roman values and symbols from largest to smallest.",
+    "Start with the largest value.",
+    "If the number is greater than or equal to that value, append the symbol.",
+    "Subtract the value from the number.",
+    "Continue until the number becomes 0."
+  ],
+  pseudocode: `integerToRoman(num):
+  values = [1000, 900, 500, ...]
+  symbols = [M, CM, D, ...]
+
+  result = ""
+
+  for each value:
+    while num >= value:
+      result += symbol
+      num -= value
+
+  return result`,
+  complexity: {
+    time: "O(1)",
+    space: "O(1)"
+  }
+},
+
+"roman-to-integer": {
+  title: "Roman to Integer",
+  theory:
+    "Roman to Integer converts a Roman numeral into a number. If a smaller value appears before a larger value, it is subtracted. Otherwise, it is added.",
+  howItWorks: [
+    "Map each Roman symbol to its integer value.",
+    "Read characters from left to right.",
+    "Compare the current value with the next value.",
+    "If current value is smaller, subtract it.",
+    "Otherwise, add it to the total."
+  ],
+  pseudocode: `romanToInteger(s):
+  total = 0
+
+  for i from 0 to length - 1:
+    current = value[s[i]]
+    next = value[s[i + 1]]
+
+    if current < next:
+      total -= current
+    else:
+      total += current
+
+  return total`,
+  complexity: {
+    time: "O(n)",
+    space: "O(1)"
+  }
+},
+
+"longest-common-prefix": {
+  title: "Longest Common Prefix",
+  theory:
+    "Longest Common Prefix finds the longest starting substring that is common to all strings in an array.",
+  howItWorks: [
+    "Take the first string as reference.",
+    "Check each character position.",
+    "Compare that character with the same position in every other string.",
+    "If all strings match, add the character to the prefix.",
+    "If any string does not match, stop."
+  ],
+  pseudocode: `longestCommonPrefix(strs):
+  prefix = ""
+
+  for each index i in first string:
+    char = strs[0][i]
+
+    for each word in strs:
+      if word[i] != char:
+        return prefix
+
+    prefix += char
+
+  return prefix`,
+  complexity: {
+    time: "O(nm)",
+    space: "O(1)"
+  }
+},
   "sliding-window": {
     title: "Longest Substring Without Repeating Characters",
     theory:
