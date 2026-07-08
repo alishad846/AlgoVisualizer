@@ -399,6 +399,69 @@ export const SEARCHING_EXPLANATIONS = {
     timeWorst: "O(n)",
     space: "O(n)"
   },
+  "reverse-integer": {
+  title: "Reverse Integer",
+  theory:
+    "Reverse Integer takes the digits of a number and builds a new number in reverse order. At each step, we take the last digit using modulo 10, append it to the reversed number, and remove the last digit from the original number.",
+  howItWorks: [
+    "Take the last digit using digit = x % 10.",
+    "Add it to the reversed number using reversed = reversed * 10 + digit.",
+    "Remove the last digit using x = Math.floor(x / 10).",
+    "Repeat until x becomes 0.",
+    "Apply the original negative sign if needed."
+  ],
+  pseudocode: `reverseInteger(x):
+  sign = 1
+  if x < 0:
+    sign = -1
+    x = abs(x)
+
+  reversed = 0
+
+  while x > 0:
+    digit = x % 10
+    reversed = reversed * 10 + digit
+    x = floor(x / 10)
+
+  return sign * reversed`,
+  complexity: {
+    time: "O(log n)",
+    space: "O(1)"
+  }
+},
+
+"zigzag-conversion": {
+  title: "Zigzag Conversion",
+  theory:
+    "Zigzag Conversion places characters row by row in a down-and-up pattern. After placing all characters, we read each row from top to bottom to form the final string.",
+  howItWorks: [
+    "Create empty rows.",
+    "Start from row 0 and move downward.",
+    "When the bottom row is reached, change direction upward.",
+    "When the top row is reached, change direction downward again.",
+    "After placing all characters, join all rows together."
+  ],
+  pseudocode: `zigzagConversion(s, numRows):
+  rows = empty rows
+  currentRow = 0
+  direction = 1
+
+  for each character in s:
+    add character to rows[currentRow]
+
+    if currentRow == 0:
+      direction = 1
+    else if currentRow == numRows - 1:
+      direction = -1
+
+    currentRow = currentRow + direction
+
+  return join all rows`,
+  complexity: {
+    time: "O(n)",
+    space: "O(n)"
+  }
+},
   "sliding-window": {
     title: "Longest Substring Without Repeating Characters",
     theory:

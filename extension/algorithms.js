@@ -345,7 +345,7 @@ const ALGORITHMS = [
   {
     name: "Reverse Integer",
     category: "Math",
-    route: "http://localhost:5173/dashboard",
+    route: "http://localhost:5173/searching/reverse-integer",
     difficulty: "Medium",
     complexity: "O(log n)",
     priority: 150,
@@ -385,7 +385,7 @@ const ALGORITHMS = [
   {
     name: "Zigzag Conversion",
     category: "String",
-    route: "http://localhost:5173/dashboard",
+    route: "http://localhost:5173/searching/zigzag-conversion",
     difficulty: "Medium",
     complexity: "O(n)",
     priority: 150,

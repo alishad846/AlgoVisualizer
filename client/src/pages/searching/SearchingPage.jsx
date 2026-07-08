@@ -12,6 +12,8 @@ import {
   interpolationSearchSteps,
   exponentialSearchSteps,
   twoSumSteps,
+  reverseIntegerSteps,
+  zigzagConversionSteps,
   slidingWindowSteps
 } from "../../algorithms/searchingSteps";
 import { useAlgoManager } from "../../utils/algoCache";
@@ -38,9 +40,17 @@ const ALGOS = {
     fn: exponentialSearchSteps
   },
   "two-sum": {
-    name: "Two Sum",
-    fn: twoSumSteps
-  },
+  name: "Two Sum",
+  fn: twoSumSteps
+},
+"reverse-integer": {
+  name: "Reverse Integer",
+  fn: reverseIntegerSteps
+},
+"zigzag-conversion": {
+  name: "Zigzag Conversion",
+  fn: zigzagConversionSteps
+},
   "sliding-window": {
     name: "Longest Substring Without Repeating Characters",
     fn: slidingWindowSteps

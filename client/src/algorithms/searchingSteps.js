@@ -510,6 +510,129 @@ export function twoSumSteps(arr, target) {
 
   return frames;
 }
+export function reverseIntegerSteps(arr) {
+  const frames = [];
+
+  const input = Number(arr[0] ?? 123);
+  const isNegative = input < 0;
+  let x = Math.abs(input);
+  let reversed = 0;
+
+  const digits = String(Math.abs(input))
+    .split("")
+    .map(Number);
+
+  frames.push(
+    makeFrame(
+      digits,
+      {},
+      -1,
+      `Start with x = ${input}. Reverse the digits one by one.`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = digits.length - 1; i >= 0; i--) {
+    const digit = x % 10;
+    const nextReversed = reversed * 10 + digit;
+
+    frames.push(
+      makeFrame(
+        digits,
+        { [i]: "comparing" },
+        i,
+        `Take last digit ${digit}. New reversed value = ${reversed} × 10 + ${digit} = ${nextReversed}`,
+        -1,
+        "compare"
+      )
+    );
+
+    reversed = nextReversed;
+    x = Math.floor(x / 10);
+  }
+
+  const finalValue = isNegative ? -reversed : reversed;
+
+  frames.push(
+    makeFrame(
+      digits,
+      {},
+      -1,
+      `Final reversed integer = ${finalValue}`,
+      0,
+      "done"
+    )
+  );
+
+  return frames;
+}
+
+export function zigzagConversionSteps(arr) {
+  const frames = [];
+
+  const text = "PAYPALISHIRING";
+  const numRows = Math.max(3, Math.min(4, Number(arr[0] ?? 3)));
+
+  const chars = text.split("");
+  const rows = Array.from({ length: numRows }, () => []);
+
+  let currentRow = 0;
+  let direction = 1;
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Convert "${text}" into a zigzag pattern using ${numRows} rows.`,
+      -1,
+      "info"
+    )
+  );
+
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+
+    rows[currentRow].push(char);
+
+    frames.push(
+      makeFrame(
+        chars,
+        { [i]: "comparing" },
+        i,
+        `Place '${char}' in row ${currentRow + 1}. Rows now: ${rows
+          .map((row, index) => `Row ${index + 1}: ${row.join("")}`)
+          .join(" | ")}`,
+        -1,
+        "compare"
+      )
+    );
+
+    if (currentRow === 0) {
+      direction = 1;
+    } else if (currentRow === numRows - 1) {
+      direction = -1;
+    }
+
+    currentRow += direction;
+  }
+
+  const result = rows.map(row => row.join("")).join("");
+
+  frames.push(
+    makeFrame(
+      chars,
+      {},
+      -1,
+      `Read row by row. Final output = "${result}"`,
+      0,
+      "done"
+    )
+  );
+
+  return frames;
+}
 
 export function slidingWindowSteps(arr) {
   const frames = [];

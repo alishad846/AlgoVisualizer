@@ -389,7 +389,7 @@ function detectAlgorithm(problem) {
     alternatives:
       (best.alternatives || []).join(", ") ||
       "None",
-    route: best.route || dashboardURL,
+    route: best.route || "",
     visualizerReady: Boolean(best.route)
   };
 }
@@ -506,15 +506,15 @@ async function analyzeManualInput() {
 }
 
 function openVisualizer() {
-  if (!detectedRoute) {
+  if (!currentResult || !currentResult.route) {
     alert(
-      "Analyze a problem first."
+      "Visualizer page is not available for this problem yet."
     );
     return;
   }
 
   chrome.tabs.create({
-    url: detectedRoute
+    url: currentResult.route
   });
 }
 
