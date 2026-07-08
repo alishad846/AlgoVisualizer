@@ -342,6 +342,82 @@ const ALGORITHMS = [
       "Linear Search"
     ]
   },
+  {
+    name: "Reverse Integer",
+    category: "Math",
+    route: "http://localhost:5173/dashboard",
+    difficulty: "Medium",
+    complexity: "O(log n)",
+    priority: 150,
+    strongKeywords: [
+      "reverse integer",
+      "digits reversed",
+      "signed 32 bit integer",
+      "signed 32-bit integer",
+      "32 bit integer",
+      "32-bit integer",
+      "reversing x",
+      "integer range",
+      "return 0",
+      "integer overflow",
+      "outside the signed 32 bit integer range",
+      "outside the signed 32-bit integer range"
+    ],
+    weakKeywords: [
+      "integer",
+      "reverse",
+      "digits",
+      "overflow"
+    ],
+    negativeKeywords: [
+      "reverse linked list",
+      "reverse string",
+      "linked list"
+    ],
+    aliases: [
+      "7 reverse integer"
+    ],
+    alternatives: [
+      "Dashboard"
+    ]
+  },
+
+  {
+    name: "Zigzag Conversion",
+    category: "String",
+    route: "http://localhost:5173/dashboard",
+    difficulty: "Medium",
+    complexity: "O(n)",
+    priority: 150,
+    strongKeywords: [
+      "zigzag conversion",
+      "zigzag pattern",
+      "given number of rows",
+      "number of rows",
+      "numrows",
+      "read line by line",
+      "paypalishiring",
+      "convert string",
+      "string convert"
+    ],
+    weakKeywords: [
+      "zigzag",
+      "string",
+      "rows",
+      "conversion"
+    ],
+    negativeKeywords: [
+      "binary tree",
+      "linked list",
+      "graph"
+    ],
+    aliases: [
+      "6 zigzag conversion"
+    ],
+    alternatives: [
+      "Dashboard"
+    ]
+  },
 
   {
     name: "Linear Search",
