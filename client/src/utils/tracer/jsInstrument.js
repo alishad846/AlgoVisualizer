@@ -154,6 +154,12 @@ function instrumentStatement(stmt, known) {
   }
 }
 
+// Contract for callers: the generated code invokes __trace(line, locals) with an
+// object whose properties are LIVE references to the running program's variables
+// (arrays/objects are not copied here). __trace's implementation is responsible
+// for deep-cloning `locals` before persisting it — otherwise every stored trace
+// record sharing a mutated array/object will silently converge to its final
+// value instead of reflecting its state at the moment it was recorded.
 export function instrumentJsCode(source) {
   const ast = acorn.parse(source, { ecmaVersion: 2020, sourceType: 'script', locations: true });
   const instrumentedBody = instrumentBlock(ast.body, []);
