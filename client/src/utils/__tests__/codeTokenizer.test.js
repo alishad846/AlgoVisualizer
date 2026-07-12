@@ -40,4 +40,10 @@ describe('tokenize', () => {
     expect(tokens).toContain('__NUM__');
     expect(tokens).not.toContain('2');
   });
+
+  it('does not let a comment-like substring inside a string swallow later real code', () => {
+    const tokens = tokenize('let a = "text /* not closed"; let b = 5; /* actual comment */');
+    expect(tokens).toContain('b');
+    expect(tokens).toContain('__NUM__');
+  });
 });

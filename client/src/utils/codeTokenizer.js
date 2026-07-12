@@ -22,8 +22,8 @@ export function tokenize(code) {
   if (!code || typeof code !== 'string') return [];
 
   let stripped = code
-    .replace(BLOCK_COMMENT, ' ')
     .replace(STRING_OR_CHAR, ' __STR__ ')
+    .replace(BLOCK_COMMENT, ' ')
     .replace(LINE_COMMENT, ' ')
     .replace(NUMBER, ' __NUM__ ');
 
