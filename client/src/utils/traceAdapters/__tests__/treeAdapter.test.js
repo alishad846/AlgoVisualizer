@@ -22,4 +22,11 @@ describe('adaptTreeTrace', () => {
     expect(frames[0].data.edges.length).toBeGreaterThanOrEqual(1);
     expect(frames[0].type).toBe('done');
   });
+
+  it('does not crash on a self-referential node (defensive depth guard)', () => {
+    const selfRefNode = { value: 1, left: null, right: null };
+    selfRefNode.left = selfRefNode;
+    const trace = [{ line: 1, locals: { node: selfRefNode }, callDepth: 0, event: 'step' }];
+    expect(() => adaptTreeTrace(trace)).not.toThrow();
+  });
 });

@@ -7,30 +7,30 @@ function isTreeNode(value) {
   );
 }
 
-function treeToNodesEdges(node, path) {
+function treeToNodesEdges(node, path, depth = 0) {
   const nodes = [];
   const edges = [];
-  if (!node || typeof node !== 'object') return { nodes, edges };
+  if (!node || typeof node !== 'object' || depth > 1000) return { nodes, edges };
 
   const value = 'value' in node ? node.value : 'val' in node ? node.val : path;
   nodes.push({ id: path, label: String(value) });
 
   if (node.left) {
     edges.push({ from: path, to: `${path}L` });
-    const sub = treeToNodesEdges(node.left, `${path}L`);
+    const sub = treeToNodesEdges(node.left, `${path}L`, depth + 1);
     nodes.push(...sub.nodes);
     edges.push(...sub.edges);
   }
   if (node.right) {
     edges.push({ from: path, to: `${path}R` });
-    const sub = treeToNodesEdges(node.right, `${path}R`);
+    const sub = treeToNodesEdges(node.right, `${path}R`, depth + 1);
     nodes.push(...sub.nodes);
     edges.push(...sub.edges);
   }
   if (Array.isArray(node.children)) {
     node.children.forEach((child, i) => {
       edges.push({ from: path, to: `${path}C${i}` });
-      const sub = treeToNodesEdges(child, `${path}C${i}`);
+      const sub = treeToNodesEdges(child, `${path}C${i}`, depth + 1);
       nodes.push(...sub.nodes);
       edges.push(...sub.edges);
     });
