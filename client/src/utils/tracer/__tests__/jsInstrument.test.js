@@ -11,7 +11,7 @@ function runInstrumented(source) {
     instrumented
   );
   runner(
-    (line, locals) => trace.push({ line, locals }),
+    (line, locals) => trace.push({ line, locals: JSON.parse(JSON.stringify(locals)) }),
     (name, args) => calls.push({ name, args }),
     () => returns.push(true)
   );
@@ -102,8 +102,8 @@ describe('instrumentJsCode', () => {
       }
     `);
     const arrSnapshots = trace.map((t) => t.locals.arr).filter((v) => v !== undefined);
-    const lastSnapshot = arrSnapshots[arrSnapshots.length - 1];
-    expect(lastSnapshot).toEqual([1, 3, 2]);
+    expect(arrSnapshots[0]).toEqual([3, 1, 2]);
+    expect(arrSnapshots[arrSnapshots.length - 1]).toEqual([1, 3, 2]);
   });
 
   it('traces the final value of an accumulator reassigned as the last statement of a loop body', () => {
