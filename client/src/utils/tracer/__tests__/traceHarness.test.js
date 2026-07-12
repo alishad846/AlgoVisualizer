@@ -31,6 +31,7 @@ describe('createTraceHarness', () => {
     harness.__trace(3, {});
     expect(() => harness.__trace(4, {})).toThrow('__TRACE_BUDGET_EXCEEDED__');
     expect(harness.isTruncated()).toBe(true);
+    expect(harness.getTrace()).toHaveLength(3);
   });
 
   it('safely clones locals so later mutation of the source object does not affect the trace', () => {
