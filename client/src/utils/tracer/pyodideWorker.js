@@ -50,8 +50,9 @@ sys.settrace(__tracer)
 
 self.onmessage = async function handleMessage(event) {
   const { code } = event.data;
+  let pyodide;
   try {
-    const pyodide = await getPyodide();
+    pyodide = await getPyodide();
     await pyodide.runPythonAsync(TRACE_HARNESS_PY);
     try {
       await pyodide.runPythonAsync(code);
@@ -63,7 +64,10 @@ self.onmessage = async function handleMessage(event) {
   } catch (err) {
     const message = err && err.message ? err.message : String(err);
     if (message.includes('__TRACE_STEP_LIMIT__')) {
-      self.postMessage({ ok: true, trace: [], truncated: true });
+      const partialTrace = pyodide
+        ? pyodide.globals.get('__trace_records').toJs({ dict_converter: Object.fromEntries })
+        : [];
+      self.postMessage({ ok: true, trace: partialTrace, truncated: true });
     } else {
       self.postMessage({ ok: false, error: message });
     }
