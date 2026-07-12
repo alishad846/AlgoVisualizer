@@ -1,7 +1,7 @@
 export function predictCategory(tokens, model) {
   const { classes, priors, logProb, idf } = model;
 
-  const termFreq = {};
+  const termFreq = Object.create(null);
   tokens.forEach((t) => {
     termFreq[t] = (termFreq[t] || 0) + 1;
   });

@@ -56,4 +56,31 @@ describe('trainNaiveBayes + predictCategory', () => {
     const sum = Object.values(scores).reduce((a, b) => a + b, 0);
     expect(sum).toBeCloseTo(1, 5);
   });
+
+  it('does not corrupt training when a document contains the token "constructor" (Object.prototype collision)', () => {
+    const docsWithConstructor = [
+      ['class', 'constructor', 'stack', 'push', 'pop'],
+      ['class', 'constructor', 'queue', 'enqueue', 'dequeue'],
+      ['class', 'constructor', 'stack', 'array'],
+    ];
+    const otherDocs = [
+      ['visited', 'queue', 'neighbor', 'graph', 'bfs'],
+      ['visited', 'stack', 'dfs', 'neighbor', 'graph'],
+      ['visited', 'adjacency', 'graph', 'queue', 'bfs'],
+    ];
+    const docs = [...docsWithConstructor, ...otherDocs];
+    const labels = ['stack-queue', 'stack-queue', 'stack-queue', 'graph', 'graph', 'graph'];
+    const model = trainNaiveBayes(docs, labels);
+
+    // every logProb entry must be a finite number, never NaN/undefined-turned-null
+    Object.values(model.logProb).forEach((classLogProbs) => {
+      Object.values(classLogProbs).forEach((value) => {
+        expect(Number.isFinite(value)).toBe(true);
+      });
+    });
+
+    const prediction = predictCategory(['class', 'constructor', 'stack', 'push'], model);
+    expect(prediction.category).toBe('stack-queue');
+    expect(Number.isFinite(prediction.confidence)).toBe(true);
+  });
 });

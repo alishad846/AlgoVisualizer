@@ -2,7 +2,7 @@ export function trainNaiveBayes(docsTokens, labels, { alpha = 1, maxVocabSize = 
   const classes = [...new Set(labels)];
   const N = docsTokens.length;
 
-  const df = {};
+  const df = Object.create(null);
   docsTokens.forEach((tokens) => {
     new Set(tokens).forEach((t) => {
       df[t] = (df[t] || 0) + 1;
@@ -14,7 +14,7 @@ export function trainNaiveBayes(docsTokens, labels, { alpha = 1, maxVocabSize = 
     .slice(0, maxVocabSize);
   const vocabSet = new Set(vocab);
 
-  const idf = {};
+  const idf = Object.create(null);
   vocab.forEach((t) => {
     idf[t] = Math.log(N / (1 + df[t])) + 1;
   });
@@ -27,13 +27,13 @@ export function trainNaiveBayes(docsTokens, labels, { alpha = 1, maxVocabSize = 
   const termWeight = {};
   const totalWeight = {};
   classes.forEach((cls) => {
-    termWeight[cls] = {};
+    termWeight[cls] = Object.create(null);
     totalWeight[cls] = 0;
   });
 
   docsTokens.forEach((tokens, i) => {
     const cls = labels[i];
-    const counts = {};
+    const counts = Object.create(null);
     tokens.forEach((t) => {
       if (!vocabSet.has(t)) return;
       counts[t] = (counts[t] || 0) + 1;
@@ -47,7 +47,7 @@ export function trainNaiveBayes(docsTokens, labels, { alpha = 1, maxVocabSize = 
 
   const logProb = {};
   classes.forEach((cls) => {
-    logProb[cls] = {};
+    logProb[cls] = Object.create(null);
     vocab.forEach((token) => {
       const w = termWeight[cls][token] || 0;
       logProb[cls][token] = Math.log((w + alpha) / (totalWeight[cls] + alpha * vocab.length));
