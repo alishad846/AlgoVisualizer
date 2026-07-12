@@ -92,13 +92,15 @@ function instrumentBlock(bodyArray, known) {
     result.push(instrumentStatement(stmt, scopeKnown));
     if (stmt.type === 'VariableDeclaration') {
       stmt.declarations.forEach((d) => declaredNamesFromPattern(d.id, scopeKnown));
-      // Emit a follow-up trace immediately after the declaration executes so
-      // the newly-declared name's value is observable (the pre-statement
-      // trace above only has access to previously-known names, otherwise
-      // the last declaration in a block would never appear in any trace).
-      result.push(traceCall(line, scopeKnown));
     }
   });
+  if (bodyArray.length > 0) {
+    const lastStmt = bodyArray[bodyArray.length - 1];
+    if (lastStmt.type !== 'ReturnStatement') {
+      const lastLine = lastStmt.loc ? lastStmt.loc.start.line : 0;
+      result.push(traceCall(lastLine, scopeKnown));
+    }
+  }
   return result;
 }
 

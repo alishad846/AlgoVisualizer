@@ -91,4 +91,29 @@ describe('instrumentJsCode', () => {
     )).not.toThrow();
     expect(trace.length).toBeGreaterThan(0);
   });
+
+  it('traces a swap that is the only statement inside an if-branch (the sorting-algorithm shape)', () => {
+    const { trace } = runInstrumented(`
+      let arr = [3, 1, 2];
+      if (arr[0] > arr[1]) {
+        const tmp = arr[0];
+        arr[0] = arr[1];
+        arr[1] = tmp;
+      }
+    `);
+    const arrSnapshots = trace.map((t) => t.locals.arr).filter((v) => v !== undefined);
+    const lastSnapshot = arrSnapshots[arrSnapshots.length - 1];
+    expect(lastSnapshot).toEqual([1, 3, 2]);
+  });
+
+  it('traces the final value of an accumulator reassigned as the last statement of a loop body', () => {
+    const { trace } = runInstrumented(`
+      let sum = 0;
+      for (let i = 0; i < 5; i++) {
+        sum = sum + i;
+      }
+    `);
+    const sumSnapshots = trace.map((t) => t.locals.sum).filter((v) => v !== undefined);
+    expect(sumSnapshots[sumSnapshots.length - 1]).toBe(10);
+  });
 });
