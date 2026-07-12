@@ -29,4 +29,26 @@ describe('adaptTreeTrace', () => {
     const trace = [{ line: 1, locals: { node: selfRefNode }, callDepth: 0, event: 'step' }];
     expect(() => adaptTreeTrace(trace)).not.toThrow();
   });
+
+  it('attaches the real depth to each node, not inferred from id string length', () => {
+    const trace = [
+      {
+        line: 1,
+        locals: {
+          node: {
+            value: 1,
+            left: { value: 2, left: null, right: null },
+            right: null,
+          },
+        },
+        callDepth: 0,
+        event: 'step',
+      },
+    ];
+    const frames = adaptTreeTrace(trace);
+    const root = frames[0].data.nodes.find((n) => n.id === 'root');
+    const child = frames[0].data.nodes.find((n) => n.id === 'rootL');
+    expect(root.depth).toBe(0);
+    expect(child.depth).toBe(1);
+  });
 });

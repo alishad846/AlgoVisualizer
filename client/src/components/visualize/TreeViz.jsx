@@ -1,7 +1,7 @@
 function computePositions(nodes) {
   const byDepth = {};
   nodes.forEach((n) => {
-    const depth = n.id === 'root' ? 0 : n.id.replace('root', '').length;
+    const depth = n.depth ?? 0;
     byDepth[depth] = byDepth[depth] || [];
     byDepth[depth].push(n);
   });

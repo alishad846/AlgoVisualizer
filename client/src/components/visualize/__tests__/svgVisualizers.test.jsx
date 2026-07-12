@@ -19,6 +19,27 @@ describe('TreeViz', () => {
   it('renders without crashing when there is no data', () => {
     render(<TreeViz frame={{ data: { nodes: [], edges: [] } }} />);
   });
+
+  it('places two 10+ children-array siblings at the same computed row despite differing id string length', () => {
+    const frame = {
+      data: {
+        nodes: [
+          { id: 'root', label: 'root', depth: 0 },
+          { id: 'rootC9', label: 'c9', depth: 1 },
+          { id: 'rootC10', label: 'c10', depth: 1 },
+        ],
+        edges: [
+          { from: 'root', to: 'rootC9' },
+          { from: 'root', to: 'rootC10' },
+        ],
+      },
+    };
+    const { container } = render(<TreeViz frame={frame} />);
+    const circles = Array.from(container.querySelectorAll('circle'));
+    const c9 = circles.find((c) => c.nextSibling && c.nextSibling.textContent === 'c9');
+    const c10 = circles.find((c) => c.nextSibling && c.nextSibling.textContent === 'c10');
+    expect(c9.getAttribute('cy')).toBe(c10.getAttribute('cy'));
+  });
 });
 
 describe('GraphTraceViz', () => {

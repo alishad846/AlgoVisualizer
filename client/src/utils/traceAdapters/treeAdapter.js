@@ -13,7 +13,7 @@ function treeToNodesEdges(node, path, depth = 0) {
   if (!node || typeof node !== 'object' || depth > 1000) return { nodes, edges };
 
   const value = 'value' in node ? node.value : 'val' in node ? node.val : path;
-  nodes.push({ id: path, label: String(value) });
+  nodes.push({ id: path, label: String(value), depth });
 
   if (node.left) {
     edges.push({ from: path, to: `${path}L` });
