@@ -6,14 +6,16 @@ import TreeViz from './TreeViz.jsx';
 import GraphTraceViz from './GraphTraceViz.jsx';
 import DPGridViz from './DPGridViz.jsx';
 import VariableInspectorViz from './VariableInspectorViz.jsx';
+import SearchingViz from './SearchingViz.jsx';
 
 export default function VisualizerRouter({ visualizer, frame }) {
   if (!frame) return null;
 
   switch (visualizer) {
     case 'sorting':
-    case 'searching':
       return <CubeVisualizer array={frame.data} states={frame.states} />;
+    case 'searching':
+      return <SearchingViz frame={frame} />;
     case 'recursion':
       return <CallStackViz frame={frame} />;
     case 'linked-list':

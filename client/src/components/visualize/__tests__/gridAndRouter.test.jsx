@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import DPGridViz from '../DPGridViz.jsx';
 import VariableInspectorViz from '../VariableInspectorViz.jsx';
 import VisualizerRouter from '../VisualizerRouter.jsx';
+import SearchingViz from '../SearchingViz.jsx';
 
 describe('DPGridViz', () => {
   it('renders a table cell for each grid value', () => {
@@ -34,6 +35,24 @@ describe('VariableInspectorViz', () => {
   });
 });
 
+describe('SearchingViz', () => {
+  it('renders the cubes and the target value when both are present', () => {
+    render(<SearchingViz frame={{ data: { array: [1, 3, 5, 7], target: 5, pointer: 2, foundIdx: -1 } }} states={{}} />);
+    expect(screen.getAllByText('5')).toHaveLength(2);
+    expect(screen.getByText(/target/i)).toBeInTheDocument();
+  });
+
+  it('shows a found badge when foundIdx is set', () => {
+    render(<SearchingViz frame={{ data: { array: [1, 3, 5, 7], target: 5, pointer: 2, foundIdx: 2 } }} />);
+    expect(screen.getByText(/found at index 2/i)).toBeInTheDocument();
+  });
+
+  it('omits the target line when target is undefined', () => {
+    render(<SearchingViz frame={{ data: { array: [1, 2, 3], pointer: -1, foundIdx: -1 } }} />);
+    expect(screen.queryByText(/target/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('VisualizerRouter', () => {
   it('returns null when there is no current frame', () => {
     const { container } = render(<VisualizerRouter visualizer="sorting" frame={null} />);
@@ -48,5 +67,10 @@ describe('VisualizerRouter', () => {
   it('routes an unknown visualizer to the variable inspector', () => {
     render(<VisualizerRouter visualizer="variable-inspector" frame={{ data: {} }} />);
     expect(screen.getByText(/no variables captured/i)).toBeInTheDocument();
+  });
+
+  it('routes searching to SearchingViz output', () => {
+    render(<VisualizerRouter visualizer="searching" frame={{ data: { array: [1, 2], target: 2, pointer: 1, foundIdx: 1 } }} />);
+    expect(screen.getByText(/found at index 1/i)).toBeInTheDocument();
   });
 });
