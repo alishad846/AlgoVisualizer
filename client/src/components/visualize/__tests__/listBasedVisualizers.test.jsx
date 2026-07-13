@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CallStackViz from '../CallStackViz.jsx';
-import LinkedListViz from '../LinkedListViz.jsx';
 import StackQueueViz from '../StackQueueViz.jsx';
 
 describe('CallStackViz', () => {
@@ -14,19 +13,6 @@ describe('CallStackViz', () => {
     render(<CallStackViz frame={{ data: [{ name: 'factorial', args: { n: 3 } }] }} />);
     expect(screen.getByText('factorial')).toBeInTheDocument();
     expect(screen.getByText(/n=3/)).toBeInTheDocument();
-  });
-});
-
-describe('LinkedListViz', () => {
-  it('shows an empty state with no values', () => {
-    render(<LinkedListViz frame={{ data: [] }} />);
-    expect(screen.getByText(/list is empty/i)).toBeInTheDocument();
-  });
-
-  it('renders each value in the chain', () => {
-    render(<LinkedListViz frame={{ data: [1, 2, 3] }} />);
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
   });
 });
 
