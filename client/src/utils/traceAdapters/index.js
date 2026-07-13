@@ -1,6 +1,6 @@
 export { capTrace } from './capTrace.js';
 
-import { adaptArrayTrace } from './sortingSearchingAdapter.js';
+import { adaptArrayTrace, adaptSearchingTrace } from './sortingSearchingAdapter.js';
 import { adaptRecursionTrace } from './recursionAdapter.js';
 import { adaptLinkedListTrace } from './linkedListAdapter.js';
 import { adaptStackQueueTrace } from './stackQueueAdapter.js';
@@ -11,7 +11,7 @@ import { adaptVariableInspectorTrace } from './variableInspectorAdapter.js';
 
 const ADAPTERS_BY_CATEGORY = {
   sorting: adaptArrayTrace,
-  searching: adaptArrayTrace,
+  searching: adaptSearchingTrace,
   recursion: adaptRecursionTrace,
   'linked-list': adaptLinkedListTrace,
   'stack-queue': adaptStackQueueTrace,
