@@ -35,7 +35,7 @@ export function adaptLinkedListTrace(trace) {
     if (node === undefined) return;
     const values = isListNode(node) ? chainToValues(node) : [];
     frames.push({
-      data: values,
+      data: { values, activeIndex: values.length > 0 ? 0 : -1 },
       states: {},
       log: `Line ${record.line}: ${headVarName} -> [${values.join(' -> ')}]`,
       type: 'info',

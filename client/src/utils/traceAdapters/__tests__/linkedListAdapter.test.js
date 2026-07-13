@@ -18,7 +18,21 @@ describe('adaptLinkedListTrace', () => {
     ];
     const frames = adaptLinkedListTrace(trace);
     expect(frames).toHaveLength(1);
-    expect(frames[0].data).toEqual([1, 2, 3]);
+    expect(frames[0].data.values).toEqual([1, 2, 3]);
     expect(frames[0].type).toBe('done');
+  });
+
+  it('marks index 0 (the currently traced node) as active', () => {
+    const trace = [
+      { line: 1, locals: { node: { value: 1, next: { value: 2, next: null } } }, callDepth: 0, event: 'step' },
+    ];
+    const frames = adaptLinkedListTrace(trace);
+    expect(frames[0].data.activeIndex).toBe(0);
+    expect(frames[0].data.values).toEqual([1, 2]);
+  });
+
+  it('reports activeIndex -1 for an empty chain', () => {
+    const trace = [{ line: 1, locals: { node: null }, callDepth: 0, event: 'step' }];
+    expect(adaptLinkedListTrace(trace)).toBeNull();
   });
 });
