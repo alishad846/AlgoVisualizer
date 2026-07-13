@@ -22,6 +22,16 @@ describe('VariableInspectorViz', () => {
     expect(screen.getByText('count')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
   });
+
+  it('handles circular references without throwing', () => {
+    const circularObj = {};
+    circularObj.self = circularObj;
+    // Should not throw and should render gracefully
+    const { container } = render(<VariableInspectorViz frame={{ data: { circular: circularObj } }} />);
+    expect(container).toBeInTheDocument();
+    expect(screen.getByText('circular')).toBeInTheDocument();
+    expect(screen.getByText('[unserializable value]')).toBeInTheDocument();
+  });
 });
 
 describe('VisualizerRouter', () => {

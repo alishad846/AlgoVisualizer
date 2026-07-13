@@ -1,3 +1,13 @@
+// Safely stringify a value, handling circular references and BigInt
+function safeStringify(value) {
+  try {
+    return JSON.stringify(value);
+  } catch (e) {
+    // Handle circular references, BigInt, and other unserializable values
+    return '[unserializable value]';
+  }
+}
+
 export default function VariableInspectorViz({ frame }) {
   const vars = (frame && frame.data) || {};
   const entries = Object.entries(vars);
@@ -13,7 +23,7 @@ export default function VariableInspectorViz({ frame }) {
           }}
         >
           <span style={{ color: 'var(--cyan)', fontWeight: 700, minWidth: 90 }}>{name}</span>
-          <span style={{ color: 'var(--text)' }}>{JSON.stringify(value)}</span>
+          <span style={{ color: 'var(--text)' }}>{safeStringify(value)}</span>
         </div>
       ))}
     </div>
