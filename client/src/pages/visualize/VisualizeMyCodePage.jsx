@@ -119,7 +119,7 @@ export default function VisualizeMyCodePage() {
 
   const currentFrame = frameIdx >= 0 ? frames[frameIdx] : null;
   const swapsCount = frames.slice(0, frameIdx + 1).filter((f) => f.type === 'swap').length;
-  const isSortingActive = visualizer === 'sorting' && frames.length > 0;
+  const isSortDone = visualizer === 'sorting' && frames.length > 0 && frameIdx === frames.length - 1;
   const stepLog = frames.slice(0, frameIdx + 1).map((f) => ({ text: f.log, type: f.type }));
 
   return (
@@ -220,7 +220,7 @@ export default function VisualizeMyCodePage() {
           </div>
           <div className="viz-center">
             <VisualizerRouter visualizer={visualizer} frame={currentFrame} />
-            {isSortingActive && (
+            {isSortDone && (
               <div style={{ textAlign: 'center', color: 'var(--green)', fontWeight: 700, fontSize: 13, padding: '8px 0' }}>
                 ✓ Sorted in {frames.length} steps · {swapsCount} swaps
               </div>
