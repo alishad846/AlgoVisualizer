@@ -165,6 +165,18 @@ export default function Sidebar({ sidebarOpen = true }) {
             {NAV.map((section) => (
               <SidebarItem key={section.key} section={section} location={location} />
             ))}
+            <Link
+              className="av-nav-link"
+              to="/visualize-my-code"
+              style={{
+                color: location.pathname === "/visualize-my-code" ? "var(--primary)" : undefined,
+                fontWeight: location.pathname === "/visualize-my-code" ? 700 : 400,
+                textDecoration: "none"
+              }}
+            >
+              <span className="av-nav-icon"><Icon>auto_awesome</Icon></span>
+              <span>Visualize My Code</span>
+            </Link>
           </nav>
         </div>
 
