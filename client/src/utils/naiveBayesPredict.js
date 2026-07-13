@@ -12,7 +12,7 @@ export function predictCategory(tokens, model) {
     Object.entries(termFreq).forEach(([token, count]) => {
       const clsLogProb = logProb[cls][token];
       if (clsLogProb === undefined) return;
-      const weight = count * (idf[token] || 1);
+      const weight = count * (idf[token] ?? 1);
       score += weight * clsLogProb;
     });
     scoresLog[cls] = score;
