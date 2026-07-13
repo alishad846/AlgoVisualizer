@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -12,9 +13,14 @@ import TreePage from "./pages/tree/TreePage";
 import GraphPage from "./pages/graph/GraphPage";
 import DPPage from "./pages/dp/DPPage";
 import MLPage from "./pages/ml/MLPage";
-import VisualizeMyCodePage from "./pages/visualize/VisualizeMyCodePage";
 import DocumentationPage from "./pages/DocumentationPage";
 import SupportPage from "./pages/SupportPage";
+
+// Lazy-loaded: this page pulls in the 79KB algo-detector model plus the
+// entire visualizer component graph (VisualizerRouter, all visualizer
+// components, CodeEditorPanel, etc.). Loading it lazily keeps that weight
+// out of the main bundle that every other route pays for.
+const VisualizeMyCodePage = lazy(() => import("./pages/visualize/VisualizeMyCodePage"));
 
 function App() {
   return (
@@ -44,7 +50,14 @@ function App() {
       <Route path="/dp/:algo" element={<DPPage />} />
       <Route path="/ml" element={<Navigate to="/ml/linear-regression" />} />
       <Route path="/ml/:algo" element={<MLPage />} />
-      <Route path="/visualize-my-code" element={<VisualizeMyCodePage />} />
+      <Route
+        path="/visualize-my-code"
+        element={
+          <Suspense fallback={null}>
+            <VisualizeMyCodePage />
+          </Suspense>
+        }
+      />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
