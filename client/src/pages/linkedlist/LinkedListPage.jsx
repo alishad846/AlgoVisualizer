@@ -86,8 +86,15 @@ export default function LinkedListPage() {
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
-  useEffect(() => {
-    stopRef.current = true;
+  // Reset the page-local visualization state when the algo route param
+  // changes, using the render-phase "adjust state when a prop changes"
+  // pattern (react.dev/learn/you-might-not-need-an-effect) instead of an
+  // effect that synchronously calls setState. Halting any in-flight loop
+  // from the previous algo via stopRef is a genuine external-system side
+  // effect, so that stays in its own effect.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
     setRunning(false);
     if (algo === "merge-sorted") {
       setL1(randSortedList(5));
@@ -100,6 +107,10 @@ export default function LinkedListPage() {
       setVisitedSet(new Set());
     }
     setStepLog([{ text: "New list generated.", type: "info" }]);
+  }
+
+  useEffect(() => {
+    stopRef.current = true;
   }, [algo]);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const [llFrames, setLlFrames] = useState(null);

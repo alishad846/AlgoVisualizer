@@ -98,9 +98,16 @@ export default function DPPage() {
   const [dpFrames, setDpFrames] = useState(null);
   const [dpFrameIdx, setDpFrameIdx] = useState(-1);
 
+  // See StackQueuePage.jsx for why this is a render-phase reset plus a
+  // separate stopRef-only effect rather than one effect calling setState.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
+    setRunning(false);
+  }
+
   useEffect(() => {
     stopRef.current = true;
-    setRunning(false);
   }, [algo]);
 
   // Fib state

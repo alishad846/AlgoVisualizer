@@ -90,12 +90,19 @@ export default function GraphPage() {
   const [graphFrames, setGraphFrames] = useState(null);
   const [graphFrameIdx, setGraphFrameIdx] = useState(-1);
 
+  // See StackQueuePage.jsx for why this is a render-phase reset plus a
+  // separate stopRef-only effect rather than one effect calling setState.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
+    setRunning(false);
+  }
+
   useEffect(() => {
     stopRef.current = true;
-    setRunning(false);
   }, [algo]);
 
-  const reset = () => { 
+  const reset = () => {
     stopRef.current=true; 
     setTimeout(()=>{ 
       setGrid(makeGrid()); 

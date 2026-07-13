@@ -7,10 +7,6 @@ import MultiLangCode from "../../components/MultiLangCode";
 import { RECURSION_EXPLANATIONS } from "../../data/algoExplanations";
 
 /* ── Tower of Hanoi animation ── */
-const DISK_COLORS = [
-  "var(--cyan)","var(--purple)","var(--green)","var(--orange)","var(--yellow)"
-];
-
 function hanoiMoves(n, from, to, aux) {
   if (n === 0) return [];
   return [
@@ -232,9 +228,16 @@ export default function RecursionPage() {
   const [recFrames, setRecFrames] = useState(null);
   const [recFrameIdx, setRecFrameIdx] = useState(-1);
 
+  // See StackQueuePage.jsx for why this is a render-phase reset plus a
+  // separate stopRef-only effect rather than one effect calling setState.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
+    setRunning(false);
+  }
+
   useEffect(() => {
     stopRef.current = true;
-    setRunning(false);
   }, [algo]);
 
   const initHanoi = (n) => {

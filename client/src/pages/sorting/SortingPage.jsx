@@ -35,7 +35,7 @@ export default function SortingPage() {
   const cfg = ALGOS[algo] || ALGOS["bubble-sort"];
   const explanation = SORTING_EXPLANATIONS[algo] || SORTING_EXPLANATIONS["bubble-sort"];
 
-  const { state, update, stop, cacheObj } = useAlgoManager("sorting_" + algo, () => ({
+  const { state, update, stop, cacheObj, clearStop } = useAlgoManager("sorting_" + algo, () => ({
     size: 12,
     array: randArr(12),
     states: {},
@@ -66,9 +66,9 @@ export default function SortingPage() {
         frames: null,
         frameIdx: -1
       });
-      if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
+      clearStop();
     }, 50);
-  }, [size, update, stop, cacheObj]);
+  }, [size, update, stop, clearStop]);
 
   const handleSizeChange = (newSize) => {
     stop();
@@ -86,13 +86,13 @@ export default function SortingPage() {
         frames: null,
         frameIdx: -1
       });
-      if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
+      clearStop();
     }, 50);
   };
 
   const start = useCallback(async () => {
     if (!cacheObj || cacheObj.running) return;
-    cacheObj.stopRef.current = false;
+    clearStop();
     const computedFrames = cfg.fn(cacheObj.array);
     update({ running: true, done: false, steps: 0, swaps: 0, stepLog: [], frames: computedFrames, frameIdx: 0 });
 
@@ -117,7 +117,7 @@ export default function SortingPage() {
     } else {
       update({ running: false });
     }
-  }, [cfg, update, cacheObj]);
+  }, [cfg, update, cacheObj, clearStop]);
 
   const handlePrev = () => {
     if (running || !frames || frames.length === 0 || frameIdx <= 0) return;

@@ -6,8 +6,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState(() => location.state?.username || sessionStorage.getItem("autofill_username") || "");
+  const [password, setPassword] = useState(() => location.state?.password || sessionStorage.getItem("autofill_password") || "");
   const [keepSession, setKeepSession] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -19,12 +19,20 @@ export default function LoginPage() {
     }
   }, [navigate]);
 
-  useEffect(() => {
+  // Initial mount is covered by the lazy useState initializers above. If the
+  // user is redirected back to this already-mounted route with a new
+  // location.state (e.g. after registering again), re-sync the fields using
+  // the render-phase "adjust state when a prop changes" pattern
+  // (react.dev/learn/you-might-not-need-an-effect) instead of an effect that
+  // synchronously calls setState.
+  const [prevLocationState, setPrevLocationState] = useState(location.state);
+  if (location.state !== prevLocationState) {
+    setPrevLocationState(location.state);
     const savedUser = location.state?.username || sessionStorage.getItem("autofill_username");
     const savedPass = location.state?.password || sessionStorage.getItem("autofill_password");
     if (savedUser) setUsername(savedUser);
     if (savedPass) setPassword(savedPass);
-  }, [location.state]);
+  }
 
   const [socialModal, setSocialModal] = useState(null);
   const [socialEmail, setSocialEmail] = useState("");

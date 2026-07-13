@@ -6,8 +6,6 @@ import StepLog from "../../components/StepLog";
 import MultiLangCode from "../../components/MultiLangCode";
 import { STACKQUEUE_EXPLANATIONS } from "../../data/algoExplanations";
 
-const COLORS = ["var(--cyan)", "var(--purple)", "var(--green)", "var(--orange)", "var(--yellow)"];
-
 function validParenthesesAlgo(str) {
   const frames = [];
   const map = { ')': '(', '}': '{', ']': '[' };
@@ -89,9 +87,20 @@ export default function StackQueuePage() {
   const [sqFrames, setSqFrames] = useState(null);
   const [sqFrameIdx, setSqFrameIdx] = useState(-1);
 
+  // Reset the page-local `running` flag when the algo route param changes,
+  // using the render-phase "adjust state when a prop changes" pattern
+  // (react.dev/learn/you-might-not-need-an-effect) instead of an effect that
+  // synchronously calls setState. Halting any in-flight loop from the
+  // previous algo via stopRef is a genuine external-system side effect, so
+  // that stays in its own effect.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
+    setRunning(false);
+  }
+
   useEffect(() => {
     stopRef.current = true;
-    setRunning(false);
   }, [algo]);
 
   // Parens State

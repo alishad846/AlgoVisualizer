@@ -70,14 +70,22 @@ export default function TreePage() {
   const [treeOrder, setTreeOrder] = useState(null);
   const [treeIdx, setTreeIdx] = useState(-1);
 
-  useEffect(() => {
-    stopRef.current = true;
+  // See LinkedListPage.jsx / StackQueuePage.jsx for why this is a
+  // render-phase reset plus a separate stopRef-only effect rather than one
+  // effect calling setState.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
     setRunning(false);
     const newTree = randTree(3); // depth 3 ka random tree
     setTree(newTree);
     setActiveSet(new Set());
     setVisited([]);
     setStepLog([{ text: "New tree generated.", type: "info" }]);
+  }
+
+  useEffect(() => {
+    stopRef.current = true;
   }, [algo]);
 
   const typeMap = { inorder: "inorder", preorder: "preorder", postorder: "postorder", "level-order": "level" };

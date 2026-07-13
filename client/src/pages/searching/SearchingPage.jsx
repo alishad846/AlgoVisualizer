@@ -28,7 +28,7 @@ export default function SearchingPage() {
   const cfg = ALGOS[algo] || ALGOS["linear-search"];
   const explanation = SEARCHING_EXPLANATIONS[algo] || SEARCHING_EXPLANATIONS["linear-search"];
 
-  const { state, update, stop, cacheObj } = useAlgoManager("searching_" + algo, () => ({
+  const { state, update, stop, cacheObj, clearStop } = useAlgoManager("searching_" + algo, () => ({
     array: randArr(14),
     target: 42,
     states: {},
@@ -59,14 +59,14 @@ export default function SearchingPage() {
         frames: null,
         frameIdx: -1
       });
-      if (cacheObj && cacheObj.stopRef) cacheObj.stopRef.current = false;
+      clearStop();
     }, 50);
-  }, [update, stop, cacheObj]);
+  }, [update, stop, clearStop]);
 
   const start = useCallback(async () => {
     if (!cacheObj || cacheObj.running) return;
-    cacheObj.stopRef.current = false;
-    
+    clearStop();
+
     const numTarget = cacheObj.target === '' || cacheObj.target === null || isNaN(cacheObj.target) ? 0 : Number(cacheObj.target);
     if (cacheObj.target === '' || cacheObj.target === null || isNaN(cacheObj.target)) {
       update({ target: 0 });
@@ -91,7 +91,7 @@ export default function SearchingPage() {
       if (f.found >= 0) break;
     }
     update({ running: false });
-  }, [cfg, update, cacheObj]);
+  }, [cfg, update, cacheObj, clearStop]);
 
   const handlePrev = () => {
     if (running || !frames || frames.length === 0 || frameIdx <= 0) return;

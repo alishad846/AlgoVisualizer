@@ -103,9 +103,16 @@ export default function MLPage() {
   const [stepLog, setStepLog] = useState([]);
   const stopRef = useRef(false);
 
+  // See StackQueuePage.jsx for why this is a render-phase reset plus a
+  // separate stopRef-only effect rather than one effect calling setState.
+  const [prevAlgo, setPrevAlgo] = useState(algo);
+  if (algo !== prevAlgo) {
+    setPrevAlgo(algo);
+    setRunning(false);
+  }
+
   useEffect(() => {
     stopRef.current = true;
-    setRunning(false);
   }, [algo]);
 
   // K-Means state
@@ -122,7 +129,7 @@ export default function MLPage() {
   const [mlFrameIdx, setMlFrameIdx] = useState(-1);
 
   // KNN state
-  const [knnPoints, setKnnPoints] = useState(()=>Array.from({length:30},()=>({ 
+  const [knnPoints] = useState(()=>Array.from({length:30},()=>({
     x:Math.random()*350+20, y:Math.random()*220+20, cluster: Math.floor(Math.random()*3) 
   })));
   const [testPoint, setTestPoint] = useState({ x:200, y:120 });

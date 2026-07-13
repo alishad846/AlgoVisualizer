@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 export default function HelpModal({ onClose }) {
   const [tab, setTab] = useState("guide"); // "guide" or "faq"

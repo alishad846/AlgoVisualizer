@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "../components/AppShell";
 
 export default function SupportPage() {
@@ -56,7 +56,7 @@ export default function SupportPage() {
       } else {
         setStatus({ loading: false, error: data.error || "Failed to send query.", success: "" });
       }
-    } catch (err) {
+    } catch {
       setStatus({ loading: false, error: "Network error connecting to support server.", success: "" });
     }
   };

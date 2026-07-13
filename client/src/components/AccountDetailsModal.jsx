@@ -1,9 +1,25 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
+// Decode the username/email fields out of the JWT payload stored in localStorage.
+// Pure/synchronous — safe to call from a useState lazy initializer.
+function decodeTokenFields() {
+  const token = localStorage.getItem("token");
+  if (!token) return {};
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(atob(base64).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    return JSON.parse(jsonPayload);
+  } catch {
+    // Fallback if token is malformed
+    return {};
+  }
+}
+
 export default function AccountDetailsModal({ onClose }) {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState(() => decodeTokenFields().username || "");
+  const [email, setEmail] = useState(() => decodeTokenFields().email || "");
   // Initialize current password from local session or restore generic placeholder if missing
   const [currentPassword, setCurrentPassword] = useState(() => {
     let saved = localStorage.getItem("user_password") || sessionStorage.getItem("autofill_password");
@@ -22,18 +38,6 @@ export default function AccountDetailsModal({ onClose }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const jsonPayload = decodeURIComponent(atob(base64).split("").map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
-        const decoded = JSON.parse(jsonPayload);
-        if (decoded.username) setUsername(decoded.username);
-        if (decoded.email) setEmail(decoded.email);
-      } catch (e) {
-        // Fallback if token is malformed
-      }
-    }
 
     const fetchProfile = async () => {
       if (!token) return;
