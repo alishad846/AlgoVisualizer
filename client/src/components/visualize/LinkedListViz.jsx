@@ -1,5 +1,8 @@
 export default function LinkedListViz({ frame }) {
-  const values = (frame && frame.data) || [];
+  const payload = (frame && frame.data) || {};
+  const values = payload.values || [];
+  const activeIndex = typeof payload.activeIndex === 'number' ? payload.activeIndex : -1;
+
   return (
     <div
       style={{
@@ -12,15 +15,30 @@ export default function LinkedListViz({ frame }) {
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div
             style={{
-              padding: '10px 16px', borderRadius: 8, background: 'var(--surface2)',
-              border: '1px solid var(--cyan)', fontFamily: "'JetBrains Mono', monospace", fontWeight: 700,
+              padding: '10px 16px', borderRadius: 8,
+              background: i === activeIndex ? 'var(--active-bg)' : 'var(--surface2)',
+              border: `1px solid ${i === activeIndex ? 'var(--active-bg)' : 'var(--cyan)'}`,
+              color: i === activeIndex ? 'var(--active-text)' : undefined,
+              fontFamily: "'JetBrains Mono', monospace", fontWeight: 700,
+              boxShadow: i === activeIndex ? '0 0 0 3px rgba(6,182,212,0.25)' : undefined,
+              transition: 'all 0.3s ease',
             }}
           >
             {String(v)}
           </div>
-          {i < values.length - 1 && <span style={{ color: 'var(--muted)' }}>&rarr;</span>}
+          <span style={{ color: 'var(--muted)' }}>&rarr;</span>
         </div>
       ))}
+      {values.length > 0 && (
+        <div
+          style={{
+            padding: '10px 16px', borderRadius: 8, border: '1px dashed var(--border2)',
+            color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace",
+          }}
+        >
+          null
+        </div>
+      )}
     </div>
   );
 }

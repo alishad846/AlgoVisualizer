@@ -1,0 +1,22 @@
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import LinkedListViz from '../LinkedListViz.jsx';
+
+describe('LinkedListViz', () => {
+  it('shows an empty state with no values', () => {
+    render(<LinkedListViz frame={{ data: { values: [], activeIndex: -1 } }} />);
+    expect(screen.getByText(/list is empty/i)).toBeInTheDocument();
+  });
+
+  it('renders a null terminator after the last node', () => {
+    render(<LinkedListViz frame={{ data: { values: [1, 2], activeIndex: 0 } }} />);
+    expect(screen.getByText('null')).toBeInTheDocument();
+  });
+
+  it('highlights the active index distinctly from other nodes', () => {
+    render(<LinkedListViz frame={{ data: { values: [1, 2], activeIndex: 1 } }} />);
+    const active = screen.getByText('2');
+    const idle = screen.getByText('1');
+    expect(active.style.background).not.toBe(idle.style.background);
+  });
+});
