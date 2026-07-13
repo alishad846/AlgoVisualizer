@@ -118,6 +118,8 @@ export default function VisualizeMyCodePage() {
   }, [playing, frameIdx]);
 
   const currentFrame = frameIdx >= 0 ? frames[frameIdx] : null;
+  const swapsCount = frames.slice(0, frameIdx + 1).filter((f) => f.type === 'swap').length;
+  const isSortingActive = visualizer === 'sorting' && frames.length > 0;
   const stepLog = frames.slice(0, frameIdx + 1).map((f) => ({ text: f.log, type: f.type }));
 
   return (
@@ -155,6 +157,11 @@ export default function VisualizeMyCodePage() {
               <option value={4}>4x</option>
             </select>
             <span style={{ marginLeft: 'auto', fontSize: 12 }}>
+              {visualizer === 'sorting' && (
+                <>
+                  Swaps: <strong style={{ color: 'var(--orange)' }}>{swapsCount}</strong>{' '}
+                </>
+              )}
               Step: <strong style={{ color: 'var(--cyan)' }}>{frameIdx + 1}</strong> / {frames.length}
             </span>
           </>
@@ -213,6 +220,11 @@ export default function VisualizeMyCodePage() {
           </div>
           <div className="viz-center">
             <VisualizerRouter visualizer={visualizer} frame={currentFrame} />
+            {isSortingActive && (
+              <div style={{ textAlign: 'center', color: 'var(--green)', fontWeight: 700, fontSize: 13, padding: '8px 0' }}>
+                ✓ Sorted in {frames.length} steps · {swapsCount} swaps
+              </div>
+            )}
           </div>
           <div className="viz-right">
             <StepLog steps={stepLog} />

@@ -64,4 +64,20 @@ describe('VisualizeMyCodePage', () => {
     );
     expect(screen.queryByText('▶ Play')).not.toBeInTheDocument();
   });
+
+  it('shows a swaps counter and a sorted banner once a sorting run completes', async () => {
+    runJsTrace.mockResolvedValue({
+      trace: [
+        { line: 1, locals: { arr: [3, 1] }, callDepth: 0, event: 'step' },
+        { line: 2, locals: { arr: [1, 3] }, callDepth: 0, event: 'step' },
+      ],
+      truncated: false,
+    });
+
+    renderPage();
+    fireEvent.click(screen.getByText('Detect & Visualize'));
+
+    await waitFor(() => expect(screen.getByText(/Swaps:/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Sorted in/i)).toBeInTheDocument());
+  });
 });
