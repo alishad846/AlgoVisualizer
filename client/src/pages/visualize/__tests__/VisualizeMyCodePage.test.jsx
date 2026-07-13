@@ -52,4 +52,16 @@ describe('VisualizeMyCodePage', () => {
     await waitFor(() => expect(screen.getByText('Unexpected token')).toBeInTheDocument());
     expect(screen.queryByText('▶ Play')).not.toBeInTheDocument();
   });
+
+  it('shows an error message when language is not supported', async () => {
+    renderPage();
+    const editor = screen.getByRole('textbox');
+    fireEvent.change(editor, { target: { value: 'hello world this is not code' } });
+    fireEvent.click(screen.getByText('Detect & Visualize'));
+
+    await waitFor(() =>
+      expect(screen.getByText('Full visualization currently supports JavaScript and Python. Paste code in one of these languages for the smoothest experience.')).toBeInTheDocument()
+    );
+    expect(screen.queryByText('▶ Play')).not.toBeInTheDocument();
+  });
 });
