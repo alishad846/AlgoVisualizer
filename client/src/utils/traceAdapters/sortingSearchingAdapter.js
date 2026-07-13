@@ -106,10 +106,7 @@ export function adaptArrayTrace(trace) {
   if (results.length === 0) return null;
 
   const frames = results.map((r) => r.frame);
-  const lastFrame = frames[frames.length - 1];
-  if (lastFrame.type !== 'compare') {
-    lastFrame.type = 'done';
-  }
+  frames[frames.length - 1].type = 'done';
   return frames;
 }
 

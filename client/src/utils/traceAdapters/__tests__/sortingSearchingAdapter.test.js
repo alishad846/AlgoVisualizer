@@ -37,10 +37,12 @@ describe('adaptArrayTrace compare highlighting', () => {
     const trace = [
       { line: 1, locals: { arr: [1, 3, 2], j: 0 }, callDepth: 0, event: 'step' },
       { line: 2, locals: { arr: [1, 3, 2], j: 1 }, callDepth: 0, event: 'step' },
+      { line: 3, locals: { arr: [1, 2, 3], j: 1 }, callDepth: 0, event: 'step' },
     ];
     const frames = adaptArrayTrace(trace);
     expect(frames[1].states[1]).toBe('compare');
     expect(frames[1].type).toBe('compare');
+    expect(frames[2].type).toBe('done');
   });
 });
 
