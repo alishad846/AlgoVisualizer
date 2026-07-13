@@ -12,6 +12,7 @@ import TreePage from "./pages/tree/TreePage";
 import GraphPage from "./pages/graph/GraphPage";
 import DPPage from "./pages/dp/DPPage";
 import MLPage from "./pages/ml/MLPage";
+import VisualizeMyCodePage from "./pages/visualize/VisualizeMyCodePage";
 import DocumentationPage from "./pages/DocumentationPage";
 import SupportPage from "./pages/SupportPage";
 
@@ -43,6 +44,7 @@ function App() {
       <Route path="/dp/:algo" element={<DPPage />} />
       <Route path="/ml" element={<Navigate to="/ml/linear-regression" />} />
       <Route path="/ml/:algo" element={<MLPage />} />
+      <Route path="/visualize-my-code" element={<VisualizeMyCodePage />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );
