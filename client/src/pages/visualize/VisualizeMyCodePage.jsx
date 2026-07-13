@@ -96,7 +96,6 @@ export default function VisualizeMyCodePage() {
     while (idx < frames.length - 1 && playRef.current) {
       idx += 1;
       setFrameIdx(idx);
-      // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, Math.round(400 / speed)));
     }
     playRef.current = false;
