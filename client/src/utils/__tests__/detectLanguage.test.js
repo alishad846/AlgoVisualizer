@@ -19,4 +19,13 @@ describe('detectLanguage', () => {
   it('returns unknown for text with no recognizable signal', () => {
     expect(detectLanguage('hello world')).toBe('unknown');
   });
+
+  it('returns unknown for C-family code without JS-specific signals (Java)', () => {
+    const code = `public class Foo {
+  public static void main(String[] a) {
+    System.out.println("hi");
+  }
+}`;
+    expect(detectLanguage(code)).toBe('unknown');
+  });
 });
