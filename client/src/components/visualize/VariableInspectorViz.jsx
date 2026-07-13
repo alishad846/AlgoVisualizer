@@ -2,7 +2,7 @@
 function safeStringify(value) {
   try {
     return JSON.stringify(value);
-  } catch (e) {
+  } catch {
     // Handle circular references, BigInt, and other unserializable values
     return '[unserializable value]';
   }
