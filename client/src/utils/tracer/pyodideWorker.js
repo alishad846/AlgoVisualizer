@@ -1,12 +1,10 @@
-const PYODIDE_CDN_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+const PYODIDE_CDN_URL = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.mjs';
 
 let pyodideReadyPromise = null;
 
 async function getPyodide() {
   if (!pyodideReadyPromise) {
-    self.importScripts(PYODIDE_CDN_URL);
-    // eslint-disable-next-line no-undef
-    pyodideReadyPromise = loadPyodide();
+    pyodideReadyPromise = import(/* @vite-ignore */ PYODIDE_CDN_URL).then(({ loadPyodide }) => loadPyodide());
   }
   return pyodideReadyPromise;
 }
@@ -19,6 +17,12 @@ __depth = [0]
 __MAX_STEPS = 3000
 
 def __tracer(frame, event, arg):
+    if frame.f_code.co_filename != "<exec>":
+        # Don't trace into Pyodide/CPython internals (e.g. the asyncio event
+        # loop machinery that runPythonAsync uses under the hood). Tracing
+        # those frames can crash mid-construction objects (like
+        # asyncio.Handle) and permanently hang the enclosing coroutine.
+        return None
     if event not in ("line", "call", "return"):
         return __tracer
     if len(__trace_records) >= __MAX_STEPS:
@@ -33,7 +37,10 @@ def __tracer(frame, event, arg):
             json.dumps(v)
             locals_snapshot[k] = v
         except Exception:
-            locals_snapshot[k] = str(v)
+            try:
+                locals_snapshot[k] = str(v)
+            except Exception:
+                locals_snapshot[k] = "<unrepresentable>"
     __trace_records.append({
         "line": frame.f_lineno,
         "locals": locals_snapshot,
