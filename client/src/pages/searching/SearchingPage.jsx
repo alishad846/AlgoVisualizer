@@ -9,7 +9,7 @@ import {
   linearSearchSteps, binarySearchSteps,
   jumpSearchSteps, interpolationSearchSteps, exponentialSearchSteps
 } from "../../algorithms/searchingSteps";
-import { useAlgoManager } from "../../utils/algoCache";
+import { useAlgoManager, getAlgoState } from "../../utils/algoCache";
 
 const ALGOS = {
   "linear-search": { name: "Linear Search", fn: linearSearchSteps },
@@ -28,7 +28,8 @@ export default function SearchingPage() {
   const cfg = ALGOS[algo] || ALGOS["linear-search"];
   const explanation = SEARCHING_EXPLANATIONS[algo] || SEARCHING_EXPLANATIONS["linear-search"];
 
-  const { state, update, stop, cacheObj, clearStop } = useAlgoManager("searching_" + algo, () => ({
+  const cacheKey = "searching_" + algo;
+  const initSearchState = useCallback(() => ({
     array: randArr(14),
     target: 42,
     states: {},
@@ -40,7 +41,9 @@ export default function SearchingPage() {
     stepLog: [],
     frames: null,
     frameIdx: -1
-  }));
+  }), []);
+
+  const { state, update, stop, cacheObj, clearStop } = useAlgoManager(cacheKey, initSearchState);
 
   const { array, target, states, pointer, steps, foundIdx, speedMultiplier, running, stepLog, frames, frameIdx } = state;
 
@@ -77,6 +80,13 @@ export default function SearchingPage() {
     for (let i = 0; i < computedFrames.length; i++) {
       if (cacheObj.stopRef.current) break;
       const f = computedFrames[i];
+      // Read the live stepLog from the module-level cache rather than the
+      // closured `cacheObj` — updateAlgoState replaces cache[key] with a new
+      // object reference on every call (required for useSyncExternalStore),
+      // so `cacheObj` here is a stale snapshot frozen at the last render
+      // before this async loop started. Reading live avoids each iteration
+      // overwriting the previous iteration's accumulated log entry.
+      const liveStepLog = getAlgoState(cacheKey, initSearchState).stepLog;
       update({
         array: f.arr,
         states: f.states,
@@ -84,14 +94,14 @@ export default function SearchingPage() {
         steps: i + 1,
         foundIdx: f.found !== undefined ? f.found : -1,
         frameIdx: i,
-        stepLog: [...cacheObj.stepLog, { text: f.log, type: f.type || "info" }]
+        stepLog: [...liveStepLog, { text: f.log, type: f.type || "info" }]
       });
       const delay = Math.round(300 / (cacheObj.speedMultiplier || 1));
       await new Promise(r => setTimeout(r, delay));
       if (f.found >= 0) break;
     }
     update({ running: false });
-  }, [cfg, update, cacheObj, clearStop]);
+  }, [cfg, update, cacheObj, clearStop, cacheKey, initSearchState]);
 
   const handlePrev = () => {
     if (running || !frames || frames.length === 0 || frameIdx <= 0) return;
