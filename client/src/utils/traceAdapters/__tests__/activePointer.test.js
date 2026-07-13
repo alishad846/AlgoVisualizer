@@ -39,4 +39,14 @@ describe('detectPointerVar', () => {
     ];
     expect(detectPointerVar(trace, () => false)).toBeNull();
   });
+
+  it('prefers the candidate with the higher hit-rate over one that only occasionally qualifies', () => {
+    const trace = [
+      { line: 1, locals: { strong: 0, weak: 0 }, callDepth: 0, event: 'step' },
+      { line: 2, locals: { strong: 1, weak: 1 }, callDepth: 0, event: 'step' },
+      { line: 3, locals: { strong: 2, weak: 99 }, callDepth: 0, event: 'step' },
+    ];
+    const isValidKey = (value) => value === 0 || value === 1 || value === 2;
+    expect(detectPointerVar(trace, isValidKey)).toBe('strong');
+  });
 });
