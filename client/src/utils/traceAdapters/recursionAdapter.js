@@ -8,7 +8,7 @@ export function adaptRecursionTrace(trace) {
   trace.forEach((record) => {
     if (record.event === 'call') {
       sawCallOrReturn = true;
-      stack.push({ name: record.functionName || 'call', args: record.locals || {} });
+      stack.push({ name: record.functionName || 'call', args: record.locals || {}, depth: stack.length });
       frames.push({
         data: [...stack],
         states: {},

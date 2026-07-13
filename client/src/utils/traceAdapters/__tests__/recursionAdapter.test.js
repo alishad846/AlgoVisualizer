@@ -21,4 +21,14 @@ describe('adaptRecursionTrace', () => {
     expect(frames[3].data).toHaveLength(0);
     expect(frames[3].type).toBe('done');
   });
+
+  it('attaches the call depth to each stack entry', () => {
+    const trace = [
+      { line: 1, locals: { n: 3 }, callDepth: 1, event: 'call', functionName: 'fact' },
+      { line: 2, locals: { n: 2 }, callDepth: 2, event: 'call', functionName: 'fact' },
+    ];
+    const frames = adaptRecursionTrace(trace);
+    expect(frames[0].data[0].depth).toBe(0);
+    expect(frames[1].data[1].depth).toBe(1);
+  });
 });
