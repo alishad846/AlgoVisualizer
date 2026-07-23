@@ -28,16 +28,25 @@ function findDpVar(trace) {
 
 function detect2DPointers(trace, varName) {
   const counts = {};
+  const seenValues = {};
   trace.forEach((record) => {
     const grid = record.locals ? record.locals[varName] : undefined;
     if (!is2DNumericArray(grid)) return;
     Object.entries(record.locals || {}).forEach(([name, value]) => {
       if (name === varName) return;
+      if (typeof value !== 'number') return;
+      if (!seenValues[name]) seenValues[name] = new Set();
+      seenValues[name].add(value);
       if (!Number.isInteger(value) || value < 0 || value >= grid.length) return;
       counts[name] = (counts[name] || 0) + 1;
     });
   });
-  const ranked = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  // A pointer candidate must vary across the trace (same variance bar as
+  // detectPointerVar in activePointer.js) — a constant local can't be a
+  // moving row/col pointer no matter how often it happens to be in-range.
+  const ranked = Object.keys(counts)
+    .filter((name) => seenValues[name] && seenValues[name].size >= 2)
+    .sort((a, b) => counts[b] - counts[a]);
   return [ranked[0] || null, ranked[1] || null];
 }
 
