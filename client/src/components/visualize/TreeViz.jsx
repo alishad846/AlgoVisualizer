@@ -20,6 +20,8 @@ function computePositions(nodes) {
 export default function TreeViz({ frame }) {
   const nodes = (frame && frame.data && frame.data.nodes) || [];
   const edges = (frame && frame.data && frame.data.edges) || [];
+  const visitedOrder = (frame && frame.data && frame.data.visitedOrder) || [];
+  const states = (frame && frame.states) || {};
   const positions = computePositions(nodes);
 
   return (
@@ -34,16 +36,41 @@ export default function TreeViz({ frame }) {
         {nodes.map((n) => {
           const pos = positions[n.id];
           if (!pos) return null;
+          const isActive = states[n.id] === 'active';
           return (
             <g key={n.id}>
-              <circle cx={pos.x} cy={pos.y} r={18} fill="var(--surface2)" stroke="var(--cyan)" strokeWidth={2} />
-              <text x={pos.x} y={pos.y + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fontFamily="monospace" fill="var(--text)">
+              <circle
+                cx={pos.x} cy={pos.y} r={18}
+                fill={isActive ? 'var(--active-bg)' : 'var(--surface2)'}
+                stroke={isActive ? 'var(--active-bg)' : 'var(--cyan)'}
+                strokeWidth={2}
+                style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
+              />
+              <text
+                x={pos.x} y={pos.y + 4} textAnchor="middle" fontSize={11} fontWeight="bold"
+                fontFamily="monospace" fill={isActive ? 'var(--active-text)' : 'var(--text)'}
+              >
                 {n.label}
               </text>
             </g>
           );
         })}
       </svg>
+      {visitedOrder.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {visitedOrder.map((label, i) => (
+            <span
+              key={i}
+              style={{
+                padding: '4px 10px', borderRadius: 999, background: 'rgba(6,182,212,0.15)',
+                color: 'var(--cyan)', fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
