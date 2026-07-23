@@ -6,6 +6,51 @@ function toVisitedSet(value) {
   return new Set();
 }
 
+function isAdjacencyList(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  if (keys.length === 0) return false;
+  return keys.every((k) => Array.isArray(value[k]));
+}
+
+function isAdjacencyMatrix(value) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const n = value.length;
+  return value.every((row) => Array.isArray(row) && row.length === n && row.every((cell) => typeof cell === 'number'));
+}
+
+function edgesFromAdjacencyList(adj) {
+  const edges = [];
+  Object.entries(adj).forEach(([from, neighbors]) => {
+    neighbors.forEach((to) => edges.push({ from, to: String(to) }));
+  });
+  return edges;
+}
+
+function edgesFromAdjacencyMatrix(matrix) {
+  const edges = [];
+  matrix.forEach((row, i) => {
+    row.forEach((cell, j) => {
+      if (cell) edges.push({ from: String(i), to: String(j) });
+    });
+  });
+  return edges;
+}
+
+function findAdjacencyStructure(trace) {
+  for (const record of trace) {
+    for (const value of Object.values(record.locals || {})) {
+      if (isAdjacencyList(value)) {
+        return { edges: edgesFromAdjacencyList(value), keys: Object.keys(value) };
+      }
+      if (isAdjacencyMatrix(value)) {
+        return { edges: edgesFromAdjacencyMatrix(value), keys: value.map((_, i) => String(i)) };
+      }
+    }
+  }
+  return null;
+}
+
 export function adaptGraphTrace(trace) {
   if (!Array.isArray(trace) || trace.length === 0) return null;
 
@@ -21,28 +66,43 @@ export function adaptGraphTrace(trace) {
   }
   if (!varName) return null;
 
+  const adjacency = findAdjacencyStructure(trace);
+
   const allNodes = new Set();
   trace.forEach((record) => {
     const raw = record.locals ? record.locals[varName] : undefined;
     if (raw === undefined) return;
     toVisitedSet(raw).forEach((n) => allNodes.add(n));
   });
+  if (adjacency) {
+    adjacency.keys.forEach((k) => allNodes.add(k));
+    adjacency.edges.forEach((e) => {
+      allNodes.add(e.from);
+      allNodes.add(e.to);
+    });
+  }
 
   const frames = [];
+  let prevVisited = new Set();
   trace.forEach((record) => {
     const raw = record.locals ? record.locals[varName] : undefined;
     if (raw === undefined) return;
     const visited = toVisitedSet(raw);
+    const newlyVisited = [...visited].filter((n) => !prevVisited.has(n));
     const states = {};
     allNodes.forEach((n) => {
       states[n] = visited.has(n) ? 'sorted' : 'info';
     });
+    newlyVisited.forEach((n) => {
+      states[n] = 'active';
+    });
     frames.push({
-      data: { nodes: [...allNodes] },
+      data: { nodes: [...allNodes], edges: adjacency ? adjacency.edges : [] },
       states,
       log: `Line ${record.line}: visited = {${[...visited].join(', ')}}`,
       type: 'info',
     });
+    prevVisited = visited;
   });
 
   if (frames.length === 0) return null;

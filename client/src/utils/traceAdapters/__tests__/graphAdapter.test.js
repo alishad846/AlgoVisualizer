@@ -15,7 +15,65 @@ describe('adaptGraphTrace', () => {
     const frames = adaptGraphTrace(trace);
     expect(frames).toHaveLength(2);
     expect(frames[1].states.a).toBe('sorted');
-    expect(frames[1].states.b).toBe('sorted');
+    expect(frames[1].states.b).toBe('active');
     expect(frames[1].type).toBe('done');
+  });
+
+  it('extracts edges from an adjacency-list local', () => {
+    const trace = [
+      {
+        line: 1,
+        locals: { visited: [], graph: { A: ['B', 'C'], B: ['D'], C: [], D: [] } },
+        callDepth: 0, event: 'step',
+      },
+      {
+        line: 2,
+        locals: { visited: ['A'], graph: { A: ['B', 'C'], B: ['D'], C: [], D: [] } },
+        callDepth: 0, event: 'step',
+      },
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[0].data.edges).toEqual(
+      expect.arrayContaining([{ from: 'A', to: 'B' }, { from: 'A', to: 'C' }, { from: 'B', to: 'D' }])
+    );
+  });
+
+  it('extracts edges from an adjacency-matrix local', () => {
+    const trace = [
+      {
+        line: 1,
+        locals: {
+          visited: [],
+          matrix: [
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 0],
+          ],
+        },
+        callDepth: 0, event: 'step',
+      },
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[0].data.edges).toEqual(
+      expect.arrayContaining([{ from: '0', to: '1' }, { from: '1', to: '2' }])
+    );
+  });
+
+  it('marks a newly-visited node active for that frame only', () => {
+    const trace = [
+      { line: 1, locals: { visited: [] }, callDepth: 0, event: 'step' },
+      { line: 2, locals: { visited: ['A'] }, callDepth: 0, event: 'step' },
+      { line: 3, locals: { visited: ['A', 'B'] }, callDepth: 0, event: 'step' },
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[1].states.A).toBe('active');
+    expect(frames[2].states.A).toBe('sorted');
+    expect(frames[2].states.B).toBe('active');
+  });
+
+  it('returns an empty edges array when no adjacency structure is found (graceful degradation)', () => {
+    const trace = [{ line: 1, locals: { visited: ['A'] }, callDepth: 0, event: 'step' }];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[0].data.edges).toEqual([]);
   });
 });
