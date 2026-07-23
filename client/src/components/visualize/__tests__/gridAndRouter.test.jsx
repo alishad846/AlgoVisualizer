@@ -6,9 +6,31 @@ import VisualizerRouter from '../VisualizerRouter.jsx';
 import SearchingViz from '../SearchingViz.jsx';
 
 describe('DPGridViz', () => {
-  it('renders a table cell for each grid value', () => {
-    render(<DPGridViz frame={{ data: [[0, 1], [1, 2]] }} />);
+  it('renders a table cell for each 2-D grid value', () => {
+    render(<DPGridViz frame={{ data: { dim: 2, grid: [[0, 1], [1, 2]] }, states: {} }} />);
     expect(screen.getAllByText('1')).toHaveLength(2);
+  });
+
+  it('renders a strip cell for each 1-D value', () => {
+    render(<DPGridViz frame={{ data: { dim: 1, values: [0, 1, 1, 2] }, states: {} }} />);
+    expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
+  it('formats Infinity as the infinity symbol', () => {
+    render(<DPGridViz frame={{ data: { dim: 1, values: [0, Infinity] }, states: {} }} />);
+    expect(screen.getByText('∞')).toBeInTheDocument();
+  });
+
+  it('shows a Press Start empty state with no data', () => {
+    render(<DPGridViz frame={{ data: { dim: 1, values: [] }, states: {} }} />);
+    expect(screen.getByText(/press start/i)).toBeInTheDocument();
+  });
+
+  it('highlights the active cell', () => {
+    render(<DPGridViz frame={{ data: { dim: 1, values: [3, 5] }, states: { 1: 'active' } }} />);
+    const active = screen.getByText('5');
+    const idle = screen.getByText('3');
+    expect(active.style.background).not.toBe(idle.style.background);
   });
 });
 
