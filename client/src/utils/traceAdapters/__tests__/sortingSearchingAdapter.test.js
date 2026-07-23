@@ -20,27 +20,27 @@ describe('adaptArrayTrace', () => {
     expect(frames[2].type).toBe('done');
   });
 
-  it('marks changed indices with a swap state', () => {
+  it('marks changed indices with a comparing state', () => {
     const trace = [
       { line: 1, locals: { arr: [3, 1, 2] }, callDepth: 0, event: 'step' },
       { line: 2, locals: { arr: [1, 3, 2] }, callDepth: 0, event: 'step' },
     ];
     const frames = adaptArrayTrace(trace);
-    expect(frames[1].states[0]).toBe('swap');
-    expect(frames[1].states[1]).toBe('swap');
+    expect(frames[1].states[0]).toBe('comparing');
+    expect(frames[1].states[1]).toBe('comparing');
     expect(frames[1].type).toBe('done');
   });
 });
 
 describe('adaptArrayTrace compare highlighting', () => {
-  it('marks a compared-but-unswapped index with a compare state', () => {
+  it('marks a compared-but-unswapped index with a comparing state', () => {
     const trace = [
       { line: 1, locals: { arr: [1, 3, 2], j: 0 }, callDepth: 0, event: 'step' },
       { line: 2, locals: { arr: [1, 3, 2], j: 1 }, callDepth: 0, event: 'step' },
       { line: 3, locals: { arr: [1, 2, 3], j: 1 }, callDepth: 0, event: 'step' },
     ];
     const frames = adaptArrayTrace(trace);
-    expect(frames[1].states[1]).toBe('compare');
+    expect(frames[1].states[1]).toBe('comparing');
     expect(frames[1].type).toBe('compare');
     expect(frames[2].type).toBe('done');
   });

@@ -34,7 +34,7 @@ function buildArrayFrames(trace, arrayVarName, pointerVarName) {
         : [];
     const states = {};
     changedIndices.forEach((i) => {
-      states[i] = 'swap';
+      states[i] = 'comparing';
     });
 
     const pointerValue = pointerVarName && record.locals ? record.locals[pointerVarName] : undefined;
@@ -45,7 +45,7 @@ function buildArrayFrames(trace, arrayVarName, pointerVarName) {
       pointerValue >= 0 &&
       pointerValue < arr.length
     ) {
-      states[pointerValue] = states[pointerValue] || 'compare';
+      states[pointerValue] = states[pointerValue] || 'comparing';
       type = 'compare';
     }
 
