@@ -2,6 +2,24 @@ function isListNode(value) {
   return value && typeof value === 'object' && !Array.isArray(value) && 'next' in value;
 }
 
+// JSON.stringify throws on circular structures; traced values are normally deep clones and can't
+// be circular, but a defensively-guarded self-referential node must not crash the "how many
+// distinct values does this candidate take" scoring below.
+function safeStringify(value) {
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(value, (key, val) => {
+      if (val && typeof val === 'object') {
+        if (seen.has(val)) return '[Circular]';
+        seen.add(val);
+      }
+      return val;
+    });
+  } catch {
+    return String(value);
+  }
+}
+
 function chainToValues(node) {
   const values = [];
   let current = node;
@@ -14,19 +32,46 @@ function chainToValues(node) {
   return values;
 }
 
+// Picks which local to visualize by scoring each structurally list-node-shaped candidate by how
+// many distinct values (by structural content, since traced locals are deep clones and can never
+// be === across frames) it takes across the whole trace. The pointer that's actually being
+// traversed changes on every iteration and will have by far the highest distinct-value count; a
+// frozen constant that merely looks like a node (e.g. a tail sentinel) will score 1 and lose. Ties
+// (including the "everything is constant" case) fall back to first-found trace order, so a single
+// static node with no traversal at all still renders instead of being turned into a null result.
+function pickHeadVarName(trace) {
+  const order = [];
+  const orderIndex = new Map();
+  const distinctValues = new Map();
+
+  trace.forEach((record) => {
+    Object.entries(record.locals || {}).forEach(([name, value]) => {
+      if (!isListNode(value)) return;
+      if (!orderIndex.has(name)) {
+        orderIndex.set(name, order.length);
+        order.push(name);
+        distinctValues.set(name, new Set());
+      }
+      distinctValues.get(name).add(safeStringify(value));
+    });
+  });
+
+  let headVarName = null;
+  let bestCount = -1;
+  order.forEach((name) => {
+    const count = distinctValues.get(name).size;
+    if (count > bestCount) {
+      bestCount = count;
+      headVarName = name;
+    }
+  });
+  return headVarName;
+}
+
 export function adaptLinkedListTrace(trace) {
   if (!Array.isArray(trace) || trace.length === 0) return null;
 
-  let headVarName = null;
-  for (const record of trace) {
-    for (const [name, value] of Object.entries(record.locals || {})) {
-      if (isListNode(value)) {
-        headVarName = name;
-        break;
-      }
-    }
-    if (headVarName) break;
-  }
+  const headVarName = pickHeadVarName(trace);
   if (!headVarName) return null;
 
   const frames = [];

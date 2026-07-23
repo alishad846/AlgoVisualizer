@@ -7,6 +7,24 @@ function isTreeNode(value) {
   );
 }
 
+// JSON.stringify throws on circular structures; traced values are normally deep clones and can't
+// be circular, but defensively-guarded inputs (e.g. a self-referential node under test) must not
+// crash the "how many distinct values does this candidate take" scoring below.
+function safeStringify(value) {
+  const seen = new WeakSet();
+  try {
+    return JSON.stringify(value, (key, val) => {
+      if (val && typeof val === 'object') {
+        if (seen.has(val)) return '[Circular]';
+        seen.add(val);
+      }
+      return val;
+    });
+  } catch {
+    return String(value);
+  }
+}
+
 function treeToNodesEdges(node, path, depth = 0) {
   const nodes = [];
   const edges = [];
@@ -64,19 +82,47 @@ function findPathForNode(root, target, path = 'root', depth = 0) {
   return null;
 }
 
+// Picks which local to visualize by scoring each structurally tree-node-shaped candidate by how
+// many distinct values (by structural content, since traced locals are deep clones and can never
+// be === across frames) it takes across the whole trace. The parameter that actually recurses
+// through the tree changes on every call/return and will have by far the highest distinct-value
+// count; an outer constant that only bookends the call (e.g. the original `tree` reference,
+// visible in just the pre-/post-call records) will score 1 and lose. Ties (including the
+// "everything is constant" case) fall back to first-found trace order, so a single static node
+// with no recursion at all still renders instead of being turned into a null result.
+function pickVarName(trace) {
+  const order = [];
+  const orderIndex = new Map();
+  const distinctValues = new Map();
+
+  trace.forEach((record) => {
+    Object.entries(record.locals || {}).forEach(([name, value]) => {
+      if (!isTreeNode(value)) return;
+      if (!orderIndex.has(name)) {
+        orderIndex.set(name, order.length);
+        order.push(name);
+        distinctValues.set(name, new Set());
+      }
+      distinctValues.get(name).add(safeStringify(value));
+    });
+  });
+
+  let varName = null;
+  let bestCount = -1;
+  order.forEach((name) => {
+    const count = distinctValues.get(name).size;
+    if (count > bestCount) {
+      bestCount = count;
+      varName = name;
+    }
+  });
+  return varName;
+}
+
 export function adaptTreeTrace(trace) {
   if (!Array.isArray(trace) || trace.length === 0) return null;
 
-  let varName = null;
-  for (const record of trace) {
-    for (const [name, value] of Object.entries(record.locals || {})) {
-      if (isTreeNode(value)) {
-        varName = name;
-        break;
-      }
-    }
-    if (varName) break;
-  }
+  const varName = pickVarName(trace);
   if (!varName) return null;
 
   let originalRoot = null;

@@ -35,4 +35,33 @@ describe('adaptLinkedListTrace', () => {
     const trace = [{ line: 1, locals: { node: null }, callDepth: 0, event: 'step' }];
     expect(adaptLinkedListTrace(trace)).toBeNull();
   });
+
+  it('prefers the actively-traversing pointer over a frozen constant node that appears first', () => {
+    // Reproduces: const n3 = {value:3,next:null}; const n2 = {value:2,next:n3}; const n1 = {value:1,next:n2};
+    // function traverse(node) { while (node) { console.log(node.value); node = node.next; } }
+    // traverse(n1);
+    // n3 is a module-level constant that never changes and is listed first in each record's
+    // locals (as would happen if outer-scope constants are captured alongside the loop's own
+    // `node` pointer). The naive first-match scan latches onto n3 forever; the fix must instead
+    // follow `node`, which genuinely varies across frames.
+    const n3 = { value: 3, next: null };
+    const n2 = { value: 2, next: n3 };
+    const n1 = { value: 1, next: n2 };
+    const trace = [
+      { line: 1, locals: { n3, node: n1 }, callDepth: 0, event: 'step' },
+      { line: 1, locals: { n3, node: n2 }, callDepth: 0, event: 'step' },
+      { line: 1, locals: { n3, node: n3 }, callDepth: 0, event: 'step' },
+      { line: 1, locals: { n3, node: null }, callDepth: 0, event: 'step' },
+    ];
+    const frames = adaptLinkedListTrace(trace);
+    expect(frames).toHaveLength(4);
+    // The chain should progressively shrink as `node` walks forward: [1,2,3] -> [2,3] -> [3] -> [].
+    expect(frames[0].data.values).toEqual([1, 2, 3]);
+    expect(frames[1].data.values).toEqual([2, 3]);
+    expect(frames[2].data.values).toEqual([3]);
+    expect(frames[3].data.values).toEqual([]);
+    // It must NOT be frozen on n3's single value for every frame.
+    const allFrozenOnThree = frames.every((f) => JSON.stringify(f.data.values) === JSON.stringify([3]));
+    expect(allFrozenOnThree).toBe(false);
+  });
 });
