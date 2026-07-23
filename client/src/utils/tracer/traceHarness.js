@@ -11,9 +11,15 @@ export function createTraceHarness({ maxSteps = 3000, maxRuntimeMs = 4000 } = {}
     }
   }
 
+  function jsonReplacer(_key, val) {
+    if (val instanceof Set) return Array.from(val);
+    if (val instanceof Map) return Object.fromEntries(val);
+    return val;
+  }
+
   function safeClone(value) {
     try {
-      return JSON.parse(JSON.stringify(value));
+      return JSON.parse(JSON.stringify(value, jsonReplacer));
     } catch {
       return {};
     }

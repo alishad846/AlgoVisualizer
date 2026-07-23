@@ -49,4 +49,16 @@ describe('createTraceHarness', () => {
     harness.__trace(1, { circular });
     expect(harness.getTrace()[0].locals).toEqual({});
   });
+
+  it('clones a Set local as an array instead of discarding its contents', () => {
+    const harness = createTraceHarness();
+    harness.__trace(1, { visited: new Set(['A', 'B']) });
+    expect(harness.getTrace()[0].locals.visited).toEqual(['A', 'B']);
+  });
+
+  it('clones a Map local as a plain object instead of discarding its contents', () => {
+    const harness = createTraceHarness();
+    harness.__trace(1, { visited: new Map([['A', true], ['B', false]]) });
+    expect(harness.getTrace()[0].locals.visited).toEqual({ A: true, B: false });
+  });
 });
