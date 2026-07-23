@@ -51,4 +51,33 @@ describe('adaptTreeTrace', () => {
     expect(root.depth).toBe(0);
     expect(child.depth).toBe(1);
   });
+
+  it('does not shrink the tree when the traced variable descends into a subtree', () => {
+    const trace = [
+      {
+        line: 1,
+        locals: { node: { value: 5, left: { value: 3, left: null, right: null }, right: { value: 8, left: null, right: null } } },
+        callDepth: 0, event: 'step',
+      },
+      { line: 2, locals: { node: { value: 3, left: null, right: null } }, callDepth: 1, event: 'step' },
+    ];
+    const frames = adaptTreeTrace(trace);
+    expect(frames[0].data.nodes.length).toBe(3);
+    expect(frames[1].data.nodes.length).toBe(3);
+  });
+
+  it('marks the current node active and accumulates a visited-order list', () => {
+    const trace = [
+      {
+        line: 1,
+        locals: { node: { value: 5, left: { value: 3, left: null, right: null }, right: null } },
+        callDepth: 0, event: 'step',
+      },
+      { line: 2, locals: { node: { value: 3, left: null, right: null } }, callDepth: 1, event: 'step' },
+    ];
+    const frames = adaptTreeTrace(trace);
+    expect(frames[0].states.root).toBe('active');
+    expect(frames[1].states.rootL).toBe('active');
+    expect(frames[1].data.visitedOrder).toEqual(['5', '3']);
+  });
 });
