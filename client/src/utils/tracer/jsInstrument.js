@@ -80,6 +80,36 @@ function instrumentBlockLike(body, known) {
   return { type: 'BlockStatement', body: instrumentBlock([body], known) };
 }
 
+let returnTempCounter = 0;
+
+// For `return EXPR;`, evaluate EXPR into a temp var BEFORE popping the frame,
+// so any calls nested inside EXPR (e.g. a recursive call) are traced as children
+// of the current frame rather than siblings. Only pop the frame (and return the
+// temp) once EXPR has finished evaluating. A bare `return;` has no expression to
+// evaluate, so it needs no temp var.
+function instrumentReturnStatement(stmt) {
+  if (!stmt.argument) {
+    return [exitFrameCall(), stmt];
+  }
+  const tempName = `__ret${returnTempCounter++}`;
+  const tempDeclaration = {
+    type: 'VariableDeclaration',
+    kind: 'const',
+    declarations: [
+      {
+        type: 'VariableDeclarator',
+        id: identifier(tempName),
+        init: stmt.argument,
+      },
+    ],
+  };
+  const returnTemp = {
+    type: 'ReturnStatement',
+    argument: identifier(tempName),
+  };
+  return [tempDeclaration, exitFrameCall(), returnTemp];
+}
+
 function instrumentBlock(bodyArray, known) {
   const result = [];
   const scopeKnown = [...known];
@@ -87,9 +117,10 @@ function instrumentBlock(bodyArray, known) {
     const line = stmt.loc ? stmt.loc.start.line : 0;
     result.push(traceCall(line, scopeKnown));
     if (stmt.type === 'ReturnStatement') {
-      result.push(exitFrameCall());
+      result.push(...instrumentReturnStatement(stmt));
+    } else {
+      result.push(instrumentStatement(stmt, scopeKnown));
     }
-    result.push(instrumentStatement(stmt, scopeKnown));
     if (stmt.type === 'VariableDeclaration') {
       stmt.declarations.forEach((d) => declaredNamesFromPattern(d.id, scopeKnown));
     }
@@ -161,6 +192,7 @@ function instrumentStatement(stmt, known) {
 // record sharing a mutated array/object will silently converge to its final
 // value instead of reflecting its state at the moment it was recorded.
 export function instrumentJsCode(source) {
+  returnTempCounter = 0;
   const ast = acorn.parse(source, { ecmaVersion: 2020, sourceType: 'script', locations: true });
   const instrumentedBody = instrumentBlock(ast.body, []);
   return generate({ ...ast, body: instrumentedBody });

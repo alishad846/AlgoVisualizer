@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { instrumentJsCode } from '../jsInstrument.js';
+import { createTraceHarness } from '../traceHarness.js';
 
 function runInstrumented(source) {
   const trace = [];
@@ -115,5 +116,25 @@ describe('instrumentJsCode', () => {
     `);
     const sumSnapshots = trace.map((t) => t.locals.sum).filter((v) => v !== undefined);
     expect(sumSnapshots[sumSnapshots.length - 1]).toBe(10);
+  });
+
+  it('keeps the current frame on the call stack while a return expression (including a nested recursive call) evaluates, so callDepth actually grows with recursion depth', () => {
+    const instrumented = instrumentJsCode(`
+      function fact(n) {
+        if (n <= 1) {
+          return 1;
+        }
+        return n * fact(n - 1);
+      }
+      fact(3);
+    `);
+    const harness = createTraceHarness();
+    const runner = new Function('__trace', '__enterFrame', '__exitFrame', instrumented);
+    runner(harness.__trace, harness.__enterFrame, harness.__exitFrame);
+    const trace = harness.getTrace();
+    const maxDepth = Math.max(...trace.map((t) => t.callDepth));
+    // fact(3) -> fact(2) -> fact(1) is 3 nested calls, so callDepth must reach 3
+    // while fact(2)'s `return n * fact(n - 1)` expression is still evaluating.
+    expect(maxDepth).toBeGreaterThanOrEqual(3);
   });
 });
