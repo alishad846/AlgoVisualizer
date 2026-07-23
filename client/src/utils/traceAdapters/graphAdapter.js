@@ -1,5 +1,18 @@
 function toVisitedSet(value) {
-  if (Array.isArray(value)) return new Set(value.map(String));
+  if (Array.isArray(value)) {
+    // Adjacency-matrix idiom: visited = new Array(n).fill(false), indexed by node id.
+    // Only take this path when EVERY element is a boolean; otherwise fall back to
+    // treating the array as a list of node names (the pre-existing behavior).
+    if (value.length > 0 && value.every((el) => typeof el === 'boolean')) {
+      return new Set(
+        value.reduce((acc, el, i) => {
+          if (el) acc.push(String(i));
+          return acc;
+        }, [])
+      );
+    }
+    return new Set(value.map(String));
+  }
   if (value && typeof value === 'object') {
     return new Set(Object.entries(value).filter(([, v]) => v).map(([k]) => k));
   }

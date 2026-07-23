@@ -76,4 +76,37 @@ describe('adaptGraphTrace', () => {
     const frames = adaptGraphTrace(trace);
     expect(frames[0].data.edges).toEqual([]);
   });
+
+  it('interprets a boolean[] visited local as node-indices-where-true, not literal true/false node names', () => {
+    // Adjacency-matrix BFS idiom: visited = new Array(n).fill(false), indexed by node id.
+    // [true, false, true, false] means nodes 0 and 2 are visited; 1 and 3 are not.
+    const trace = [
+      {
+        line: 1,
+        locals: {
+          visited: [true, false, true, false],
+          matrix: [
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+            [0, 0, 0, 0],
+          ],
+        },
+        callDepth: 0, event: 'step',
+      },
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames).toHaveLength(1);
+
+    // Bug reproduction: bogus 'true'/'false' pseudo-nodes must never appear.
+    expect(frames[0].data.nodes).not.toContain('true');
+    expect(frames[0].data.nodes).not.toContain('false');
+    expect(frames[0].data.nodes.sort()).toEqual(['0', '1', '2', '3']);
+
+    const { states } = frames[0];
+    expect(['sorted', 'active']).toContain(states['0']);
+    expect(['sorted', 'active']).toContain(states['2']);
+    expect(states['1']).toBe('info');
+    expect(states['3']).toBe('info');
+  });
 });
