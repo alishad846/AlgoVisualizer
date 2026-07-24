@@ -154,7 +154,7 @@ export function adaptTreeTrace(trace) {
       data: { nodes, edges, visitedOrder: [...visitedOrder] },
       states,
       log: `Line ${record.line}: visiting ${varName}`,
-      type: 'info',
+      type: 'compare',
     });
   });
 

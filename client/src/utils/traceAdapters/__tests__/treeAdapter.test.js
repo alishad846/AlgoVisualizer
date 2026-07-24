@@ -117,4 +117,14 @@ describe('adaptTreeTrace', () => {
       expect(f.data.nodes.length).toBe(5);
     });
   });
+
+  it('tags every visit frame as compare, matching TreePage\'s own "Visiting node" convention', () => {
+    const root = { val: 4, left: { val: 2, left: null, right: null }, right: null };
+    const trace = [
+      { line: 1, locals: { node: root }, callDepth: 0, event: 'step' },
+      { line: 2, locals: { node: root.left }, callDepth: 0, event: 'step' },
+    ];
+    const frames = adaptTreeTrace(trace);
+    expect(frames[0].type).toBe('compare');
+  });
 });
