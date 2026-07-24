@@ -129,4 +129,17 @@ describe('adaptGraphTrace', () => {
     expect(states['1']).toBe('info');
     expect(states['3']).toBe('info');
   });
+
+  it('tags a frame that newly visits a node as swap, and a frame with no new visits as compare', () => {
+    const trace = [
+      { line: 1, locals: { visited: [] }, callDepth: 0, event: 'step' },
+      { line: 2, locals: { visited: ['A'] }, callDepth: 0, event: 'step' }, // A newly visited -> swap
+      { line: 3, locals: { visited: ['A'] }, callDepth: 0, event: 'step' }, // no change -> compare
+      { line: 4, locals: { visited: ['A', 'B'] }, callDepth: 0, event: 'step' }, // last frame -> forced done
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[1].type).toBe('swap');
+    expect(frames[2].type).toBe('compare');
+    expect(frames[3].type).toBe('done');
+  });
 });

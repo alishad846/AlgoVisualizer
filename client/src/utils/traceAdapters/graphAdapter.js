@@ -136,7 +136,7 @@ export function adaptGraphTrace(trace) {
       data: { nodes: [...allNodes], edges: adjacency ? adjacency.edges : [] },
       states,
       log: `Line ${record.line}: visited = {${[...visited].join(', ')}}`,
-      type: 'info',
+      type: newlyVisited.length > 0 ? 'swap' : 'compare',
     });
     prevVisited = visited;
   });
