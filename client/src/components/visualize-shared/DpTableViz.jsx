@@ -6,11 +6,11 @@ function formatDpCell(value) {
 
 function dpCellStyle(value, isActive, colorScheme) {
   if (isActive) return { background: 'var(--active-bg)', color: 'var(--active-text)' };
-  if (colorScheme === 'green' && typeof value === 'number' && value > 0) {
-    return { background: 'var(--surface2)', color: 'var(--green)' };
+  if (colorScheme === 'green') {
+    return { background: 'var(--surface2)', color: typeof value === 'number' && value > 0 ? 'var(--green)' : 'var(--muted)' };
   }
-  if (colorScheme === 'purple' && typeof value === 'number' && value > 0) {
-    return { background: 'var(--surface2)', color: 'var(--purple)' };
+  if (colorScheme === 'purple') {
+    return { background: 'var(--surface2)', color: typeof value === 'number' && value > 0 ? 'var(--purple)' : 'var(--muted)' };
   }
   return { background: 'var(--surface2)', color: undefined };
 }
