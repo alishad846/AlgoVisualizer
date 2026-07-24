@@ -77,4 +77,18 @@ describe('adaptDpTrace', () => {
       expect(Object.keys(frame.states)).toHaveLength(0);
     });
   });
+
+  it('tags the first frame info, a changed-active-cell frame swap, and an unchanged-active-cell frame compare (1-D)', () => {
+    const trace = [
+      { line: 1, locals: { dp: [0, 1], i: 1 }, callDepth: 0, event: 'step' },       // first frame -> info
+      { line: 2, locals: { dp: [0, 1, 1], i: 2 }, callDepth: 0, event: 'step' },     // dp[2] is new (0 -> 1) -> swap
+      { line: 3, locals: { dp: [0, 1, 1], i: 2 }, callDepth: 0, event: 'step' },     // dp[2] unchanged (1 -> 1) -> compare
+      { line: 4, locals: { dp: [0, 1, 1, 2], i: 3 }, callDepth: 0, event: 'step' },  // last frame -> forced done
+    ];
+    const frames = adaptDpTrace(trace);
+    expect(frames[0].type).toBe('info');
+    expect(frames[1].type).toBe('swap');
+    expect(frames[2].type).toBe('compare');
+    expect(frames[3].type).toBe('done');
+  });
 });

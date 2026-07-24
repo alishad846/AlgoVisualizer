@@ -69,20 +69,44 @@ export function adaptDpTrace(trace) {
   }
 
   const frames = [];
+  let prevRaw = null;
   trace.forEach((record) => {
     const raw = record.locals ? record.locals[varName] : undefined;
     if (dim === 1 && !is1DNumericArray(raw)) return;
     if (dim === 2 && !is2DNumericArray(raw)) return;
 
     const states = {};
+    let activeR = null;
+    let activeC = null;
     if (dim === 1) {
       const p = pointerVarName && record.locals ? record.locals[pointerVarName] : undefined;
-      if (Number.isInteger(p) && p >= 0 && p < raw.length) states[p] = 'active';
+      if (Number.isInteger(p) && p >= 0 && p < raw.length) {
+        states[p] = 'active';
+        activeR = p;
+      }
     } else {
       const r = pointerVarName && record.locals ? record.locals[pointerVarName] : undefined;
       const c = pointerVarName2 && record.locals ? record.locals[pointerVarName2] : undefined;
       if (Number.isInteger(r) && r >= 0 && r < raw.length && Number.isInteger(c) && raw[r] && c >= 0 && c < raw[r].length) {
         states[`${r},${c}`] = 'active';
+        activeR = r;
+        activeC = c;
+      }
+    }
+
+    // Matches DPPage's own step generators: the first (base-case-init) frame is 'info';
+    // thereafter, a frame where the active cell's own value actually changed is 'swap'
+    // (a real update), and a frame that only re-observes the table without changing the
+    // active cell is 'compare' (matches e.g. knapsack's "item too heavy, copy above" case).
+    let type = 'info';
+    if (prevRaw) {
+      if (dim === 1 && activeR !== null) {
+        type = prevRaw[activeR] !== raw[activeR] ? 'swap' : 'compare';
+      } else if (dim === 2 && activeR !== null && activeC !== null) {
+        const prevRow = prevRaw[activeR];
+        type = prevRow && prevRow[activeC] !== raw[activeR][activeC] ? 'swap' : 'compare';
+      } else {
+        type = 'compare';
       }
     }
 
@@ -90,8 +114,9 @@ export function adaptDpTrace(trace) {
       data: dim === 1 ? { dim, values: [...raw] } : { dim, grid: raw.map((row) => [...row]) },
       states,
       log: `Line ${record.line}: updated ${varName}`,
-      type: 'info',
+      type,
     });
+    prevRaw = raw;
   });
 
   if (frames.length === 0) return null;
