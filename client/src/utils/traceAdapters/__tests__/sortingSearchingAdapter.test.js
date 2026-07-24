@@ -30,6 +30,23 @@ describe('adaptArrayTrace', () => {
     expect(frames[1].states[1]).toBe('comparing');
     expect(frames[1].type).toBe('done');
   });
+
+  it('prefers the array at the shallowest call depth over a more-frequent inner fragment (merge sort case)', () => {
+    // Reproduces: mergeSort(arr) calls merge(left, right) many times; left/right/result
+    // (small fragments, deep call depth) used to outvote the real top-level array on
+    // raw frequency alone, so the adapter animated a leftover fragment instead of `arr`.
+    const trace = [
+      { line: 1, locals: { arr: [3, 1, 4, 2] }, callDepth: 0, event: 'step' },
+      { line: 2, locals: { left: [3, 1], right: [4, 2] }, callDepth: 1, event: 'step' },
+      { line: 3, locals: { left: [1, 3], right: [4, 2] }, callDepth: 1, event: 'step' },
+      { line: 4, locals: { left: [1, 3], right: [2, 4] }, callDepth: 1, event: 'step' },
+      { line: 5, locals: { result: [1, 3, 2, 4] }, callDepth: 1, event: 'step' },
+      { line: 6, locals: { arr: [1, 2, 3, 4] }, callDepth: 0, event: 'step' },
+    ];
+    const frames = adaptArrayTrace(trace);
+    expect(frames[0].data).toEqual([3, 1, 4, 2]);
+    expect(frames[frames.length - 1].data).toEqual([1, 2, 3, 4]);
+  });
 });
 
 describe('adaptArrayTrace compare highlighting', () => {

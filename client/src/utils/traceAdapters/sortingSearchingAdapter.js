@@ -4,20 +4,36 @@ function isArrayOfPrimitives(value) {
   return Array.isArray(value) && value.every((x) => typeof x === 'number' || typeof x === 'string');
 }
 
+// A divide-and-conquer sort (merge/quick sort) calls helper functions many times, so a
+// small inner fragment (merge()'s `left`/`right`/`result`) can appear in more trace
+// records than the real top-level array — pure frequency picks the wrong one. The
+// top-level array is, by construction, always found at the *shallowest* call depth it
+// ever appears at (it's bound in the outermost call and never appears deeper unless a
+// same-named shadowing local exists, which is rare and not specially handled here).
+// Prefer shallowest depth first; only fall back to frequency to break ties within that
+// depth (this preserves existing behavior for in-place sorts, where every array-of-
+// primitives candidate is at the same depth).
 function pickArrayVarName(trace) {
   const candidateCounts = {};
+  const candidateMinDepth = {};
   trace.forEach((record) => {
+    const depth = typeof record.callDepth === 'number' ? record.callDepth : 0;
     Object.entries(record.locals || {}).forEach(([name, value]) => {
-      if (isArrayOfPrimitives(value)) {
-        candidateCounts[name] = (candidateCounts[name] || 0) + 1;
-      }
+      if (!isArrayOfPrimitives(value)) return;
+      candidateCounts[name] = (candidateCounts[name] || 0) + 1;
+      candidateMinDepth[name] =
+        candidateMinDepth[name] === undefined ? depth : Math.min(candidateMinDepth[name], depth);
     });
   });
   const candidates = Object.keys(candidateCounts);
   if (candidates.length === 0) return null;
-  return candidates.reduce(
+
+  const shallowestDepth = Math.min(...candidates.map((name) => candidateMinDepth[name]));
+  const shallowestCandidates = candidates.filter((name) => candidateMinDepth[name] === shallowestDepth);
+
+  return shallowestCandidates.reduce(
     (best, name) => (candidateCounts[name] > candidateCounts[best] ? name : best),
-    candidates[0]
+    shallowestCandidates[0]
   );
 }
 
