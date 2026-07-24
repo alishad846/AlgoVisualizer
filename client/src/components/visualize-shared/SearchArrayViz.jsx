@@ -1,4 +1,4 @@
-export default function SearchArrayViz({ array, states = {}, pointer = -1, target, foundIdx = -1, notFound = false }) {
+export default function SearchArrayViz({ array = [], states = {}, pointer = -1, target, foundIdx = -1, notFound = false }) {
   const max = Math.max(...array, 1);
 
   return (

@@ -12,6 +12,6 @@ export default function DPGridViz({ frame }) {
   }
 
   const activeKey = Object.keys(states).find((k) => states[k] === 'active');
-  const active = activeKey ? activeKey.split(',').map(Number) : [-1, -1];
+  const active = activeKey !== undefined ? activeKey.split(',').map(Number) : [-1, -1];
   return <DpTableViz dim={2} grid={payload.grid || []} active={active} colorScheme="green" />;
 }

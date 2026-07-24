@@ -28,4 +28,9 @@ describe('SearchArrayViz', () => {
     rerender(<SearchArrayViz array={[1, 2]} />);
     expect(screen.queryByText('Target:')).not.toBeInTheDocument();
   });
+
+  it('renders without crashing when array is omitted', () => {
+    render(<SearchArrayViz />);
+    // Should not throw; cubes-arena renders empty.
+  });
 });

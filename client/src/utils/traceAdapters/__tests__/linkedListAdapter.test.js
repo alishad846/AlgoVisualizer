@@ -79,7 +79,7 @@ describe('adaptLinkedListTrace', () => {
     expect(allFrozenOnThree).toBe(false);
   });
 
-  it('tags a same-length, changed-content frame as swap (a mutation), and a shrinking-chain frame as compare (an advance)', () => {
+  it('tags shrinking-chain frames as compare (an advance)', () => {
     const n3 = { value: 3, next: null };
     const n2 = { value: 2, next: n3 };
     const n1 = { value: 1, next: n2 };
