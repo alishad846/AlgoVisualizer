@@ -20,12 +20,19 @@ function safeStringify(value) {
   }
 }
 
+function nodeValue(node) {
+  if ('val' in node) return node.val;
+  if ('value' in node) return node.value;
+  if ('data' in node) return node.data;
+  return node;
+}
+
 function chainToValues(node) {
   const values = [];
   let current = node;
   let guard = 0;
   while (current && typeof current === 'object' && guard < 1000) {
-    values.push('value' in current ? current.value : current);
+    values.push(nodeValue(current));
     current = current.next;
     guard += 1;
   }

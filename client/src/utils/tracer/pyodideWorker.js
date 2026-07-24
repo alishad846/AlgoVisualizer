@@ -10,7 +10,13 @@ async function getPyodide() {
 }
 
 const TRACE_HARNESS_PY = `
-import sys, json
+# pyodide's execution globals already contain internals (e.g. "_pyodide_core")
+# before any of our code runs. Snapshot their names so module-level frames -
+# where f_locals IS the global namespace - don't show them as if they were the
+# user's own variables. Aliased with a "__" prefix so they're filtered out as
+# harness-internal below, same as __trace_records/__depth/etc.
+__baseline_names = set(globals().keys())
+import sys as __sys, json as __json, copy as __copy
 
 __trace_records = []
 __depth = [0]
@@ -31,11 +37,15 @@ def __tracer(frame, event, arg):
         __depth[0] += 1
     locals_snapshot = {}
     for k, v in frame.f_locals.items():
-        if k.startswith("__"):
+        if k.startswith("__") or k in __baseline_names:
             continue
         try:
-            json.dumps(v)
-            locals_snapshot[k] = v
+            __json.dumps(v)
+            # Lists/dicts are mutable and referenced (not copied) by frame.f_locals,
+            # so storing v directly would let every previously-recorded frame observe
+            # later in-place mutations too (all frames converging on the final state).
+            # Deep-copy so each frame's snapshot is independent.
+            locals_snapshot[k] = __copy.deepcopy(v)
         except Exception:
             try:
                 locals_snapshot[k] = str(v)
@@ -52,7 +62,7 @@ def __tracer(frame, event, arg):
         __depth[0] -= 1
     return __tracer
 
-sys.settrace(__tracer)
+__sys.settrace(__tracer)
 `;
 
 self.onmessage = async function handleMessage(event) {
@@ -64,7 +74,7 @@ self.onmessage = async function handleMessage(event) {
     try {
       await pyodide.runPythonAsync(code);
     } finally {
-      await pyodide.runPythonAsync('sys.settrace(None)');
+      await pyodide.runPythonAsync('__sys.settrace(None)');
     }
     const records = pyodide.globals.get('__trace_records').toJs({ dict_converter: Object.fromEntries });
     self.postMessage({ ok: true, trace: records, truncated: false });

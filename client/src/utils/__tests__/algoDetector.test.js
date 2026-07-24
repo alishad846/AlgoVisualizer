@@ -27,7 +27,24 @@ const BFS_PY = `def bfs(graph, start):
                 queue.append(neighbor)
     return order`;
 
+const FACTORIAL_JS = `function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1);
+}`;
+
+const FIBONACCI_PY = `def fib(n):
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)`;
+
 describe('detectAlgorithm', () => {
+  it('falls back to recursion for plain (unmemoized) recursion the classifier confuses for DP', () => {
+    // factorial/fib have no dp[i]-style array table, so the DP visualizer has nothing
+    // to render for them; recursion (call-stack viz) is the only category that works.
+    expect(detectAlgorithm(FACTORIAL_JS).category).toBe('recursion');
+    expect(detectAlgorithm(FIBONACCI_PY).category).toBe('recursion');
+  });
+
   it('detects a sorting algorithm with a real category and confidence', () => {
     const result = detectAlgorithm(BUBBLE_SORT_JS);
     expect(result.category).toBe('sorting');

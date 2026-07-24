@@ -36,6 +36,20 @@ describe('adaptLinkedListTrace', () => {
     expect(adaptLinkedListTrace(trace)).toBeNull();
   });
 
+  it('reads the "val" field (LeetCode/class-based Node convention), not just "value"', () => {
+    // class Node { constructor(val) { this.val = val; this.next = null; } }
+    const trace = [
+      {
+        line: 1,
+        locals: { head: { val: 1, next: { val: 2, next: { val: 3, next: null } } } },
+        callDepth: 0,
+        event: 'step',
+      },
+    ];
+    const frames = adaptLinkedListTrace(trace);
+    expect(frames[0].data.values).toEqual([1, 2, 3]);
+  });
+
   it('prefers the actively-traversing pointer over a frozen constant node that appears first', () => {
     // Reproduces: const n3 = {value:3,next:null}; const n2 = {value:2,next:n3}; const n1 = {value:1,next:n2};
     // function traverse(node) { while (node) { console.log(node.value); node = node.next; } }

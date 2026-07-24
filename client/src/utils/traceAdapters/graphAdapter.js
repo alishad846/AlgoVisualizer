@@ -32,6 +32,18 @@ function isAdjacencyMatrix(value) {
   return value.every((row) => Array.isArray(row) && row.length === n && row.every((cell) => typeof cell === 'number'));
 }
 
+// graph = [[1, 2], [0, 3], ...] — the common idiom where the array index IS the node id
+// and each row lists neighbor ids directly (as opposed to an N x N 0/1 matrix). Rows are
+// normally jagged (different node degrees), which is exactly what disqualifies it from
+// isAdjacencyMatrix above, so this only runs once that check has already failed.
+function isAdjacencyArrayList(value) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const n = value.length;
+  return value.every(
+    (row) => Array.isArray(row) && row.every((cell) => Number.isInteger(cell) && cell >= 0 && cell < n)
+  );
+}
+
 function edgesFromAdjacencyList(adj) {
   const edges = [];
   Object.entries(adj).forEach(([from, neighbors]) => {
@@ -50,6 +62,14 @@ function edgesFromAdjacencyMatrix(matrix) {
   return edges;
 }
 
+function edgesFromAdjacencyArrayList(list) {
+  const edges = [];
+  list.forEach((neighbors, i) => {
+    neighbors.forEach((j) => edges.push({ from: String(i), to: String(j) }));
+  });
+  return edges;
+}
+
 function findAdjacencyStructure(trace) {
   for (const record of trace) {
     for (const value of Object.values(record.locals || {})) {
@@ -58,6 +78,9 @@ function findAdjacencyStructure(trace) {
       }
       if (isAdjacencyMatrix(value)) {
         return { edges: edgesFromAdjacencyMatrix(value), keys: value.map((_, i) => String(i)) };
+      }
+      if (isAdjacencyArrayList(value)) {
+        return { edges: edgesFromAdjacencyArrayList(value), keys: value.map((_, i) => String(i)) };
       }
     }
   }

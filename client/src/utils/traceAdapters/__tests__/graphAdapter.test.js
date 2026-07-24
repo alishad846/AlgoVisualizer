@@ -38,6 +38,26 @@ describe('adaptGraphTrace', () => {
     );
   });
 
+  it('extracts edges from an array-of-arrays adjacency list (graph[i] = list of neighbor ids)', () => {
+    // The common `graph = [[1, 2], [0, 3], [0, 3], [1, 2, 4], [3]]` idiom: jagged rows,
+    // node id is the array index, row values are neighbor ids (not a 0/1 matrix).
+    const trace = [
+      {
+        line: 1,
+        locals: { visited: [], graph: [[1, 2], [0, 3], [0, 3], [1, 2, 4], [3]] },
+        callDepth: 0, event: 'step',
+      },
+    ];
+    const frames = adaptGraphTrace(trace);
+    expect(frames[0].data.edges).toEqual(
+      expect.arrayContaining([
+        { from: '0', to: '1' }, { from: '0', to: '2' },
+        { from: '1', to: '0' }, { from: '1', to: '3' },
+      ])
+    );
+    expect(frames[0].data.nodes.sort()).toEqual(['0', '1', '2', '3', '4']);
+  });
+
   it('extracts edges from an adjacency-matrix local', () => {
     const trace = [
       {
