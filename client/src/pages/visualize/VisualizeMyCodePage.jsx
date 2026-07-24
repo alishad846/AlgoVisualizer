@@ -37,7 +37,6 @@ export default function VisualizeMyCodePage() {
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [detection, setDetection] = useState(null);
-  const [manualCategory, setManualCategory] = useState(null);
   const [visualizer, setVisualizer] = useState(null);
   const [frames, setFrames] = useState([]);
   const [frameIdx, setFrameIdx] = useState(-1);
@@ -65,7 +64,7 @@ export default function VisualizeMyCodePage() {
 
     const detected = detectAlgorithm(code);
     setDetection(detected);
-    const category = manualCategory || detected.category;
+    const category = detected.category;
 
     try {
       const runTrace =
@@ -86,7 +85,7 @@ export default function VisualizeMyCodePage() {
       setStatus('error');
       setErrorMessage(err.message || 'Execution failed. Check your code for errors.');
     }
-  }, [code, manualCategory]);
+  }, [code]);
 
   const play = useCallback(async () => {
     if (playing || frames.length === 0) return;
@@ -185,17 +184,6 @@ export default function VisualizeMyCodePage() {
             Detected: <strong style={{ color: 'var(--cyan)' }}>{CATEGORY_LABELS[detection.category] || detection.category}</strong>{' '}
             ({Math.round(detection.confidence * 100)}% confidence)
           </span>
-          <select
-            className="size-select"
-            value={manualCategory || detection.category}
-            onChange={(e) => setManualCategory(e.target.value)}
-          >
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
         </div>
       )}
 

@@ -102,4 +102,18 @@ describe('VisualizeMyCodePage', () => {
     fireEvent.click(screen.getByText('Next ▶'));
     await waitFor(() => expect(screen.getByText(/Sorted in/i)).toBeInTheDocument());
   });
+
+  it('does not show a category-override dropdown', async () => {
+    runJsTrace.mockResolvedValue({
+      trace: [{ line: 1, locals: { arr: [3, 1] }, callDepth: 0, event: 'step' }],
+      truncated: false,
+    });
+
+    const { container } = renderPage();
+    fireEvent.click(screen.getByText('Detect & Visualize'));
+
+    await waitFor(() => expect(screen.getByText(/Detected:/)).toBeInTheDocument());
+    // Only the playback Speed <select> should remain — no category-override select.
+    expect(container.querySelectorAll('select').length).toBe(1);
+  });
 });
