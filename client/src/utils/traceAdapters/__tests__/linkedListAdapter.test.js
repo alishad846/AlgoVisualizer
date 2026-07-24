@@ -104,9 +104,11 @@ describe('adaptLinkedListTrace', () => {
     const b1 = { value: 2, next: b2 };
     const trace = [
       { line: 1, locals: { node: a1 }, callDepth: 0, event: 'step' }, // [1,2]
-      { line: 2, locals: { node: b1 }, callDepth: 0, event: 'step' }, // [2,1] — same length, different content
+      { line: 2, locals: { node: b1 }, callDepth: 0, event: 'step' }, // [2,1] — same length, different content -> swap
+      { line: 3, locals: { node: b1 }, callDepth: 0, event: 'step' }, // [2,1] again — the true last frame, still forced to done
     ];
     const frames = adaptLinkedListTrace(trace);
     expect(frames[1].type).toBe('swap');
+    expect(frames[2].type).toBe('done');
   });
 });

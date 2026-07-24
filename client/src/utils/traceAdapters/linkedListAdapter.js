@@ -105,9 +105,6 @@ export function adaptLinkedListTrace(trace) {
   });
 
   if (frames.length === 0) return null;
-  // Only override to 'done' if the last frame is not a 'swap' (preserve swaps).
-  if (frames[frames.length - 1].type !== 'swap') {
-    frames[frames.length - 1].type = 'done';
-  }
+  frames[frames.length - 1].type = 'done';
   return frames;
 }
