@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import LinkedListViz from '../LinkedListViz.jsx';
 
 describe('LinkedListViz', () => {
-  it('shows an empty state with no values', () => {
+  it('renders just the trailing null box with no values', () => {
     render(<LinkedListViz frame={{ data: { values: [], activeIndex: -1 } }} />);
-    expect(screen.getByText(/list is empty/i)).toBeInTheDocument();
+    expect(screen.getByText('null')).toBeInTheDocument();
   });
 
   it('renders a null terminator after the last node', () => {

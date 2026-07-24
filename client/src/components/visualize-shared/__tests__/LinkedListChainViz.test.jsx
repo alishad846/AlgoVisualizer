@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import LinkedListChainViz from '../LinkedListChainViz.jsx';
 
 describe('LinkedListChainViz', () => {
-  it('shows an empty-list message with no nodes', () => {
+  it('renders just the trailing null box with no nodes (matching LinkedListPage\'s original unconditional-null-box behavior)', () => {
     render(<LinkedListChainViz nodes={[]} />);
-    expect(screen.getByText(/list is empty/i)).toBeInTheDocument();
+    expect(screen.getByText('null')).toBeInTheDocument();
   });
 
   it('renders one box per node plus a trailing null box', () => {

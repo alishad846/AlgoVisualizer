@@ -20,11 +20,10 @@ export default function LinkedListChainViz({ nodes = [], activeIdx = -1, visited
         background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, minHeight: 80, flex: 1,
       }}
     >
-      {nodes.length === 0 && <div style={{ color: 'var(--muted)', fontSize: 13 }}>List is empty</div>}
       {nodes.map((v, i) => (
         <LLNode key={i} val={v} active={activeIdx === i} visited={visitedSet.has(i)} last={i === nodes.length - 1} color={color} />
       ))}
-      {nodes.length > 0 && <div className="node-box" style={{ borderStyle: 'dashed', color: 'var(--muted)' }}>null</div>}
+      <div className="node-box" style={{ borderStyle: 'dashed', color: 'var(--muted)' }}>null</div>
     </div>
   );
 }
