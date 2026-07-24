@@ -17,6 +17,7 @@ describe('LinkedListViz', () => {
     render(<LinkedListViz frame={{ data: { values: [1, 2], activeIndex: 1 } }} />);
     const active = screen.getByText('2');
     const idle = screen.getByText('1');
-    expect(active.style.background).not.toBe(idle.style.background);
+    expect(active.className).toContain('active');
+    expect(idle.className).not.toContain('active');
   });
 });

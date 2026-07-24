@@ -5,49 +5,23 @@ import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import MultiLangCode from "../../components/MultiLangCode";
 import { LINKEDLIST_EXPLANATIONS } from "../../data/algoExplanations";
-
-/* Linked List Node display */
-function LLNode({ val, active, visited, last, color = "var(--cyan)" }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <div className={`node-box ${active ? "active" : visited ? "visited" : ""}`}
-        style={active ? { borderColor: color, boxShadow: `0 0 12px ${color}66` } : {}}>
-        {val}
-      </div>
-      {!last && <div className="node-arrow">→</div>}
-    </div>
-  );
-}
-
-function LinkedListViz({ nodes, activeIdx, visitedSet, color }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, padding: 16,
-      background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, minHeight: 80, flex: 1
-    }}>
-      {nodes.map((v, i) => (
-        <LLNode key={i} val={v} active={activeIdx === i} visited={visitedSet.has(i)} last={i === nodes.length - 1} color={color} />
-      ))}
-      <div className="node-box" style={{ borderStyle: "dashed", color: "var(--muted)" }}>null</div>
-    </div>
-  );
-}
+import LinkedListChainViz from "../../components/visualize-shared/LinkedListChainViz.jsx";
 
 function MergeSortedViz({ l1, l2, merged, p1, p2 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", padding: "0 20px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 30, fontWeight: "bold", color: "var(--cyan)", fontSize: 14 }}>L1:</div>
-        <LinkedListViz nodes={l1} activeIdx={p1} visitedSet={new Set(Array.from({ length: p1 }, (_, i) => i))} color="var(--cyan)" />
+        <LinkedListChainViz nodes={l1} activeIdx={p1} visitedSet={new Set(Array.from({ length: p1 }, (_, i) => i))} color="var(--cyan)" />
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 30, fontWeight: "bold", color: "var(--orange)", fontSize: 14 }}>L2:</div>
-        <LinkedListViz nodes={l2} activeIdx={p2} visitedSet={new Set(Array.from({ length: p2 }, (_, i) => i))} color="var(--orange)" />
+        <LinkedListChainViz nodes={l2} activeIdx={p2} visitedSet={new Set(Array.from({ length: p2 }, (_, i) => i))} color="var(--orange)" />
       </div>
       <div style={{ width: "100%", height: 1, background: "var(--border2)" }} />
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 60, fontWeight: "bold", color: "var(--green)", fontSize: 14 }}>Merged:</div>
-        <LinkedListViz nodes={merged} activeIdx={merged.length - 1} visitedSet={new Set()} color="var(--green)" />
+        <LinkedListChainViz nodes={merged} activeIdx={merged.length - 1} visitedSet={new Set()} color="var(--green)" />
       </div>
     </div>
   );
@@ -374,7 +348,7 @@ export default function LinkedListPage() {
             {isMerge ? (
               <MergeSortedViz l1={l1} l2={l2} merged={merged} p1={p1} p2={p2} />
             ) : (
-              <LinkedListViz nodes={nodes} activeIdx={activeIdx} visitedSet={visitedSet} />
+              <LinkedListChainViz nodes={nodes} activeIdx={activeIdx} visitedSet={visitedSet} />
             )}
           </div>
         </div>
