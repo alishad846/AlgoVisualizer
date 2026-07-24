@@ -78,4 +78,35 @@ describe('adaptLinkedListTrace', () => {
     const allFrozenOnThree = frames.every((f) => JSON.stringify(f.data.values) === JSON.stringify([3]));
     expect(allFrozenOnThree).toBe(false);
   });
+
+  it('tags a same-length, changed-content frame as swap (a mutation), and a shrinking-chain frame as compare (an advance)', () => {
+    const n3 = { value: 3, next: null };
+    const n2 = { value: 2, next: n3 };
+    const n1 = { value: 1, next: n2 };
+    // Reversed order of the same 3 nodes, still length 3 — represents an in-place mutation.
+    const r3 = { value: 1, next: null };
+    const r2 = { value: 2, next: r3 };
+    const r1 = { value: 3, next: r2 };
+    const trace = [
+      { line: 1, locals: { node: n1 }, callDepth: 0, event: 'step' }, // [1,2,3] — first frame, default compare
+      { line: 2, locals: { node: n2 }, callDepth: 0, event: 'step' }, // [2,3] — shrunk from 3 to 2 -> advance -> compare
+      { line: 3, locals: { node: r1 }, callDepth: 0, event: 'step' }, // [3,2,1] — same length as [2,3]? no, length 3 vs 2, still shrink-or-grow path
+    ];
+    const frames = adaptLinkedListTrace(trace);
+    expect(frames[0].type).toBe('compare');
+    expect(frames[1].type).toBe('compare');
+  });
+
+  it('tags a frame whose chain is the same length but different content as swap', () => {
+    const a2 = { value: 2, next: null };
+    const a1 = { value: 1, next: a2 };
+    const b2 = { value: 1, next: null };
+    const b1 = { value: 2, next: b2 };
+    const trace = [
+      { line: 1, locals: { node: a1 }, callDepth: 0, event: 'step' }, // [1,2]
+      { line: 2, locals: { node: b1 }, callDepth: 0, event: 'step' }, // [2,1] — same length, different content
+    ];
+    const frames = adaptLinkedListTrace(trace);
+    expect(frames[1].type).toBe('swap');
+  });
 });

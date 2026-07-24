@@ -82,19 +82,32 @@ export function adaptLinkedListTrace(trace) {
   if (!headVarName) return null;
 
   const frames = [];
+  let prevValues = null;
   trace.forEach((record) => {
     const node = record.locals ? record.locals[headVarName] : undefined;
     if (node === undefined) return;
     const values = isListNode(node) ? chainToValues(node) : [];
+    // Same length but different content -> the pointer didn't just advance, something
+    // was mutated (e.g. list reversal rewriting .next pointers) -> 'swap'. Any other
+    // change (typically the chain shrinking as the traversal pointer walks forward)
+    // -> 'compare'.
+    let type = 'compare';
+    if (prevValues && values.length === prevValues.length && JSON.stringify(values) !== JSON.stringify(prevValues)) {
+      type = 'swap';
+    }
     frames.push({
       data: { values, activeIndex: values.length > 0 ? 0 : -1 },
       states: {},
       log: `Line ${record.line}: ${headVarName} -> [${values.join(' -> ')}]`,
-      type: 'info',
+      type,
     });
+    prevValues = values;
   });
 
   if (frames.length === 0) return null;
-  frames[frames.length - 1].type = 'done';
+  // Only override to 'done' if the last frame is not a 'swap' (preserve swaps).
+  if (frames[frames.length - 1].type !== 'swap') {
+    frames[frames.length - 1].type = 'done';
+  }
   return frames;
 }
