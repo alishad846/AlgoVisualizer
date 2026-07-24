@@ -28,8 +28,10 @@ describe('DPGridViz', () => {
 
   it('highlights the active cell', () => {
     render(<DPGridViz frame={{ data: { dim: 1, values: [3, 5] }, states: { 1: 'active' } }} />);
-    const active = screen.getByText('5');
-    const idle = screen.getByText('3');
+    // The background/color live on the chip wrapper div, not the text node itself
+    // (DpTableViz nests the value in an inner div alongside an optional index label).
+    const active = screen.getByText('5').parentElement;
+    const idle = screen.getByText('3').parentElement;
     expect(active.style.background).not.toBe(idle.style.background);
   });
 });

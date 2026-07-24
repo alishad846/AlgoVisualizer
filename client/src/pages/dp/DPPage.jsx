@@ -5,6 +5,7 @@ import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import MultiLangCode from "../../components/MultiLangCode";
 import { DP_EXPLANATIONS } from "../../data/algoExplanations";
+import DpTableViz from "../../components/visualize-shared/DpTableViz.jsx";
 
 /* Fibonacci DP table */
 function fibSteps(n) {
@@ -263,108 +264,29 @@ export default function DPPage() {
             
             {/* Fibonacci */}
             {isFib && (
-              <div style={{display:"flex",gap:6,flexWrap:"wrap", justifyContent:"center"}}>
-                {fibDp.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
-                {fibDp.map((v,i)=>(
-                  <div key={i} style={{
-                    textAlign:"center",minWidth:48,
-                    padding:"8px 4px",borderRadius:8,
-                    background:i===fibActive?"var(--active-bg)":"var(--surface2)",
-                    border:`1px solid ${i===fibActive?"var(--active-bg)":"var(--border)"}`,
-                    transition:"all 0.3s",
-                    color:i===fibActive?"var(--active-text)":"var(--text)"
-                  }}>
-                    <div style={{fontSize:10,color:i===fibActive?"var(--active-text)":"var(--muted)"}}>n={i}</div>
-                    <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v}</div>
-                  </div>
-                ))}
-              </div>
+              <DpTableViz dim={1} values={fibDp} active={fibActive} indexLabel={(i) => `n=${i}`} />
             )}
 
             {/* Coin Change */}
             {isCoin && (
-              <div style={{display:"flex",gap:6,flexWrap:"wrap", justifyContent:"center"}}>
-                {coinDp.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
-                {coinDp.map((v,i)=>(
-                  <div key={i} style={{
-                    textAlign:"center",minWidth:48,
-                    padding:"8px 4px",borderRadius:8,
-                    background:i===coinActive?"var(--active-bg)":"var(--surface2)",
-                    border:`1px solid ${i===coinActive?"var(--active-bg)":"var(--border)"}`,
-                    transition:"all 0.3s",
-                    color:i===coinActive?"var(--active-text)":"var(--text)"
-                  }}>
-                    <div style={{fontSize:10,color:i===coinActive?"var(--active-text)":"var(--muted)"}}>amt={i}</div>
-                    <div style={{fontWeight:700,fontFamily:"JetBrains Mono,monospace",fontSize:13}}>{v===Infinity?"∞":v}</div>
-                  </div>
-                ))}
-              </div>
+              <DpTableViz dim={1} values={coinDp} active={coinActive} indexLabel={(i) => `amt=${i}`} />
             )}
 
             {/* Knapsack */}
             {isKnapsack && (
-              <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
-                {knapTable.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
-                {knapTable.length > 0 && (
-                  <table style={{borderCollapse:"separate",borderSpacing:3}}>
-                    <tbody>
-                      {knapTable.map((row,i)=>(
-                        <tr key={i}>
-                          {row.map((val,w)=>{
-                            const isActive = knapActiveCell&&knapActiveCell[0]===i&&knapActiveCell[1]===w;
-                            return (
-                              <td key={w} style={{
-                                width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
-                                color:isActive?"var(--active-text)":val>0?"var(--green)":"var(--muted)",
-                                fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
-                                transition:"all 0.3s"
-                              }}>{val}</td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+              <DpTableViz dim={2} grid={knapTable} active={knapActiveCell} colorScheme="green" />
             )}
 
             {/* LCS */}
             {isLcs && (
-              <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
-                {lcsTable.length === 0 && <span style={{color:"var(--muted)"}}>Press Start</span>}
-                {lcsTable.length > 0 && (
-                  <table style={{borderCollapse:"separate",borderSpacing:3}}>
-                    <tbody>
-                      {/* Header Row */}
-                      <tr>
-                        <td></td><td></td>
-                        {s2.split('').map((c, j) => <td key={j} style={{textAlign:"center", fontWeight:"bold", color:"var(--muted)"}}>{c}</td>)}
-                      </tr>
-                      {lcsTable.map((row,i)=>(
-                        <tr key={i}>
-                          <td style={{textAlign:"center", fontWeight:"bold", color:"var(--muted)", width: 20}}>
-                            {i > 0 ? s1[i-1] : ''}
-                          </td>
-                          {row.map((val,j)=>{
-                            const isActive = lcsActiveCell&&lcsActiveCell[0]===i&&lcsActiveCell[1]===j;
-                            return (
-                              <td key={j} style={{
-                                width:36,height:32,textAlign:"center",borderRadius:6,
-                                background:isActive?"var(--active-bg)":val>0?"var(--surface2)":"var(--surface)",
-                                color:isActive?"var(--active-text)":val>0?"var(--purple)":"var(--muted)",
-                                fontFamily:"JetBrains Mono,monospace",fontSize:12,fontWeight:700,
-                                transition:"all 0.3s"
-                              }}>{val}</td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
+              <DpTableViz
+                dim={2}
+                grid={lcsTable}
+                active={lcsActiveCell}
+                colorScheme="purple"
+                rowLabels={lcsTable.map((_, i) => (i > 0 ? s1[i - 1] : ''))}
+                colLabels={s2.split('')}
+              />
             )}
           </div>
         </div>
