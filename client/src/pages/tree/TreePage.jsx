@@ -18,18 +18,28 @@ function randTree(depth = 3) {
 }
 
 
+// Returns [{ path, val }] in traversal order. Tracking path (not just val) alongside
+// each visited value avoids ambiguity when the tree has duplicate values — see the
+// activeSet/activeId usage below, which was previously matching by value and could
+// highlight the wrong node when a value appeared more than once in the tree.
 function getTraversal(root, type) {
   const result = [];
-  function inorder(n) { if (!n) return; inorder(n.left); result.push(n.val); inorder(n.right); }
-  function preorder(n) { if (!n) return; result.push(n.val); preorder(n.left); preorder(n.right); }
-  function postorder(n) { if (!n) return; postorder(n.left); postorder(n.right); result.push(n.val); }
+  function inorder(n, path) { if (!n) return; inorder(n.left, path + "L"); result.push({ path, val: n.val }); inorder(n.right, path + "R"); }
+  function preorder(n, path) { if (!n) return; result.push({ path, val: n.val }); preorder(n.left, path + "L"); preorder(n.right, path + "R"); }
+  function postorder(n, path) { if (!n) return; postorder(n.left, path + "L"); postorder(n.right, path + "R"); result.push({ path, val: n.val }); }
   function levelorder(n) {
-    if (!n) return; const q = [n];
-    while (q.length) { const node = q.shift(); result.push(node.val); if (node.left) q.push(node.left); if (node.right) q.push(node.right); }
+    if (!n) return;
+    const q = [{ node: n, path: "root" }];
+    while (q.length) {
+      const { node, path } = q.shift();
+      result.push({ path, val: node.val });
+      if (node.left) q.push({ node: node.left, path: path + "L" });
+      if (node.right) q.push({ node: node.right, path: path + "R" });
+    }
   }
-  if (type === "inorder") inorder(root);
-  else if (type === "preorder") preorder(root);
-  else if (type === "postorder") postorder(root);
+  if (type === "inorder") inorder(root, "root");
+  else if (type === "preorder") preorder(root, "root");
+  else if (type === "postorder") postorder(root, "root");
   else levelorder(root);
   return result;
 }
@@ -103,14 +113,14 @@ export default function TreePage() {
 
     for (let i = 0; i < order.length; i++) {
       if (stopRef.current) break;
-      setActiveSet(new Set([order[i]]));
-      setVisited(order.slice(0, i + 1));
+      setActiveSet(new Set([order[i].path]));
+      setVisited(order.slice(0, i + 1).map(o => o.val));
       setTreeIdx(i);
-      setStepLog(prev => [...prev, { text: `Visiting node: ${order[i]}`, type: "compare" }]);
+      setStepLog(prev => [...prev, { text: `Visiting node: ${order[i].val}`, type: "compare" }]);
       await new Promise(r => setTimeout(r, speed));
     }
     if (!stopRef.current) {
-      setStepLog(prev => [...prev, { text: `${algo} complete: [${order.join(" → ")}]`, type: "done" }]);
+      setStepLog(prev => [...prev, { text: `${algo} complete: [${order.map(o => o.val).join(" → ")}]`, type: "done" }]);
       setTreeIdx(order.length - 1);
     }
     setRunning(false);
@@ -120,18 +130,18 @@ export default function TreePage() {
     if (running || !treeOrder || treeIdx <= 0) return;
     const nextIdx = treeIdx - 1;
     setTreeIdx(nextIdx);
-    setActiveSet(new Set([treeOrder[nextIdx]]));
-    setVisited(treeOrder.slice(0, nextIdx + 1));
-    setStepLog(treeOrder.slice(0, nextIdx + 1).map(val => ({ text: `Visiting node: ${val}`, type: "compare" })));
+    setActiveSet(new Set([treeOrder[nextIdx].path]));
+    setVisited(treeOrder.slice(0, nextIdx + 1).map(o => o.val));
+    setStepLog(treeOrder.slice(0, nextIdx + 1).map(o => ({ text: `Visiting node: ${o.val}`, type: "compare" })));
   };
 
   const handleTreeNext = () => {
     if (running || !treeOrder || treeIdx >= treeOrder.length - 1) return;
     const nextIdx = treeIdx + 1;
     setTreeIdx(nextIdx);
-    setActiveSet(new Set([treeOrder[nextIdx]]));
-    setVisited(treeOrder.slice(0, nextIdx + 1));
-    setStepLog(treeOrder.slice(0, nextIdx + 1).map(val => ({ text: `Visiting node: ${val}`, type: "compare" })));
+    setActiveSet(new Set([treeOrder[nextIdx].path]));
+    setVisited(treeOrder.slice(0, nextIdx + 1).map(o => o.val));
+    setStepLog(treeOrder.slice(0, nextIdx + 1).map(o => ({ text: `Visiting node: ${o.val}`, type: "compare" })));
   };
 
   return (
@@ -174,13 +184,12 @@ export default function TreePage() {
         <div className="viz-center">
           {(() => {
             const { nodes: flatNodes, edges: flatEdges } = treeToFlat(tree);
-            const activeValue = activeSet.size > 0 ? String([...activeSet][0]) : null;
-            const activeNode = activeValue ? flatNodes.find((n) => n.label === activeValue) : null;
+            const activeId = activeSet.size > 0 ? [...activeSet][0] : undefined;
             return (
               <TreeSvg
                 nodes={flatNodes}
                 edges={flatEdges}
-                activeId={activeNode ? activeNode.id : undefined}
+                activeId={activeId}
                 visitedOrder={visited.map(String)}
               />
             );
