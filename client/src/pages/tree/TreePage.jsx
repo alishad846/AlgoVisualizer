@@ -5,6 +5,7 @@ import AlgoExplain from "../../components/AlgoExplain";
 import StepLog from "../../components/StepLog";
 import MultiLangCode from "../../components/MultiLangCode";
 import { TREE_EXPLANATIONS } from "../../data/algoExplanations";
+import TreeSvg from "../../components/visualize-shared/TreeSvg.jsx";
 
 /* Simple binary tree node layout */
 function randTree(depth = 3) {
@@ -33,24 +34,26 @@ function getTraversal(root, type) {
   return result;
 }
 
-function TreeNode({ node, activeSet, depth = 0, x = 50, spread = 25 }) {
-  if (!node) return null;
-  const lx = x - spread / (depth + 1);
-  const rx = x + spread / (depth + 1);
-  const active = activeSet.has(node.val);
-  return (
-    <g>
-      {node.left && <line x1={`${x}%`} y1={depth * 70 + 30} x2={`${lx}%`} y2={(depth + 1) * 70 + 30} stroke="var(--border2)" strokeWidth={1.5} />}
-      {node.right && <line x1={`${x}%`} y1={depth * 70 + 30} x2={`${rx}%`} y2={(depth + 1) * 70 + 30} stroke="var(--border2)" strokeWidth={1.5} />}
-      <circle cx={`${x}%`} cy={depth * 70 + 30} r={20}
-        fill={active ? "var(--active-bg)" : "var(--surface2)"} stroke={active ? "var(--active-bg)" : "var(--border2)"} strokeWidth={2}
-        style={{ transition: "fill 0.3s" }} />
-      <text x={`${x}%`} y={depth * 70 + 35} textAnchor="middle" fontSize={12} fontWeight="bold"
-        fill={active ? "var(--active-text)" : "var(--text)"} style={{ transition: "fill 0.3s" }}>{node.val}</text>
-      {node.left && <TreeNode node={node.left} activeSet={activeSet} depth={depth + 1} x={lx} spread={spread} />}
-      {node.right && <TreeNode node={node.right} activeSet={activeSet} depth={depth + 1} x={rx} spread={spread} />}
-    </g>
-  );
+// Converts the page's nested {val,left,right} tree into the flat {nodes,edges} shape
+// TreeSvg (and treeAdapter.js, for the custom-code path) both use — see treeAdapter.js's
+// treeToNodesEdges for the parallel version operating on trace-derived nodes.
+function treeToFlat(node, path = "root", depth = 0) {
+  if (!node) return { nodes: [], edges: [] };
+  const nodes = [{ id: path, label: String(node.val), depth }];
+  const edges = [];
+  if (node.left) {
+    edges.push({ from: path, to: `${path}L` });
+    const sub = treeToFlat(node.left, `${path}L`, depth + 1);
+    nodes.push(...sub.nodes);
+    edges.push(...sub.edges);
+  }
+  if (node.right) {
+    edges.push({ from: path, to: `${path}R` });
+    const sub = treeToFlat(node.right, `${path}R`, depth + 1);
+    nodes.push(...sub.nodes);
+    edges.push(...sub.edges);
+  }
+  return { nodes, edges };
 }
 
 export default function TreePage() {
@@ -169,20 +172,19 @@ export default function TreePage() {
 
         {/* CENTER — Visualizer */}
         <div className="viz-center">
-          <div className="card" style={{ padding: 16, minHeight: 340 }}>
-            <svg width="100%" height={320}>
-              <TreeNode node={tree} activeSet={activeSet} depth={0} x={50} spread={28} />
-
-            </svg>
-          </div>
-
-          {visited.length > 0 && (
-            <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 4, padding: 8 }}>
-              {visited.map((v, i) => (
-                <div key={i} style={{ padding: "2px 10px", borderRadius: 20, background: "rgba(6,182,212,0.15)", color: "var(--cyan)", fontSize: 12, fontWeight: 700 }}>{v}</div>
-              ))}
-            </div>
-          )}
+          {(() => {
+            const { nodes: flatNodes, edges: flatEdges } = treeToFlat(tree);
+            const activeValue = activeSet.size > 0 ? String([...activeSet][0]) : null;
+            const activeNode = activeValue ? flatNodes.find((n) => n.label === activeValue) : null;
+            return (
+              <TreeSvg
+                nodes={flatNodes}
+                edges={flatEdges}
+                activeId={activeNode ? activeNode.id : undefined}
+                visitedOrder={visited.map(String)}
+              />
+            );
+          })()}
         </div>
 
         {/* RIGHT — Step Log */}
