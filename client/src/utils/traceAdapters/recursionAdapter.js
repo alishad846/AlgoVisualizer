@@ -13,7 +13,7 @@ export function adaptRecursionTrace(trace) {
         data: [...stack],
         states: {},
         log: `Entering ${record.functionName || 'function'}(${Object.values(record.locals || {}).join(', ')})`,
-        type: 'info',
+        type: 'compare',
       });
     } else if (record.event === 'return') {
       sawCallOrReturn = true;
