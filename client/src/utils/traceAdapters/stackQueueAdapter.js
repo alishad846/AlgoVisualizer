@@ -37,16 +37,24 @@ export function adaptStackQueueTrace(trace) {
   const direction = inferDirection(trace, varName);
 
   const frames = [];
+  let prevLength = null;
   trace.forEach((record) => {
     const value = record.locals ? record.locals[varName] : undefined;
     if (!Array.isArray(value)) return;
     const activeIndex = value.length === 0 ? -1 : direction === 'stack' ? value.length - 1 : 0;
+    // Matches StackQueuePage's own convention (see validParenthesesAlgo): a push/grow is
+    // 'info', a pop/shrink is 'swap' (the "completing" action), an unchanged size (a
+    // peek/comparison line) is 'compare'.
+    let type = 'compare';
+    if (prevLength === null || value.length > prevLength) type = 'info';
+    else if (value.length < prevLength) type = 'swap';
     frames.push({
       data: { values: value, activeIndex, direction },
       states: {},
       log: `Line ${record.line}: ${varName} = [${value.join(', ')}]`,
-      type: 'info',
+      type,
     });
+    prevLength = value.length;
   });
 
   if (frames.length === 0) return null;

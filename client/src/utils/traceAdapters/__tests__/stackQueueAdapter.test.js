@@ -43,4 +43,20 @@ describe('adaptStackQueueTrace', () => {
     const frames = adaptStackQueueTrace(trace);
     expect(frames[0].data.direction).toBe('stack');
   });
+
+  it('tags a growing frame info, a shrinking frame swap, and an unchanged-size frame compare', () => {
+    const trace = [
+      { line: 1, locals: { stack: [1] }, callDepth: 0, event: 'step' },       // first frame -> info
+      { line: 2, locals: { stack: [1, 2] }, callDepth: 0, event: 'step' },     // grew -> info
+      { line: 3, locals: { stack: [1, 2] }, callDepth: 0, event: 'step' },     // unchanged -> compare
+      { line: 4, locals: { stack: [1] }, callDepth: 0, event: 'step' },        // shrank -> swap
+      { line: 5, locals: { stack: [] }, callDepth: 0, event: 'step' },         // last frame -> forced done
+    ];
+    const frames = adaptStackQueueTrace(trace);
+    expect(frames[0].type).toBe('info');
+    expect(frames[1].type).toBe('info');
+    expect(frames[2].type).toBe('compare');
+    expect(frames[3].type).toBe('swap');
+    expect(frames[4].type).toBe('done');
+  });
 });
