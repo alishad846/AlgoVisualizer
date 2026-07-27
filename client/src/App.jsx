@@ -14,6 +14,7 @@ import DPPage from "./pages/dp/DPPage";
 import MLPage from "./pages/ml/MLPage";
 import DocumentationPage from "./pages/DocumentationPage";
 import SupportPage from "./pages/SupportPage";
+import VisualizeMyCodePage from "./pages/visualize/VisualizeMyCodePage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/visualize-my-code" element={<VisualizeMyCodePage />} />
       <Route path="/documentation" element={<DocumentationPage />} />
       <Route path="/support" element={<SupportPage />} />
       <Route path="/sorting" element={<Navigate to="/sorting/bubble-sort" />} />

@@ -6,6 +6,10 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 
+const fs = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = 'algo_vision_secret_key';
@@ -330,6 +334,88 @@ app.post('/api/support', async (req, res) => {
         console.error('Support email error:', error);
         res.status(500).json({ error: 'Failed to send support email. Please verify SMTP settings.' });
     }
+});
+
+// ========================================
+// VISUALIZE MY CODE - EXECUTION ENGINE
+// ========================================
+app.post('/api/visualize', authenticateToken, async (req, res) => {
+  const { language, code } = req.body;
+  
+  if (!code || !language) {
+    return res.status(400).json({ error: 'Source code and language are required' });
+  }
+
+  // 1. Ensure temporary directory exists for sandboxed execution
+  const tempDir = path.join(__dirname, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  const timestamp = Date.now();
+  let filePath = '';
+  let execCommand = '';
+
+  // 2. Prepare files and execution commands based on language
+  if (language.toLowerCase() === 'python') {
+    filePath = path.join(tempDir, `script_${timestamp}.py`);
+    fs.writeFileSync(filePath, code);
+    execCommand = `python "${filePath}"`;
+  } else if (language.toLowerCase() === 'java') {
+    // Java requires the filename to match the public class name
+    const className = `Solution_${timestamp}`;
+    // Automatically replace 'public class Whatever' or 'class Whatever' with our unique class name
+    const javaCode = code.replace(/(public\s+)?class\s+\w+/g, `public class ${className}`);
+    filePath = path.join(tempDir, `${className}.java`);
+    fs.writeFileSync(filePath, javaCode);
+    // Compile and run inside the temp directory
+    execCommand = `javac "${filePath}" && java -cp "${tempDir}" ${className}`;
+  } else {
+    return res.status(400).json({ error: 'Unsupported language. Please submit Python or Java code.' });
+  }
+
+  // 3. Execute in a child process with a strict 3000ms safety timeout
+  exec(execCommand, { timeout: 3000 }, (error, stdout, stderr) => {
+    // 4. Clean up temporary files immediately after execution
+    try {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (language.toLowerCase() === 'java') {
+        const classFile = filePath.replace('.java', '.class');
+        if (fs.existsSync(classFile)) fs.unlinkSync(classFile);
+      }
+    } catch (cleanupErr) {
+      console.error('Error cleaning up temp files:', cleanupErr);
+    }
+
+    // Handle execution timeouts (infinite loops)
+    if (error && error.killed) {
+      return res.status(408).json({ error: 'Execution timed out (3s limit). Check your code for infinite loops!' });
+    }
+
+    // Handle compilation or runtime syntax errors
+    if (stderr || (error && error.code !== 0)) {
+      return res.status(400).json({ 
+        error: 'Compilation or Runtime Error', 
+        details: stderr || error?.message || 'Unknown error during execution' 
+      });
+    }
+
+    // 5. Parse output into structured visualization frames
+    try {
+      // Try parsing if the user code outputted structured JSON frames
+      const parsedFrames = JSON.parse(stdout.trim());
+      return res.status(200).json({ success: true, frames: parsedFrames });
+    } catch (e) {
+      // Fallback: Convert standard line-by-line print logs into animation step frames
+      const lines = stdout.trim().split('\n').filter(line => line.trim().length > 0);
+      const generatedFrames = lines.map((line, idx) => ({
+        step: idx + 1,
+        log: line.trim(),
+        type: idx === lines.length - 1 ? 'done' : 'info'
+      }));
+      return res.status(200).json({ success: true, frames: generatedFrames });
+    }
+  });
 });
 
 app.listen(PORT, () => {
